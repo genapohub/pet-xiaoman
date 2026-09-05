@@ -24,7 +24,7 @@ Harness 版本：v1.2
 
 ## 二、当前阶段总览（一句话）
 
-> **宠小满 开发完成：微信登录已合并（48 测试全绿，api fcad795 / miniapp 839a89a）——代码层全部完成；剩余=外部依赖（商户号申请/类目提审）+ 上线演练（备份恢复+真单全流程）。**
+> **宠小满：品牌视觉体系完成（8 类全齐：logo 方向 A 定稿+色彩/字体/线上 VI/手册/资产清单）——剩余=设计师精稿（checklist 已给）+ 商标检索启动 + 外部依赖（商户号/类目提审）+ 上线演练。**
 
 ---
 
@@ -34,7 +34,8 @@ Harness 版本：v1.2
 |---|---|---|---|---|---|---|
 | 微信登录全链路完成（后端 fcad795 + miniapp 839a89a） | backend/frontend-dev-guide | ✅ 完成 | 48 测试全绿；并行会话重复开发识别后采纳先到实现 | 09-05 | - |
 | 微信登录 review | 张孟博 | backend/frontend-dev-guide | ✅ 已确认合并（api fcad795 / miniapp 839a89a 直提 main，无分支失误已记录） | - | - | - |
-| 品牌视觉第一轮确认（logo 方向 A/B/C） | 张孟博 | graphic-design-guide | 待哥拿坡选方向 | 03-品牌设计/logo设计方案 v1.0 | 09-06 | 09-06 |
+| 品牌视觉第一轮确认 | 张孟博 | graphic-design-guide | ✅ 方向 A「将满的圆」已确认（09-05） | - | - | - |
+| logo 精稿 + 线上成图 | 设计师（或设计工具） | graphic-design-guide | 待启动 | 精稿 checklist 在资产交付清单 v1.0 §三 | - | - |
 | 小程序页面联调 review | 张孟博 | frontend-dev-guide | ✅ 已确认合并 | - | - | - |
 | B010 看板 review | 张孟博 | tech-lead/frontend | 待哥拿坡 review（main 已合并，可 revert） | main | 09-05 | - |
 | B 端第二批 review | 张孟博 | backend/frontend-dev-guide | ✅ 已确认合并 | - | - | - |
