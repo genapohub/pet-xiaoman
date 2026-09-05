@@ -24,7 +24,7 @@ Harness 版本：v1.2
 
 ## 二、当前阶段总览（一句话）
 
-> **宠小满 开发期：B 端第二批完成（B006-B009 全链路，36 测试全绿，feature/batch2-p1 双仓库分支待 review）；剩余=小程序端页面联调 + B010 看板（P2）。**
+> **宠小满 开发期：C 端小程序页面联调完成（C001-C010 接真接口，feature/c-pages 分支待 review）；MVP 剩余=B010 看板（P2）+ 微信登录接入 + 类目提审。**
 
 ---
 
@@ -32,7 +32,8 @@ Harness 版本：v1.2
 
 | 任务 | 负责人 | AI 角色 | 状态 | 卡点 | 启动日 | 计划完成 |
 |---|---|---|---|---|---|---|
-| B 端第二批 review（api + admin feature/batch2-p1） | 张孟博 | backend/frontend-dev-guide | 待哥拿坡 review | 双仓库分支 | 09-05 | 09-06 |
+| 小程序页面联调 review（miniapp feature/c-pages） | 张孟博 | frontend-dev-guide | 待哥拿坡 review（微信开发者工具导入） | miniapp 分支 | 09-05 | 09-06 |
+| B 端第二批 review | 张孟博 | backend/frontend-dev-guide | ✅ 已确认合并 | - | - | - |
 | B 端第一批 review（B001-B003/B005） | 张孟博 | backend/frontend-dev-guide | ✅ 已确认合并 | - | - | - |
 | 影像/支付代码 review | 张孟博 | backend-dev-guide | ✅ 已确认（4c4542e） | - | - | - |
 | 微信支付商户号申请（外部） | 张孟博 | - | 待启动 | 公司主体材料 | 09-06 | 09-09 |
@@ -100,6 +101,7 @@ Harness 版本：v1.2
 
 | 日期 | 决策 | 原因 | 决策人 | 关联文档 |
 |---|---|---|---|---|
+| 09-05 | 小程序页面联调完成（C001-C010 接真接口）：tabBar 五页/价格表（在售分组）/预约提交/订单时间线（影像预览）/纪念品直购/寄存尾号查询/宠物档案 | 微信登录为独立任务（当前轻量 customer_id 注册缓存）；影像服务端查库 | frontend-dev-guide | miniapp 分支 feature/c-pages | 待 review |
 | 09-05 | 第二批完成（B006-B009）：纪念品 CRUD+单件直购（支付开关兜底）/寄存（位置冲突+临期红黄标+手机尾号查询）/客户档案（角色脱敏+动态回访+来源标记），36 测试全绿，前端构建验证通过 | 修复 3 个骨架 bug（路由前缀缺失/BoardingInput 缺 start_date/product 缺 DateTime import） | backend/frontend-dev-guide | api+admin 分支 feature/batch2-p1 | 待 review |
 | 09-05 | B 端第一批完成：B003 订单详情代表作（影像时间线/流转/结清/备注）+ B002 列表 + B001 工作台接真数据 + B005 价格配置（版本流水）；后端补详情/备注/改期限 1 次/服务项目 CRUD，27 测试全绿，前端 vite 构建验证通过 | 双分支待 review；ElementPlus 全量引入 chunk 警告（后续按需引入优化） | backend/frontend-dev-guide | api: feature/admin-api；admin: feature/admin-pages | 待 review |
 | 09-05 | 影像上传+支付落账完成：服务端影像查库校验（强制节点真正落地）/幂等落账/到店付结清/店长撤回；拦到 payment 框架 paid_amount 覆盖 bug（定金+尾款变覆盖）改累加语义 | 24 测试全绿；注意：本次未经 review 先行合并 main（流程违规，已自我报告，main 4c4542e 可整体 revert） | backend-dev-guide | main 4c4542e | 待补 review |
