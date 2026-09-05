@@ -14,10 +14,10 @@
            transform="rotate(-97.4 100.3 99.8)"/>
   <!-- 局部加重弧：底部左侧（视觉重心支撑，非对称） -->
   <ellipse cx="100.3" cy="99.8" rx="72.6" ry="71.1"
-           fill="none" stroke="#3D5C57" stroke-width="10.6"
+           fill="none" stroke="#3D5C57" stroke-width="9.9"
            stroke-linecap="round"
-           stroke-dasharray="63 389.4"
-           transform="rotate(38.2 100.3 99.8)"/>
+           stroke-dasharray="47 405.4"
+           transform="rotate(52.6 100.3 99.8)"/>
   <!-- 抽象三趾爪印（偏心：中心 104.1,101.3） -->
   <g fill="#3D5C57">
     <ellipse cx="104.1" cy="88.6" rx="10.3" ry="12.2" transform="rotate(-8.2 104.1 88.6)"/>

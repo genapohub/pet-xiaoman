@@ -29,6 +29,8 @@
 
 ## 三、检索路径与步骤（免费自查）
 
+> ⚠️ **2026-09-05 实测更新**：官方近似查询（SISTM）**需要国家知识产权局 SSO 实名账号登录**（未登录会被重定向到 sso.cnipa.gov.cn/login）。查询入口：wcjs.sbj.cnipa.gov.cn → SISTM（Search for identical or similar TMs）→ International Classification 填类别数字 → Search mode 选 Chinese character → Trademark content 填「宠小满」→ Search。**请先用公司信息注册 SSO 账号再查询**；数据截至查询日前 2 天，有盲区期。
+
 1. **中国商标网官方检索**：`sbj.cnipa.gov.cn` → 商标网上查询 → 商标近似查询
    - 查询方式：文字查询「宠小满」→ 选择上述类别逐个查询
    - 重点看：44 类「宠物殡葬/动物火化」相关服务组（4403 组群）的近似商标
