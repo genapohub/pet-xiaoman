@@ -36,6 +36,7 @@ Harness 版本：v1.2
 | 微信登录 review | 张孟博 | backend/frontend-dev-guide | ✅ 已确认合并（api fcad795 / miniapp 839a89a 直提 main，无分支失误已记录） | - | - | - |
 | 品牌视觉第一轮确认 | 张孟博 | graphic-design-guide | ✅ 方向 A「将满的圆」已确认（09-05） | - | - | - |
 | logo 精稿 + PNG 成图 | 张孟博 | graphic-design-guide | ✅ 完成（三版本 SVG + 10 尺寸 PNG，视觉自检通过） | 03-品牌设计/assets/ | - | - |
+| brand kit 落地（目录实建+线上成图+字体） | 张孟博 | graphic-design-guide | ✅ 完成（pet_xiaoman_brand_kit_v1.0，31 文件） | 03-品牌设计/pet_xiaoman_brand_kit_v1.0/ | - | - |
 | 商标官方检索 | 哥拿坡 | - | 待操作（需 SSO 实名登录） | 检索步骤已更新进商标建议 v1.0 §三 | - | - |
 | 小程序页面联调 review | 张孟博 | frontend-dev-guide | ✅ 已确认合并 | - | - | - |
 | B010 看板 review | 张孟博 | tech-lead/frontend | 待哥拿坡 review（main 已合并，可 revert） | main | 09-05 | - |
