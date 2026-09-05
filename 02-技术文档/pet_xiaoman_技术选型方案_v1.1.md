@@ -1,4 +1,4 @@
-# peixiaoman（宠小满）技术选型方案
+# pet_xiaoman（宠小满）技术选型方案
 
 ## 1. 文档信息
 - 版本：v1.1 · 2026-09-05 · tech-lead-guide × 张孟博（v1.0 + 品牌定名宠小满 + ADR-006 多租户）
@@ -91,7 +91,7 @@
 ```
                     ┌─────────────┐
    宠物主 ────────→ │             │ ←──── 店员/店长
-   （微信小程序）     │ peixiaoman │      （Web 后台，Chrome/Edge）
+   （微信小程序）     │ pet_xiaoman │      （Web 后台，Chrome/Edge）
                     │  门店系统    │
                     └──┬───┬───┬──┘
                        │   │   │
@@ -173,7 +173,7 @@
 
 ## 7. 工程约定（简）
 
-- **仓库结构**：沿用宠宝树模式——`peixiaoman/04-前后端代码/` 下三个独立 git 仓库：`goodend-api`（FastAPI）、`goodend-miniapp`（原生小程序）、`goodend-admin`（Vue3 后台）。根仓库（治理件+文档）由 install.sh 已建，嵌套仓库自动隔离。选 Polyrepo 不选 Monorepo：与宠宝树一致、install.sh 隔离机制现成、单人开发多仓库成本可忽略。
+- **仓库结构**：沿用宠宝树模式——`pet_xiaoman/04-前后端代码/` 下三个独立 git 仓库：`goodend-api`（FastAPI）、`goodend-miniapp`（原生小程序）、`goodend-admin`（Vue3 后台）。根仓库（治理件+文档）由 install.sh 已建，嵌套仓库自动隔离。选 Polyrepo 不选 Monorepo：与宠宝树一致、install.sh 隔离机制现成、单人开发多仓库成本可忽略。
 - **分支策略**：Trunk-Based 简化版——`master`（保护）+ 短命 feature 分支 + AI 产出必须走分支 + 人类 review 合并（AGENTS.md 红线）。
 - **质量门禁**：ruff（lint+format）+ pytest（核心状态机/支付逻辑必须有测试，PRD AC 直接转用例）+ `git-secrets`（密钥扫描）——对应 evals 基线三件套。
 - **API 规范**：FastAPI 自动 OpenAPI 文档即接口协议（知识地图自动产出），路径风格 `/api/c/*`（客户端）/`/api/b/*`（后台）。
@@ -196,8 +196,8 @@
 | 单人开发进度风险 | 中 | 中 | MVP 聚焦 20 页 P0；AI 编程 + evals 基线保证质量；每任务走 Harness 闭环 |
 
 ## 9. 修订记录
-- v1.2（2026-09-05）：定稿单门店定位——ADR-006 多租户改「推迟」状态（方案存档 PRD §12.2），移除数据串店风险项；品牌终名交品牌设计师从「陪小满/宠小满/pet小满」决策，技术侧暂用 peixiaoman/pxm-*
-- v1.1（2026-09-05）：品牌定名宠小满（项目改名 peixiaoman，子仓库 pxm-*）；新增 ADR-006 多租户（shop_id 行级隔离）；ADR-001 单体结论在多租户下复验仍成立（多租户 ≠ 微服务）；风险矩阵增补数据串店风险（缓解：全局 filter + CR 双保险）
+- v1.2（2026-09-05）：定稿单门店定位——ADR-006 多租户改「推迟」状态（方案存档 PRD §12.2），移除数据串店风险项；品牌终名交品牌设计师从「陪小满/宠小满/pet小满」决策，技术侧暂用 pet_xiaoman/pxm-*
+- v1.1（2026-09-05）：品牌定名宠小满（项目改名 pet_xiaoman，子仓库 pxm-*）；新增 ADR-006 多租户（shop_id 行级隔离）；ADR-001 单体结论在多租户下复验仍成立（多租户 ≠ 微服务）；风险矩阵增补数据串店风险（缓解：全局 filter + CR 双保险）
 
 ## 10. 下游交付衔接
 
