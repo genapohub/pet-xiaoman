@@ -32,16 +32,15 @@ Harness 版本：v1.2
 
 | 任务 | 负责人 | AI 角色 | 状态 | 卡点 | 启动日 | 计划完成 |
 |---|---|---|---|---|---|---|
+| 微信登录全链路完成（后端 fcad795 + miniapp 839a89a） | backend/frontend-dev-guide | ✅ 完成 | 48 测试全绿；并行会话重复开发识别后采纳先到实现 | 09-05 | - |
 | 微信登录 review | 张孟博 | backend/frontend-dev-guide | ✅ 已确认合并（api fcad795 / miniapp 839a89a 直提 main，无分支失误已记录） | - | - | - |
 | 小程序页面联调 review | 张孟博 | frontend-dev-guide | ✅ 已确认合并 | - | - | - |
 | B010 看板 review | 张孟博 | tech-lead/frontend | 待哥拿坡 review（main 已合并，可 revert） | main | 09-05 | - |
 | B 端第二批 review | 张孟博 | backend/frontend-dev-guide | ✅ 已确认合并 | - | - | - |
 | B 端第一批 review（B001-B003/B005） | 张孟博 | backend/frontend-dev-guide | ✅ 已确认合并 | - | - | - |
 | 影像/支付代码 review | 张孟博 | backend-dev-guide | ✅ 已确认（4c4542e） | - | - | - |
-| 微信支付商户号申请（外部） | 张孟博 | - | 待启动 | 公司主体材料 | 09-06 | 09-09 |
 | 小程序类目提审材料准备（外部） | 张孟博 | - | 待启动 | 营业执照+许可+中性文案 | 09-06 | 09-08 |
 | 品牌终名/logo/商标设计 | 待定（平面/品牌设计师） | graphic-design-guide | 未启动 | logo/商标视觉设计（品牌名已定宠小满） | - | - |
-| 微信支付商户号申请（外部） | 张孟博 | - | 待启动 | 公司主体材料 | 09-06 | 09-09 |
 | 小程序类目提审材料准备（外部） | 张孟博 | - | 待启动 | 营业执照+许可+中性文案 | 09-06 | 09-08 |
 
 > **WIP 上限 5**：超过 5 个说明并行失控，必须砍掉或合并。
@@ -103,6 +102,7 @@ Harness 版本：v1.2
 
 | 日期 | 决策 | 原因 | 决策人 | 关联文档 |
 |---|---|---|---|---|
+| 09-05 | 微信登录全链路完成（采纳并行会话先到实现，本会话重复开发丢弃） | 后端 fcad795 + miniapp 839a89a；48 测试全绿——多会话并行纪律 N3 的活案例 | 张孟博 | AGENTS.md v1.3 |
 | 09-05 | B010 数据看板完成：北极星月完成单量+环比/KPI 四项（支付渗透/加购率/影像覆盖/好评率）/状态与来源分布（CSS 条形图零依赖）；口径统一按完成时刻 | 漏斗 UV 待埋点（PRD §9）；B010 属 P2 未 review 连续合并（沿用连续开发授权，页面可随时 revert） | tech-lead-guide | api routes/stats.py + admin Stats.vue | 已合并 |
 | 09-05 | 小程序页面联调完成（C001-C010 接真接口）：tabBar 五页/价格表（在售分组）/预约提交/订单时间线（影像预览）/纪念品直购/寄存尾号查询/宠物档案 | 微信登录为独立任务（当前轻量 customer_id 注册缓存）；影像服务端查库 | frontend-dev-guide | miniapp 分支 feature/c-pages | 待 review |
 | 09-05 | 第二批完成（B006-B009）：纪念品 CRUD+单件直购（支付开关兜底）/寄存（位置冲突+临期红黄标+手机尾号查询）/客户档案（角色脱敏+动态回访+来源标记），36 测试全绿，前端构建验证通过 | 修复 3 个骨架 bug（路由前缀缺失/BoardingInput 缺 start_date/product 缺 DateTime import） | backend/frontend-dev-guide | api+admin 分支 feature/batch2-p1 | 待 review |
