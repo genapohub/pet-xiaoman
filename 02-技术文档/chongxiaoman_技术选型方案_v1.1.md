@@ -1,7 +1,7 @@
-# pet_goodend 技术选型方案
+# chongxiaoman（宠小满）技术选型方案
 
 ## 1. 文档信息
-- 版本：v1.0 · 2026-09-05 · tech-lead-guide × 张孟博
+- 版本：v1.1 · 2026-09-05 · tech-lead-guide × 张孟博（v1.0 + 品牌定名宠小满 + ADR-006 多租户）
 - 输入：PRD v1.1（已定稿）；参照系：宠宝树项目同栈经验（FastAPI + 微信云托管 + 原生小程序，含支付回调验签、SQLite→MySQL 迁移踩坑史）
 - 场景：场景一（0→1 技术体系搭建），按 OPC 原则裁剪——团队规划/技术雷达/招聘规划不适用一人公司，本文聚焦选型 + ADR + 架构 + 非功能指标
 
@@ -91,7 +91,7 @@
 ```
                     ┌─────────────┐
    宠物主 ────────→ │             │ ←──── 店员/店长
-   （微信小程序）     │ pet_goodend │      （Web 后台，Chrome/Edge）
+   （微信小程序）     │ chongxiaoman │      （Web 后台，Chrome/Edge）
                     │  门店系统    │
                     └──┬───┬───┬──┘
                        │   │   │
@@ -173,10 +173,17 @@
 
 ## 7. 工程约定（简）
 
-- **仓库结构**：沿用宠宝树模式——`pet_goodend/04-前后端代码/` 下三个独立 git 仓库：`goodend-api`（FastAPI）、`goodend-miniapp`（原生小程序）、`goodend-admin`（Vue3 后台）。根仓库（治理件+文档）由 install.sh 已建，嵌套仓库自动隔离。选 Polyrepo 不选 Monorepo：与宠宝树一致、install.sh 隔离机制现成、单人开发多仓库成本可忽略。
+- **仓库结构**：沿用宠宝树模式——`chongxiaoman/04-前后端代码/` 下三个独立 git 仓库：`goodend-api`（FastAPI）、`goodend-miniapp`（原生小程序）、`goodend-admin`（Vue3 后台）。根仓库（治理件+文档）由 install.sh 已建，嵌套仓库自动隔离。选 Polyrepo 不选 Monorepo：与宠宝树一致、install.sh 隔离机制现成、单人开发多仓库成本可忽略。
 - **分支策略**：Trunk-Based 简化版——`master`（保护）+ 短命 feature 分支 + AI 产出必须走分支 + 人类 review 合并（AGENTS.md 红线）。
 - **质量门禁**：ruff（lint+format）+ pytest（核心状态机/支付逻辑必须有测试，PRD AC 直接转用例）+ `git-secrets`（密钥扫描）——对应 evals 基线三件套。
 - **API 规范**：FastAPI 自动 OpenAPI 文档即接口协议（知识地图自动产出），路径风格 `/api/c/*`（客户端）/`/api/b/*`（后台）。
+
+### ADR-006: 多租户——共享库共享表 + shop_id 行级隔离（邀请制种子店）
+**状态**：已接受
+**背景**：v2.0 定位升级——系统给郑州多家善终门店使用（邀请制，一期自营 + 2-3 家种子店）。是否需要 per-tenant 独立库？
+**决策**：**共享库共享表**，全部业务表加 `shop_id int` 非空索引列，应用层强制租户过滤（SQLAlchemy 全局 query filter），B 端登录态绑定 shop_id。
+**后果**：正——零迁移成本（一期就带 shop_id，后续门店上线即用）、运维单库、跨店汇总（平台管理员看板）天然支持；负——隔离靠应用层纪律（漏加过滤即数据串店，用全局 filter + code review 双保险）、单库故障影响全部门店（可接受，SLA 99.5% 已定）。
+**替代方案**：per-tenant schema（3-5 家店维护 N 份迁移脚本，纯负担）；per-tenant database（备份/升级 ×N，否决）。**触发信号**：租户 >20 家或有数据合规隔离要求时，再评估独立库。
 
 ## 8. 风险矩阵
 
@@ -187,11 +194,15 @@
 | iOS 视频 HEVC 不兼容 | 中 | 低 | 上传前 wx.compressVideo 强制转 H.264（开发注意事项） |
 | 云托管平台故障 | 低 | 中 | SLA 99.5% 已计容忍；门店线下流程兜底；业务代码标准容器可 2 人天迁出 |
 | 单人开发进度风险 | 中 | 中 | MVP 聚焦 20 页 P0；AI 编程 + evals 基线保证质量；每任务走 Harness 闭环 |
+| 多租户数据串店（隔离泄漏） | 低 | 高 | SQLAlchemy 全局 query filter 强制 shop_id + Code Review 检查 + 种子店数据隔离专项测试用例 |
 
-## 9. 下游交付衔接
+## 9. 修订记录
+- v1.1（2026-09-05）：品牌定名宠小满（项目改名 chongxiaoman，子仓库 cxm-*）；新增 ADR-006 多租户（shop_id 行级隔离）；ADR-001 单体结论在多租户下复验仍成立（多租户 ≠ 微服务）；风险矩阵增补数据串店风险（缓解：全局 filter + CR 双保险）。
 
-- **backend-dev-guide**：按 ADR-001/002 建 `goodend-api`——模块顺序：订单状态机 → 支付（含对账任务）→ 影像上传 → 价格版本 → 寄存/回访；PRD §7.1 字段即建表基线。
-- **frontend-dev-guide**：`goodend-miniapp` 按宠宝树 request 封装起步；`goodend-admin` 用 Element Plus 布局骨架（Navbar+Sider）起模板。
+## 10. 下游交付衔接
+
+- **backend-dev-guide**：按 ADR-001/002/006 建 `cxm-api`（所有 Model 带 shop_id，基类统一注入）——模块顺序：订单状态机 → 支付（含对账任务）→ 影像上传 → 价格版本 → 寄存/回访；PRD §7.1 字段即建表基线。
+- **frontend-dev-guide**：`cxm-miniapp` 按宠宝树 request 封装起步（入口带 shop 参数）；`cxm-admin` 用 Element Plus 布局骨架（Navbar+Sider）起模板，登录态绑定门店。
 - **qa-testing-guide**：PRD 各功能 AC（Given/When/Then）直接转测试用例；支付回调/状态机回退/影像上传失败三处必测。
 - **devops-guide**：宠宝树 Dockerfile + deploy 清单复制改造；上线演练含备份恢复一次。
 
