@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- chongxiaoman_logo_mark_white · 反白版（深色底使用） -->
+  <ellipse cx="100.3" cy="99.8" rx="72.6" ry="71.1"
+           fill="none" stroke="#FFFFFF" stroke-width="8.8"
+           stroke-linecap="round"
+           stroke-dasharray="279.6 172.8"
+           transform="rotate(-97.4 100.3 99.8)"/>
+  <ellipse cx="100.3" cy="99.8" rx="72.6" ry="71.1"
+           fill="none" stroke="#FFFFFF" stroke-width="10.6"
+           stroke-linecap="round"
+           stroke-dasharray="63 389.4"
+           transform="rotate(38.2 100.3 99.8)"/>
+  <g fill="#FFFFFF">
+    <ellipse cx="104.1" cy="88.6" rx="10.3" ry="12.2" transform="rotate(-8.2 104.1 88.6)"/>
+    <ellipse cx="85.9"  cy="99.4" rx="7.4"  ry="8.9"  transform="rotate(-14.2 85.9 99.4)"/>
+    <ellipse cx="119.6" cy="98.1" rx="7.1"  ry="8.6"  transform="rotate(8.7 119.6 98.1)"/>
+    <path d="M87.6 112.4 Q103.8 103.8 119.2 111.2 Q117.4 128.9 103.4 130.1 Q89.2 128.6 87.6 112.4 Z"/>
+  </g>
+</svg>
