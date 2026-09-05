@@ -24,7 +24,7 @@ Harness 版本：v1.2
 
 ## 二、当前阶段总览（一句话）
 
-> **宠小满 MVP 代码完成：B001-B010 + C001-C010 全部页面（42 测试全绿，feature/stats-dashboard 已合并 main）；剩余=外部依赖（商户号/类目提审）+ 微信登录接入 + 上线演练。**
+> **宠小满 开发期：微信登录已接入（wx.login→token，开关模式，48 测试全绿，feature/wechat-login 双分支待 review）；MVP 代码全齐，剩外部依赖（商户号/类目提审）+ 上线演练。**
 
 ---
 
@@ -32,6 +32,7 @@ Harness 版本：v1.2
 
 | 任务 | 负责人 | AI 角色 | 状态 | 卡点 | 启动日 | 计划完成 |
 |---|---|---|---|---|---|---|
+| 微信登录 review（api + miniapp feature/wechat-login） | 张孟博 | backend/frontend-dev-guide | 待哥拿坡 review | 双仓库分支 | 09-05 | 09-06 |
 | 小程序页面联调 review | 张孟博 | frontend-dev-guide | ✅ 已确认合并 | - | - | - |
 | B010 看板 review | 张孟博 | tech-lead/frontend | 待哥拿坡 review（main 已合并，可 revert） | main | 09-05 | - |
 | B 端第二批 review | 张孟博 | backend/frontend-dev-guide | ✅ 已确认合并 | - | - | - |
