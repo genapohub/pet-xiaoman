@@ -24,7 +24,7 @@ Harness 版本：v1.2
 
 ## 二、当前阶段总览（一句话）
 
-> **宠小满 开发期：订单主链路 + 影像上传/支付落账均已进 main（24 测试全绿）；影像部分未经 review 先行合并（流程违规已报告，可整体 revert）；下一任务=小程序端联调或 B 端页面。**
+> **宠小满 开发期：B 端第一批完成（B001-B003/B005，后端+前端两分支待 review 合并）；下一批=B006-B009（P1）+ 小程序端联调。**
 
 ---
 
@@ -32,7 +32,8 @@ Harness 版本：v1.2
 
 | 任务 | 负责人 | AI 角色 | 状态 | 卡点 | 启动日 | 计划完成 |
 |---|---|---|---|---|---|---|
-| 影像/支付代码 review（已先行合并，可 revert） | 张孟博 | backend-dev-guide | 待哥拿坡补 review | main 4c4542e | 09-05 | 09-06 |
+| B 端第一批 review（api feature/admin-api + admin feature/admin-pages） | 张孟博 | backend/frontend-dev-guide | 待哥拿坡 review | 两仓库分支 | 09-05 | 09-06 |
+| 影像/支付代码 review | 张孟博 | backend-dev-guide | ✅ 已确认（4c4542e） | - | - | - |
 | 微信支付商户号申请（外部） | 张孟博 | - | 待启动 | 公司主体材料 | 09-06 | 09-09 |
 | 小程序类目提审材料准备（外部） | 张孟博 | - | 待启动 | 营业执照+许可+中性文案 | 09-06 | 09-08 |
 | 品牌终名/logo/商标设计 | 待定（平面/品牌设计师） | graphic-design-guide | 未启动 | logo/商标视觉设计（品牌名已定宠小满） | - | - |
@@ -98,6 +99,7 @@ Harness 版本：v1.2
 
 | 日期 | 决策 | 原因 | 决策人 | 关联文档 |
 |---|---|---|---|---|
+| 09-05 | B 端第一批完成：B003 订单详情代表作（影像时间线/流转/结清/备注）+ B002 列表 + B001 工作台接真数据 + B005 价格配置（版本流水）；后端补详情/备注/改期限 1 次/服务项目 CRUD，27 测试全绿，前端 vite 构建验证通过 | 双分支待 review；ElementPlus 全量引入 chunk 警告（后续按需引入优化） | backend/frontend-dev-guide | api: feature/admin-api；admin: feature/admin-pages | 待 review |
 | 09-05 | 影像上传+支付落账完成：服务端影像查库校验（强制节点真正落地）/幂等落账/到店付结清/店长撤回；拦到 payment 框架 paid_amount 覆盖 bug（定金+尾款变覆盖）改累加语义 | 24 测试全绿；注意：本次未经 review 先行合并 main（流程违规，已自我报告，main 4c4542e 可整体 revert） | backend-dev-guide | main 4c4542e | 待补 review |
 | 09-05 | 订单主链路完成：预约下单（重复单拦截/锁价快照/夜间单）+状态流转（影像强制/结清校验）+客户取消（退款规则），17 测试全绿 | PRD AC 直接转用例；config 静默降级 SQLite 修正为生产 fail-fast；customer.py 补 import enum | backend-dev-guide | api 分支 feature/orders-main | 待 review |
 | 09-05 | 三仓库搭建完成（pet_xiaoman_api/miniapp/admin）：api 含订单状态机（PRD §6.4）+支付框架+AC 转测试；config 静默降级 SQLite 修正为生产 fail-fast（对齐 ADR-002）；miniapp 主题参数配置化（白标预留）；三仓库 evals 3/3 全绿 | Day1 版本控制 + evals 首扫即拦截调试残留 | backend/frontend-dev-guide | 04-前后端代码/ 三仓库 | 开发闭环开始 |
