@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 200" width="560" height="200">
+  <!-- chongxiaoman_logo_lockup · 组合横版（图形标 + 文字标）
+       ⚠️ 文字标精稿欠账：当前用 PingFang SC SemiBold 示意渲染，
+       终稿需字体设计师按方案完成圆头改造 +「满」字三点水替换三枚渐小爪印点 -->
+  <g transform="translate(8,20) scale(0.8)">
+    <ellipse cx="100.3" cy="99.8" rx="72.6" ry="71.1"
+             fill="none" stroke="#3D5C57" stroke-width="8.8"
+             stroke-linecap="round"
+             stroke-dasharray="279.6 172.8"
+             transform="rotate(-97.4 100.3 99.8)"/>
+    <ellipse cx="100.3" cy="99.8" rx="72.6" ry="71.1"
+             fill="none" stroke="#3D5C57" stroke-width="9.9"
+             stroke-linecap="round"
+             stroke-dasharray="47 405.4"
+             transform="rotate(52.6 100.3 99.8)"/>
+    <g fill="#3D5C57">
+      <ellipse cx="104.1" cy="88.6" rx="10.3" ry="12.2" transform="rotate(-8.2 104.1 88.6)"/>
+      <ellipse cx="85.9"  cy="99.4" rx="7.4"  ry="8.9"  transform="rotate(-14.2 85.9 99.4)"/>
+      <ellipse cx="119.6" cy="98.1" rx="7.1"  ry="8.6"  transform="rotate(8.7 119.6 98.1)"/>
+      <path d="M87.6 112.4 Q103.8 103.8 119.2 111.2 Q117.4 128.9 103.4 130.1 Q89.2 128.6 87.6 112.4 Z"/>
+    </g>
+  </g>
+  <text x="196" y="126" font-family="'Alibaba PuHuiTi 3.0','PingFang SC','Microsoft YaHei',sans-serif"
+        font-size="86" font-weight="600" fill="#3D5C57" letter-spacing="2">宠小满</text>
+  <text x="200" y="164" font-family="'Alibaba PuHuiTi 3.0','PingFang SC',sans-serif"
+        font-size="19" fill="#86909C" letter-spacing="5.5">爱意小满 · 不留遗憾</text>
+</svg>
