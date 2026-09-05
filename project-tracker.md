@@ -24,7 +24,7 @@ Harness 版本：v1.2
 
 ## 二、当前阶段总览（一句话）
 
-> **宠小满：品牌视觉体系完成（8 类全齐，logo 方向 A 定稿）+ C 端 UI 十页已补齐（Ardot pet_xiaoman 文件，ux-design-guide）——剩余=设计师精稿（checklist 已给）+ 商标检索启动 + 外部依赖（商户号/类目提审）+ 上线演练。**
+> **宠小满 交接状态：logo 精稿三版本 SVG + 10 尺寸 PNG 已产出（视觉自检通过）；商标官方检索需 SSO 实名登录（已实测标注，待哥拿坡操作）；剩余=外部依赖（商户号/类目提审/商标代理复核）+ 上线演练。**
 
 ---
 
@@ -35,7 +35,8 @@ Harness 版本：v1.2
 | 微信登录全链路完成（后端 fcad795 + miniapp 839a89a） | backend/frontend-dev-guide | ✅ 完成 | 48 测试全绿；并行会话重复开发识别后采纳先到实现 | 09-05 | - |
 | 微信登录 review | 张孟博 | backend/frontend-dev-guide | ✅ 已确认合并（api fcad795 / miniapp 839a89a 直提 main，无分支失误已记录） | - | - | - |
 | 品牌视觉第一轮确认 | 张孟博 | graphic-design-guide | ✅ 方向 A「将满的圆」已确认（09-05） | - | - | - |
-| logo 精稿 + 线上成图 | 设计师（或设计工具） | graphic-design-guide | 待启动 | 精稿 checklist 在资产交付清单 v1.0 §三 | - | - |
+| logo 精稿 + PNG 成图 | 张孟博 | graphic-design-guide | ✅ 完成（三版本 SVG + 10 尺寸 PNG，视觉自检通过） | 03-品牌设计/assets/ | - | - |
+| 商标官方检索 | 哥拿坡 | - | 待操作（需 SSO 实名登录） | 检索步骤已更新进商标建议 v1.0 §三 | - | - |
 | 小程序页面联调 review | 张孟博 | frontend-dev-guide | ✅ 已确认合并 | - | - | - |
 | B010 看板 review | 张孟博 | tech-lead/frontend | 待哥拿坡 review（main 已合并，可 revert） | main | 09-05 | - |
 | B 端第二批 review | 张孟博 | backend/frontend-dev-guide | ✅ 已确认合并 | - | - | - |
