@@ -34,6 +34,7 @@ Harness 版本：v1.2
 |---|---|---|---|---|---|---|
 | 微信登录全链路完成（后端 fcad795 + miniapp 839a89a） | backend/frontend-dev-guide | ✅ 完成 | 48 测试全绿；并行会话重复开发识别后采纳先到实现 | 09-05 | - |
 | 微信登录 review | 张孟博 | backend/frontend-dev-guide | ✅ 已确认合并（api fcad795 / miniapp 839a89a 直提 main，无分支失误已记录） | - | - | - |
+| 品牌视觉第一轮确认（logo 方向 A/B/C） | 张孟博 | graphic-design-guide | 待哥拿坡选方向 | 03-品牌设计/logo设计方案 v1.0 | 09-06 | 09-06 |
 | 小程序页面联调 review | 张孟博 | frontend-dev-guide | ✅ 已确认合并 | - | - | - |
 | B010 看板 review | 张孟博 | tech-lead/frontend | 待哥拿坡 review（main 已合并，可 revert） | main | 09-05 | - |
 | B 端第二批 review | 张孟博 | backend/frontend-dev-guide | ✅ 已确认合并 | - | - | - |
