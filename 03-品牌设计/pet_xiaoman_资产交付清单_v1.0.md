@@ -6,7 +6,7 @@
 ## 一、资产目录结构（目标态）
 
 ```
-chongxiaoman_brand_kit_v1.0/
+pet_xiaoman_brand_kit_v1.0/
 ├── 01-logo/
 │   ├── source/                          # 精稿源文件（SVG/Figma，设计师产出）
 │   │   ├── chongxiaoman_logo_图形标_master.svg
@@ -18,9 +18,9 @@ chongxiaoman_brand_kit_v1.0/
 ├── 02-color/
 │   └── chongxiaoman_色值表_v1.0（HEX/RGB/CMYK/PANTONE）
 ├── 03-font/
-│   ├── LXGWWenKai-Bold.ttf              # 霞鹜文楷（OFL）
-│   ├── SourceHanSansSC-Bold.otf         # 思源黑体（OFL，logo 定制母体）
-│   └── AlibabaPuHuiTi-3.0-Regular.ttf   # 阿里普惠（免费商用）
+│   ├── LXGWWenKai-Medium.ttf            # 霞鹜文楷（OFL，✅ 已随包；最新版无 Bold，用 Medium+合成加粗）
+│   ├── FONT_SOURCES.md                  # 其余字体精确下载地址与授权（思源黑体/阿里普惠）
+│   └── （思源黑体 Bold / 阿里普惠 3.0）   # 按 FONT_SOURCES.md 获取（体积大不进 git）
 ├── 04-online/
 │   ├── miniapp/（头像 400×400 + 分享卡 500×400）
 │   ├── xhs/（头像 400×400 + 竖版封面 1242×1656 三套 + 内页）
@@ -28,15 +28,16 @@ chongxiaoman_brand_kit_v1.0/
 └── 05-docs/（本批次 5+4 份方案文档）
 ```
 
-## 二、当前状态盘点（诚实清单）
+## 二、当前状态盘点（2026-09-05 更新：kit 已落地）
 
 | 资产 | 状态 | 下一步 |
 |---|---|---|
-| 品牌策略/调研/色彩/字体/线上规格 | ✅ 本批次文档交付 | — |
-| logo 结构示意 SVG | ⬜ 本轮随本清单产出（结构版） | 设计师按反AI八条手工调锚点出精稿 |
-| logo 精稿（三版本 SVG） | ⬜ 待设计师 | 方向 A 参数已定义（137° 缺口/爪印 25%/线宽 3:2） |
-| 线上应用成图（头像/封面 PNG） | ⬜ 待精稿后导出 | 规格已定义 |
-| 字体文件（三个 ttf/otf） | ⬜ 官方渠道下载 | 链接见字体体系 v1.0 |
+| 品牌策略/调研/色彩/字体/线上规格 | ✅ 05-docs 已归档 | — |
+| logo 精稿（图形标/反白/组合横版 SVG） | ✅ 01-logo/source 已交付（锚点偏移+线宽节奏已做） | 设计师可在此基础上做渲染级微调 |
+| 图形标 PNG 七尺寸 + 反白 PNG | ✅ 01-logo/export/png 已交付（16-512px） | — |
+| 线上成图（小程序头像/小红书头像/App icon 1024/favicon） | ✅ 04-online 已交付 | — |
+| 字体 | ✅ 霞鹜文楷 Medium 已随包；思源黑体/阿里普惠见 03-font/FONT_SOURCES.md | — |
+| 小红书封面成图 | ⬜ 内容资产，随笔记产出时制作（模板骨架在 04-online 规格内） | — |
 
 ## 三、方向 A「将满的圆」结构示意 SVG（初稿）
 
