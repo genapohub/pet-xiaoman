@@ -1,0 +1,246 @@
+/* 宠小满管理后台 · Design Token
+ * 唯一事实源：PRD §5.6.3「后台（B 端 · 专业工具基调）」。
+ * 规则：页面禁止出现流浪色值/间距，一律引用本文件的变量。
+ *      需要新值先问「现有 Token 能否覆盖」，不行再补，别在页面里写 16px/#333。
+ */
+
+/* ===== 基线重置 ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--px-font);
+  font-size: var(--px-fs-base);
+  line-height: var(--px-lh-body);
+  color: var(--px-text-1);
+  background: var(--px-bg-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+:root {
+  /* ===== 品牌主色阶梯（暖松绿，C 端品牌色，B 端统一继承 PRD §12.3 白标）=====
+     蓝色 #0056d9 不再作主色，降为数据看板强调色（见 --px-chart-1），避免 C/B 端品牌割裂 */
+  --px-primary: #5B8C85;
+  --px-primary-hover: #6FA39B;
+  --px-primary-pressed: #4A756E;
+  --px-primary-disabled: #C2D6D1;
+  --px-primary-weak: #EAF1EF; /* 选中态浅底、引导区背景 */
+
+  /* ===== 功能色 ===== */
+  --px-success: #2ba471;
+  --px-warning: #e37318;
+  --px-error: #d54941;
+  --px-error-hover: #e35b53;
+
+  /* 图表强调：仅数据看板使用（PRD 情感辅色复用） */
+  --px-chart-1: #0056d9;
+  --px-chart-2: #d9a468;
+  --px-chart-3: #2ba471;
+  --px-chart-4: #5b8c85;
+
+  /* ===== 中性：文本 ===== */
+  --px-text-1: #1d2129; /* 主标题、正文 —— 15.6:1 */
+  --px-text-2: #4e5969; /* 次要正文、表格内容 —— 8.3:1 */
+  --px-text-3: #86909c; /* 弱提示、时间戳 —— 3.5:1，仅限 ≥18px 或装饰性文字 */
+  --px-text-4: #c9cdd4; /* 占位符、失效数据 */
+  --px-text-inverse: #ffffff;
+
+  /* ===== 中性：边框与背景 ===== */
+  --px-border: #e5e6eb;
+  --px-border-strong: #c9cdd4;
+  --px-bg-page: #f7f8fa;
+  --px-bg-card: #ffffff;
+  --px-bg-hover: #f2f3f5;
+  --px-bg-selected: #e8f0ff;
+
+  /* ===== 字体 ===== */
+  --px-font: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  --px-font-num: "DIN Alternate", "Helvetica Neue", var(--px-font); /* 金额/数字对齐用 */
+  --px-fs-xs: 12px;
+  --px-fs-sm: 13px;
+  --px-fs-base: 14px;
+  --px-fs-md: 16px;
+  --px-fs-lg: 18px;
+  --px-fs-xl: 20px;
+  --px-fs-display: 40px; /* 北极星指标 */
+  --px-lh-body: 1.6;
+  --px-lh-title: 1.4;
+
+  /* ===== 间距（8px 基准，PRD §5.6.3）===== */
+  --px-sp-1: 4px;
+  --px-sp-2: 8px;
+  --px-sp-3: 12px;
+  --px-sp-4: 16px;
+  --px-sp-6: 24px;
+  --px-sp-8: 32px;
+  --px-sp-12: 48px;
+
+  /* ===== 圆角（4/6/12）===== */
+  --px-radius-sm: 4px;
+  --px-radius-md: 6px;
+  --px-radius-lg: 12px;
+
+  /* ===== 阴影（两级）===== */
+  --px-shadow-card: 0 1px 4px rgba(0, 0, 0, 0.04);
+  --px-shadow-popup: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+  /* ===== 动效（PRD：hover 100ms / 弹窗 300ms，无弹跳）===== */
+  --px-motion-fast: 100ms;
+  --px-motion-normal: 300ms;
+  --px-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ===== 控件尺寸（PRD B 端规格）===== */
+  --px-h-btn-main: 40px;
+  --px-h-btn-sub: 32px;
+  --px-h-input: 36px;
+  --px-h-row: 48px; /* 表格数据行高 */
+  --px-w-sider: 220px;
+  --px-w-sider-collapsed: 64px;
+  --px-h-navbar: 60px;
+  --px-w-content: 1366px; /* 响应式断点：< 此值 Sider 收窄 */
+}
+
+/* ===== Element Plus 变量覆写：让组件服从 Token ===== */
+:root {
+  --el-color-primary: var(--px-primary);
+  --el-color-primary-light-3: #6FA39B;
+  --el-color-primary-light-5: #9CC2BC;
+  --el-color-primary-light-7: #C2D6D1;
+  --el-color-primary-light-8: #DCE9E6;
+  --el-color-primary-light-9: #EAF1EF;
+  --el-color-primary-dark-2: var(--px-primary-pressed);
+
+  --el-color-success: var(--px-success);
+  --el-color-warning: var(--px-warning);
+  --el-color-danger: var(--px-error);
+  --el-color-error: var(--px-error);
+
+  --el-text-color-primary: var(--px-text-1);
+  --el-text-color-regular: var(--px-text-2);
+  --el-text-color-secondary: var(--px-text-3);
+  --el-text-color-placeholder: var(--px-text-4);
+  --el-text-color-disabled: var(--px-text-4);
+
+  --el-border-color: var(--px-border);
+  --el-border-color-light: var(--px-border);
+  --el-border-color-lighter: var(--px-border);
+  --el-border-color-hover: var(--px-border-strong);
+
+  --el-bg-color: var(--px-bg-card);
+  --el-bg-color-page: var(--px-bg-page);
+  --el-fill-color-light: var(--px-bg-hover);
+  --el-fill-color-lighter: var(--px-bg-hover);
+  --el-fill-color-blank: var(--px-bg-card);
+
+  --el-font-family: var(--px-font);
+  --el-font-size-base: var(--px-fs-base);
+  --el-font-size-small: var(--px-fs-sm);
+  --el-border-radius-base: var(--px-radius-sm);
+  --el-border-radius-small: var(--px-radius-sm);
+
+  --el-transition-duration: var(--px-motion-fast);
+  --el-transition-duration-fast: var(--px-motion-fast);
+}
+
+/* ===== 精修：只有变量覆盖不到时才写选择器 ===== */
+
+/* 可点击行的表格：统一指针反馈（原先每页自己写 :deep(tr) {cursor:pointer}） */
+.el-table.clickable tbody tr { cursor: pointer; }
+
+/* 表格：行高 48px + 表头弱化 */
+.el-table {
+  --el-table-border-color: var(--px-border);
+  --el-table-header-bg-color: var(--px-bg-hover);
+  --el-table-header-text-color: var(--px-text-2);
+  --el-table-text-color: var(--px-text-2);
+  --el-table-row-hover-bg-color: var(--px-bg-hover);
+  font-size: var(--px-fs-base);
+}
+.el-table th.el-table__cell {
+  font-weight: 600;
+  color: var(--px-text-1);
+}
+.el-table td.el-table__cell {
+  height: var(--px-h-row);
+}
+.el-table .is-right .cell {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 按钮：主次高度 40/32，禁用态用 PRD 指定蓝灰而非半透明 */
+.el-button {
+  height: var(--px-h-btn-sub);
+  font-weight: 500;
+  transition: background-color var(--px-motion-fast) linear,
+              border-color var(--px-motion-fast) linear;
+}
+.el-button--large {
+  height: var(--px-h-btn-main);
+}
+.el-button:focus-visible {
+  outline: 2px solid var(--px-primary);
+  outline-offset: 2px;
+}
+.el-button:disabled,
+.el-button.is-disabled {
+  background-color: var(--px-primary-disabled);
+  border-color: var(--px-primary-disabled);
+  color: #fff;
+  opacity: 1;
+}
+.el-button--primary:hover:not(.is-disabled) {
+  background-color: var(--px-primary-hover);
+  border-color: var(--px-primary-hover);
+}
+
+/* 输入类控件统一 36px */
+.el-input__wrapper,
+.el-select__wrapper {
+  height: var(--px-h-input);
+}
+
+/* 侧栏菜单：选中态左侧色条而非整行染色（避免过度品牌色占用） */
+.el-menu {
+  border-right: none;
+  --el-menu-item-height: 44px;
+}
+.el-menu-item.is-active {
+  background-color: var(--px-bg-selected);
+  color: var(--px-primary);
+  font-weight: 600;
+}
+.el-menu-item.is-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 var(--px-radius-sm) var(--px-radius-sm) 0;
+  background: var(--px-primary);
+}
+
+/* 弹窗/抽屉动效 300ms */
+.el-dialog,
+.el-drawer {
+  border-radius: var(--px-radius-lg);
+  box-shadow: var(--px-shadow-popup);
+}
+
+/* 尊重系统减动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

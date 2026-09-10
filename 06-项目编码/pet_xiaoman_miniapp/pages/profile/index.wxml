@@ -1,0 +1,18 @@
+<view class="page">
+  <!-- 品牌头部：暖松绿底 + 反白图形标 -->
+  <view class="brand">
+    <image class="brand__logo" src="/assets/logo/logo-mark-white.png" mode="aspectFit" />
+    <view class="brand__name">{{shopName}}</view>
+    <view class="brand__slogan">爱意小满，不留遗憾</view>
+    <view class="brand__id">客户编号 {{customerId || "未注册"}}</view>
+  </view>
+
+  <view class="menu">
+    <view class="row-link" wx:for="{{menus}}" wx:key="label"
+      data-url="{{item.url}}" bindtap="go">
+      <image class="icon-md" src="{{item.icon}}" mode="aspectFit" />
+      <view class="row-link__label">{{item.label}}</view>
+      <image class="icon-sm" src="/assets/icons/chevron.png" mode="aspectFit" />
+    </view>
+  </view>
+</view>

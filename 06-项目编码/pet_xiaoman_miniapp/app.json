@@ -1,0 +1,59 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/order-create/index",
+    "pages/order-list/index",
+    "pages/products/products",
+    "pages/profile/index",
+    "pages/prices/prices",
+    "pages/order-detail/index",
+    "pages/boarding-query/query",
+    "pages/pets/pets"
+  ],
+  "tabBar": {
+    "custom": false,
+    "color": "#86909C",
+    "selectedColor": "#5B8C85",
+    "backgroundColor": "#FAF9F6",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "assets/icons/tab-home.png",
+        "selectedIconPath": "assets/icons/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/order-create/index",
+        "text": "预约",
+        "iconPath": "assets/icons/tab-booking.png",
+        "selectedIconPath": "assets/icons/tab-booking-active.png"
+      },
+      {
+        "pagePath": "pages/order-list/index",
+        "text": "订单",
+        "iconPath": "assets/icons/tab-order.png",
+        "selectedIconPath": "assets/icons/tab-order-active.png"
+      },
+      {
+        "pagePath": "pages/products/products",
+        "text": "纪念品",
+        "iconPath": "assets/icons/tab-gift.png",
+        "selectedIconPath": "assets/icons/tab-gift-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "assets/icons/tab-user.png",
+        "selectedIconPath": "assets/icons/tab-user-active.png"
+      }
+    ]
+  },
+  "window": {
+    "navigationBarTitleText": "宠小满",
+    "navigationBarBackgroundColor": "#5B8C85",
+    "navigationBarTextStyle": "white"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

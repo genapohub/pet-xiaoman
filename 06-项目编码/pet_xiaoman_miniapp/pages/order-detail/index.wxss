@@ -1,0 +1,136 @@
+.status-head {
+  padding: var(--sp-6) var(--sp-4) 72rpx;
+  background:
+    radial-gradient(circle at 82% 12%, rgba(217, 164, 104, 0.18) 0, rgba(217, 164, 104, 0) 180rpx),
+    linear-gradient(180deg, var(--c-primary) 0%, var(--c-primary-press) 100%);
+  color: #fff;
+  border-bottom-left-radius: 36rpx;
+  border-bottom-right-radius: 36rpx;
+}
+.status-head__label {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: var(--fs-sm);
+}
+.status {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+}
+.sub {
+  margin-top: var(--sp-1);
+  font-size: var(--fs-sm);
+  opacity: 0.85;
+}
+
+.card {
+  margin: var(--sp-3) var(--sp-4);
+  padding: var(--sp-4);
+}
+.status-head + .card {
+  margin-top: -36rpx;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8rpx 0;
+  font-size: var(--fs-base);
+}
+.k { color: var(--c-gray); }
+.v { color: var(--c-ink); }
+.amount {
+  color: var(--c-primary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin-bottom: var(--sp-3);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+.label__icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 2rpx;
+}
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 10rpx;
+  top: 18rpx;
+  bottom: 18rpx;
+  width: 4rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-divider);
+}
+.node {
+  position: relative;
+  display: flex;
+  padding: var(--sp-3) 0;
+}
+.dot {
+  position: relative;
+  z-index: 1;
+  width: 20rpx;
+  height: 20rpx;
+  margin: 10rpx var(--sp-3) 0 0;
+  border-radius: 50%;
+  background: var(--c-gray-light);
+}
+/* 善终场景：完成态用品牌松绿，不用亮绿（避免「庆祝感」） */
+.node.done .dot { background: var(--c-primary); }
+.node.current .dot {
+  background: var(--c-clay);
+  box-shadow: 0 0 0 10rpx rgba(217, 164, 104, 0.16);
+  animation: breath 2s infinite;
+}
+@keyframes breath {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.node-name {
+  font-size: var(--fs-base);
+  color: var(--c-ink);
+  font-weight: 600;
+}
+.node.current .node-name {
+  color: var(--c-primary-deep);
+}
+
+.thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+.thumb {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: var(--r-sm);
+  background: var(--c-primary-light);
+  border: 1rpx solid rgba(61, 92, 87, 0.08);
+}
+.video {
+  width: 256rpx;
+  height: 144rpx;
+}
+
+.call {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  margin: var(--sp-5) var(--sp-4) var(--sp-6);
+}
+.call__icon {
+  width: 32rpx;
+  height: 32rpx;
+}

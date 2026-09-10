@@ -1,0 +1,108 @@
+.products-head {
+  padding: var(--sp-6) var(--sp-4) var(--sp-4);
+  color: #fff;
+  background:
+    radial-gradient(circle at 85% 0%, rgba(217, 164, 104, 0.22) 0, rgba(217, 164, 104, 0) 190rpx),
+    linear-gradient(180deg, var(--c-primary) 0%, var(--c-primary-press) 100%);
+  border-bottom-left-radius: 36rpx;
+  border-bottom-right-radius: 36rpx;
+}
+.products-head__title {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: var(--lh-title);
+}
+.products-head__desc {
+  margin-top: var(--sp-2);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+}
+
+/* 两列商品网格
+ * 坑位说明：全局 .card 带 padding: var(--sp-4)（左右各 32rpx）且默认 content-box，
+ * 若只覆盖 padding-bottom，卡片实际占位会变成 50%+64rpx → 两张超额 → 换行成单列。
+ * 因此这里必须：① 显式 box-sizing: border-box；② 覆盖掉全局的左右内边距（图要通栏）。
+ * 宽度算法：卡宽 = 50% − sp-2，横向外边距合计正好 = sp-2 → 两列严丝合缝铺满。
+ */
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  /* 左右 sp-3 + 卡片自身的 sp-1，视觉留白 = 32rpx，与其他页 sp-4 栏距对齐 */
+  padding: var(--sp-3) var(--sp-3) var(--sp-5);
+}
+.products-head + .grid {
+  margin-top: -12rpx;
+}
+.card {
+  box-sizing: border-box;
+  width: calc(50% - var(--sp-2));
+  margin: 0 var(--sp-1) var(--sp-2);
+  padding: 0 0 var(--sp-3);
+  overflow: hidden;
+  /* 竖排 flex：配合 .row 的 margin-top:auto，让价格/按钮行沉到卡底。
+     同一行卡片被 flex 拉伸等高后，按钮横向对齐 → 电商网格的规整感 */
+  display: flex;
+  flex-direction: column;
+}
+/* 商品主图：统一 1:1（电商网格的通用比例，横竖不齐的图会被裁成同一方块 → 规整感）
+ * 高度算法：卡宽 = (750rpx − 2×sp-3) / 2 − sp-2 = 702/2 − 16 = 335rpx，
+ * 图宽 100% 即 335rpx，故高度写 335rpx 与之相等 = 精确正方形。
+ * rpx 与屏宽同比例缩放，所以任何机型都成立，不需要用 JS 量。
+ * 刻意不用 aspect-ratio：老版本小程序 WebView（iOS<15 / 老 XWeb）不支持，会塌成 0 高。 */
+.img {
+  width: 100%;
+  height: 335rpx;
+  background: var(--c-primary-light);
+}
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.placeholder__logo {
+  width: 88rpx;
+  height: 88rpx;
+  opacity: 0.32;
+}
+.name {
+  padding: var(--sp-3) var(--sp-3) 0;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+.desc {
+  padding: 4rpx var(--sp-3) 0;
+  font-size: var(--fs-xs);
+  color: var(--c-gray);
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-2) var(--sp-3) 0;
+  margin-top: auto;   /* 沉底：卡片被拉伸等高后，价格/按钮始终贴卡底对齐 */
+}
+.price {
+  color: #A9762F;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.buy {
+  margin: 0;
+  padding: 0 20rpx;
+  background: transparent;
+  color: var(--c-primary);
+  border: 1rpx solid rgba(91, 140, 133, 0.42);
+  font-size: var(--fs-xs);
+  line-height: 48rpx;
+  border-radius: var(--r-pill);
+}
+.buy::after { border: none; }
+.buy.button-hover { background: var(--c-primary-light); }
+
+.sk-line {
+  width: 50%;
+  height: 28rpx;
+  margin: var(--sp-3) var(--sp-3) 0;
+}

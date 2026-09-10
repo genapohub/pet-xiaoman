@@ -1,0 +1,46 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="state state--card">
+    <view class="state__text">加载中…</view>
+  </view>
+
+  <block wx:elif="{{order}}">
+    <view class="status-head">
+      <view class="status-head__label">当前进度</view>
+      <view class="status">{{order.status}}</view>
+      <view class="sub">订单号 {{order.order_no}}</view>
+    </view>
+
+    <view class="card">
+      <view class="row"><text class="k">期望服务</text><text class="v">{{order.expect_text}}</text></view>
+      <view class="row"><text class="k">费用合计</text><text class="v amount">¥{{order.amount_text}}</text></view>
+      <view class="row"><text class="k">支付状态</text><text class="v">{{order.pay_type}} · 已付 ¥{{order.paid_amount}}</text></view>
+    </view>
+
+    <view class="card">
+      <view class="label">
+        <image class="label__icon" src="/assets/icons/check-primary.png" mode="aspectFit" />
+        <text>服务进度</text>
+      </view>
+      <view class="timeline">
+        <view class="node {{item.done ? 'done' : ''}} {{item.current ? 'current' : ''}}" wx:for="{{timeline}}" wx:key="name">
+          <view class="dot"></view>
+          <view class="node-body">
+            <view class="node-name">{{item.name}}</view>
+            <view class="thumbs" wx:if="{{item.media.length}}">
+              <image wx:for="{{item.media}}" wx:for-item="m" wx:key="id" wx:if="{{m.media_type === 'photo'}}"
+                src="{{m.url}}" mode="aspectFill" class="thumb"
+                data-urls="{{item.photoUrls}}" data-current="{{m.url}}" bindtap="preview" />
+              <video wx:for="{{item.media}}" wx:for-item="m" wx:key="id" wx:if="{{m.media_type === 'video'}}"
+                src="{{m.url}}" class="thumb video" />
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <button class="btn-primary call" bindtap="callShop">
+      <image class="call__icon" src="/assets/icons/phone-white.png" mode="aspectFit" />
+      <text>联系门店</text>
+    </button>
+  </block>
+</view>

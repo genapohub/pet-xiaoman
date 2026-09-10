@@ -1,0 +1,95 @@
+.page {
+  padding-bottom: 180rpx; /* 给固定底部按钮留位 */
+}
+
+.orders-head {
+  padding: var(--sp-6) var(--sp-4) 72rpx;
+  color: #fff;
+  background: linear-gradient(180deg, var(--c-primary) 0%, var(--c-primary-press) 100%);
+  border-bottom-left-radius: 36rpx;
+  border-bottom-right-radius: 36rpx;
+}
+.orders-head__title {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: var(--lh-title);
+}
+.orders-head__desc {
+  margin-top: var(--sp-2);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+}
+
+.tabs {
+  display: flex;
+  margin: -36rpx var(--sp-4) 0;
+  padding: 0 var(--sp-2);
+  background: var(--c-card-warm);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sd-card);
+}
+.tab {
+  position: relative;
+  flex: 1;
+  padding: var(--sp-3) 0 var(--sp-4);
+  text-align: center;
+  font-size: var(--fs-base);
+  color: var(--c-gray);
+}
+.tab.on {
+  color: var(--c-primary);
+  font-weight: 600;
+}
+.tab.on::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: var(--sp-2);
+  width: 40rpx;
+  height: 6rpx;
+  margin-left: -20rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-primary);
+}
+
+.card {
+  margin: var(--sp-3) var(--sp-4);
+  padding: var(--sp-4);
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: 8rpx 0;
+}
+.no {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--c-ink);
+}
+.price {
+  color: var(--c-primary);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.time {
+  font-size: var(--fs-sm);
+  color: var(--c-gray);
+}
+
+.sk-line {
+  height: 28rpx;
+  margin-bottom: var(--sp-2);
+}
+.sk-line--lg { width: 60%; }
+.sk-line--sm { width: 35%; margin-bottom: 0; }
+
+.go {
+  position: fixed;
+  bottom: var(--sp-4);
+  left: var(--sp-4);
+  right: var(--sp-4);
+}

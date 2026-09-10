@@ -1,0 +1,31 @@
+<view class="page">
+  <!-- hero：暖松绿底 + 反白图形标（品牌规范「暖松绿底 + 反白标」） -->
+  <view class="hero">
+    <view class="hero__eyebrow">郑州本地宠物善终</view>
+    <image class="hero__logo" src="/assets/logo/logo-mark-white.png" mode="aspectFit" />
+    <view class="hero__name">{{theme.shopName}}</view>
+    <view class="hero__slogan">{{theme.slogan}}</view>
+    <view class="hero__proof">价格公开 · 过程可见 · 24小时可约</view>
+  </view>
+
+  <!-- 三承诺：上浮卡片压住 hero 底边 -->
+  <view class="promises">
+    <view class="promise" wx:for="{{promises}}" wx:key="text">
+      <image class="promise__icon" src="/assets/icons/{{item.icon}}-primary.png" mode="aspectFit" />
+      <view class="promise__text">{{item.text}}</view>
+    </view>
+  </view>
+
+  <view class="actions">
+    <button class="btn-primary" bindtap="goCreate">立即预约</button>
+    <button class="btn-plain" bindtap="goPrices">查看服务价格表</button>
+  </view>
+
+  <view class="contact row-link" bindtap="callShop">
+    <image class="icon-md" src="/assets/icons/phone.png" mode="aspectFit" />
+    <view class="row-link__label">24 小时电话咨询</view>
+    <image class="icon-sm" src="/assets/icons/chevron.png" mode="aspectFit" />
+  </view>
+
+  <view class="trust-strip">明码标价 · 单独火化 · 下单后不加价</view>
+</view>

@@ -1,0 +1,46 @@
+<view class="page">
+  <view class="price-head">
+    <view class="price-head__title">服务价格表</view>
+    <view class="price-head__desc">所有项目公开展示，提交预约后按当前价格锁价。</view>
+  </view>
+
+  <view class="tabs">
+    <view wx:for="{{tabs}}" wx:key="*this" class="tab {{active === item ? 'on' : ''}}"
+      data-tab="{{item}}" bindtap="switchTab">{{item}}</view>
+  </view>
+
+  <!-- 加载：骨架屏 -->
+  <block wx:if="{{loading}}">
+    <view class="card" wx:for="{{[1, 2]}}" wx:key="*this">
+      <view class="skeleton sk-line sk-line--lg"></view>
+      <view class="skeleton sk-line sk-line--sm"></view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="card" wx:for="{{current}}" wx:key="id">
+      <view class="row">
+        <view>
+          <view class="name">{{item.name}}</view>
+          <view class="tier" wx:if="{{item.weight_tier}}">适用体重：{{item.weight_tier}}</view>
+        </view>
+        <view class="price-wrap">
+          <text class="price">¥{{item.price}}</text>
+          <text class="price-note">公开价</text>
+        </view>
+      </view>
+      <button class="pick" size="mini" data-id="{{item.id}}" bindtap="goCreate">选这个</button>
+    </view>
+
+    <view wx:if="{{!current.length}}" class="state state--card">
+      <image class="state__icon" src="/assets/icons/price.png" mode="aspectFit" />
+      <view class="state__text">该分类暂无项目</view>
+      <view class="state__hint">切换上方分类看看其他服务</view>
+    </view>
+  </block>
+
+  <view class="promise">
+    <image class="promise__icon" src="/assets/icons/shield-white.png" mode="aspectFit" />
+    <text>明码标价 · 单独火化 · 下单后不加价</text>
+  </view>
+</view>

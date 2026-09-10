@@ -1,0 +1,41 @@
+连接中…
+已连接
+
+──────── 首页  /pages/index/index
+  当前页: pages/index/index
+  .page     查询失败: $$.page 超时
+  .card     查询失败: $$.card 超时
+  .state    查询失败: $$.state 超时
+  .tab      查询失败: $$.tab 超时
+  .grid     查询失败: $$.grid 超时
+  .brand    查询失败: $$.brand 超时
+  .menu     查询失败: $$.menu 超时
+──────── 预约  /pages/order-create/index
+  当前页: pages/order-create/index
+  .page     查询失败: $$.page 超时
+  .card     查询失败: $$.card 超时
+  .state    查询失败: $$.state 超时
+  .tab      查询失败: $$.tab 超时
+  .grid     查询失败: $$.grid 超时
+  .brand    查询失败: $$.brand 超时
+  .menu     查询失败: $$.menu 超时
+──────── 订单  /pages/order-list/index
+  当前页: pages/order-list/index
+  .page     查询失败: $$.page 超时
+  .card     查询失败: $$.card 超时
+  .state    查询失败: $$.state 超时
+  .tab      查询失败: $$.tab 超时
+  .grid     查询失败: $$.grid 超时
+  .brand    查询失败: $$.brand 超时
+  .menu     查询失败: $$.menu 超时
+──────── 纪念品  /pages/products/products
+  当前页: pages/products/products
+  .page     查询失败: $$.page 超时
+  .card     查询失败: $$.card 超时
+  .state    查询失败: $$.state 超时
+  .tab      查询失败: $$.tab 超时
+  .grid     查询失败: $$.grid 超时
+  .brand    查询失败: $$.brand 超时
+  .menu     查询失败: $$.menu 超时
+──────── 我的  /pages/profile/index
+  当前页: pages/profile/index

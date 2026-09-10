@@ -1,0 +1,35 @@
+<view class="page">
+  <view class="pets-head">
+    <view class="pets-head__title">宠物档案</view>
+    <view class="pets-head__desc">每一次服务记录，都会安静地归档在这里。</view>
+  </view>
+
+  <!-- 加载：骨架屏 -->
+  <block wx:if="{{loading}}">
+    <view class="card" wx:for="{{[1, 2]}}" wx:key="*this">
+      <view class="skeleton sk-line sk-line--lg"></view>
+      <view class="skeleton sk-line"></view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="card" wx:for="{{pets}}" wx:key="pet_id">
+      <view class="head">
+        <image class="head__icon" src="/assets/icons/paw-primary.png" mode="aspectFit" />
+        <text class="name">{{item.name}}</text>
+        <text class="tag tag--primary">{{item.species}}</text>
+      </view>
+      <view class="history" wx:for="{{item.orders}}" wx:for-item="o" wx:key="order_no"
+        data-no="{{o.order_no}}" bindtap="goOrder">
+        {{o.order_no}} · {{o.status}} · {{o.date_text}}
+      </view>
+      <view wx:if="{{!item.orders.length}}" class="empty">服务记录会在完成后沉淀在这里</view>
+    </view>
+
+    <view wx:if="{{!pets.length}}" class="state state--card">
+      <image class="state__icon" src="/assets/icons/paw.png" mode="aspectFit" />
+      <view class="state__text">还没有宠物档案</view>
+      <view class="state__hint">预约后会自动生成，服务记录也会沉淀在这里</view>
+    </view>
+  </block>
+</view>

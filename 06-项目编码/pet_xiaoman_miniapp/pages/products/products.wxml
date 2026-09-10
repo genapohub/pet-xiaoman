@@ -1,0 +1,39 @@
+<view class="page">
+  <view class="products-head">
+    <view class="products-head__title">纪念品</view>
+    <view class="products-head__desc">把想念留在可以触碰的地方。支持到店自取或随单交付。</view>
+  </view>
+
+  <!-- 加载：骨架屏 -->
+  <view class="grid" wx:if="{{loading}}">
+    <view class="card" wx:for="{{[1, 2]}}" wx:key="*this">
+      <view class="skeleton img"></view>
+      <view class="skeleton sk-line"></view>
+    </view>
+  </view>
+
+  <block wx:else>
+    <view class="grid">
+      <view class="card" wx:for="{{products}}" wx:key="id">
+        <!-- 有图用图；无图时用品牌图形标兜底，比写「宠小满」三个字更像成品 -->
+        <!-- 注意：注释不能夹在 wx:if 与 wx:else 之间，否则 wx:else 会与 wx:if 失联 -->
+        <image wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" class="img" />
+        <view wx:else class="img placeholder">
+          <image class="placeholder__logo" src="/assets/logo/logo-mark-sm.png" mode="aspectFit" />
+        </view>
+        <view class="name">{{item.name}}</view>
+        <view class="desc" wx:if="{{item.description}}">{{item.description}}</view>
+        <view class="row">
+          <text class="price">¥{{item.price}}</text>
+          <button size="mini" class="buy" data-id="{{item.id}}" bindtap="buy">预留/购买</button>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{!products.length}}" class="state state--card">
+      <image class="state__icon" src="/assets/icons/tab-gift.png" mode="aspectFit" />
+      <view class="state__text">纪念品筹备中</view>
+      <view class="state__hint">更多温情服务即将上架</view>
+    </view>
+  </block>
+</view>

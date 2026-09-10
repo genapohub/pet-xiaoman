@@ -3,3 +3,21 @@
 04-前后端代码/pet_xiaoman_api
 04-前后端代码/pet_xiaoman_miniapp
 04-前后端代码/pet_xiaoman_admin
+
+# Dependencies / build outputs
+node_modules/
+dist/
+
+# Python local runtime
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Local data and uploads
+*.sqlite
+*.sqlite3
+uploads/
+
+# WeChat developer local settings
+project.private.config.json
