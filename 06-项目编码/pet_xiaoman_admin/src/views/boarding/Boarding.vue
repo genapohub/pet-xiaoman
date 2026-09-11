@@ -9,7 +9,9 @@
       @retry="load"
     >
       <template #actions>
-        <el-button type="primary" @click="registerVisible = true">登记寄存</el-button>
+        <el-button type="primary" @click="registerVisible = true">
+          <el-icon><Plus /></el-icon> 登记寄存
+        </el-button>
       </template>
 
       <el-table-column prop="pet_name" label="宠物" width="110" />
@@ -31,8 +33,8 @@
       <el-table-column label="操作" width="170" fixed="right">
         <template #default="{ row }">
           <template v-if="row.status !== '已取回'">
-            <el-button text type="primary" @click="openRenew(row)">续存</el-button>
-            <el-button text type="danger" @click="openTake(row)">取回</el-button>
+            <PxActionButton label="续存" :icon="Calendar" tone="primary" @click="openRenew(row)" />
+            <PxActionButton label="取回" :icon="CircleCheck" tone="danger" tip="确认骨灰已由家属取回" @click="openTake(row)" />
           </template>
           <PxStatusTag v-else value="已取回" kind="sale" />
         </template>
@@ -46,6 +48,9 @@
     <px-form-drawer
       v-model="registerVisible"
       title="登记寄存"
+      subtitle="记录寄存位置和到期日，系统会提前提示联系家属"
+      footer-hint="位置建议使用货架编号，如 A-01"
+      :icon="Box"
       @cancel="registerVisible = false"
       @submit="doRegister"
     >
@@ -77,9 +82,11 @@
 
 <script setup>
 import { computed, ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { Box, Calendar, CircleCheck, Plus } from "@element-plus/icons-vue";
 import { createBoarding, listBoardings, renewBoarding, takeBoarding } from "../../api/batch2";
 import { useTable } from "../../composables/useTable";
+import PxActionButton from "../../components/PxActionButton.vue";
 import PxTablePage from "../../components/PxTablePage.vue";
 import PxFormDrawer from "../../components/PxFormDrawer.vue";
 import PxEmpty from "../../components/PxEmpty.vue";
@@ -119,6 +126,15 @@ async function doRenew() {
 }
 async function doTake() {
   if (!takenBy.value) return ElMessage.warning("请填写取回人");
+  try {
+    await ElMessageBox.confirm("确认骨灰已完成取回？该状态会影响后续续存提醒。", "确认取回", {
+      type: "warning",
+      confirmButtonText: "确认取回",
+      cancelButtonText: "取消",
+    });
+  } catch {
+    return;
+  }
   await takeBoarding(currentId.value, takenBy.value);
   takeVisible.value = false;
   ElMessage.success("已取回");

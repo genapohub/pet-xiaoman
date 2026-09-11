@@ -43,9 +43,14 @@
     <el-table-column label="期望服务时间" width="160">
       <template #default="{ row }">{{ fmtDateTime(row.expect_time) }}</template>
     </el-table-column>
-    <el-table-column label="下单时间" min-width="160">
-      <template #default="{ row }">{{ fmtDateTime(row.created_at) }}</template>
-    </el-table-column>
+      <el-table-column label="下单时间" min-width="160">
+        <template #default="{ row }">{{ fmtDateTime(row.created_at) }}</template>
+      </el-table-column>
+      <el-table-column label="操作" width="100" fixed="right">
+        <template #default="{ row }">
+          <PxActionButton label="查看" :icon="View" tone="primary" tip="进入订单详情与服务记录" @click="goDetail(row)" />
+        </template>
+      </el-table-column>
 
     <template #empty>
       <PxEmpty variant="doc" text="没有符合条件的订单" hint="换个状态筛选，或清空关键字试试" />
@@ -55,9 +60,10 @@
 
 <script setup>
 import { useRouter } from "vue-router";
-import { Refresh } from "@element-plus/icons-vue";
+import { Refresh, View } from "@element-plus/icons-vue";
 import { listOrders } from "../../api/order";
 import { useTable } from "../../composables/useTable";
+import PxActionButton from "../../components/PxActionButton.vue";
 import PxTablePage from "../../components/PxTablePage.vue";
 import PxEmpty from "../../components/PxEmpty.vue";
 import PxStatusTag from "../../components/PxStatusTag.vue";

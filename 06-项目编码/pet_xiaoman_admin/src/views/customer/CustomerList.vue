@@ -25,6 +25,11 @@
     <el-table-column label="回访状态" width="100">
       <template #default="{ row }"><PxStatusTag :value="row.visit_status" kind="visit" /></template>
     </el-table-column>
+    <el-table-column label="操作" width="100" fixed="right">
+      <template #default="{ row }">
+        <PxActionButton label="查看" :icon="View" tone="primary" tip="查看客户详情与回访记录" @click="goDetail(row)" />
+      </template>
+    </el-table-column>
 
     <template #empty>
       <PxEmpty variant="user" text="还没有客户档案" hint="客户在小程序下单或注册后会自动出现在这里" />
@@ -35,8 +40,10 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { View } from "@element-plus/icons-vue";
 import { listCustomers } from "../../api/batch2";
 import { useTable } from "../../composables/useTable";
+import PxActionButton from "../../components/PxActionButton.vue";
 import PxTablePage from "../../components/PxTablePage.vue";
 import PxEmpty from "../../components/PxEmpty.vue";
 import PxStatusTag from "../../components/PxStatusTag.vue";

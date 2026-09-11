@@ -9,7 +9,9 @@
       @retry="load"
     >
       <template #actions>
-        <el-button type="primary" @click="openEdit()">新建{{ activeTab }}</el-button>
+        <el-button type="primary" @click="openEdit()">
+          <el-icon><Plus /></el-icon> 新建{{ activeTab }}
+        </el-button>
       </template>
 
       <template #filters>
@@ -29,11 +31,18 @@
         <template #default="{ row }"><PxStatusTag :value="row.status" kind="sale" /></template>
       </el-table-column>
       <el-table-column prop="version" label="价格版本" width="130" />
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" width="240" fixed="right">
         <template #default="{ row }">
-          <el-button text type="primary" @click="openEdit(row)">编辑</el-button>
-          <el-button text @click="showVersions(row)">版本</el-button>
-          <el-button text type="danger" v-if="row.status === '在售'" @click="doOffSale(row)">下架</el-button>
+          <PxActionButton label="编辑" :icon="EditPen" tone="primary" @click="openEdit(row)" />
+          <PxActionButton label="版本" :icon="Clock" tip="查看价格版本历史" @click="showVersions(row)" />
+          <PxActionButton
+            v-if="row.status === '在售'"
+            label="下架"
+            :icon="Hide"
+            tone="danger"
+            tip="下架后 C 端不再展示"
+            @click="doOffSale(row)"
+          />
         </template>
       </el-table-column>
 
@@ -45,6 +54,9 @@
     <px-form-drawer
       v-model="editVisible"
       :title="form.id ? '编辑（改价将公开生效）' : '新建'"
+      :subtitle="form.id ? '只影响新订单，历史订单继续使用原价格快照' : `新建${activeTab}后将同步给 C 端价格表`"
+      :footer-hint="form.id && form.price !== originPrice ? '保存后会生成新的价格版本' : '请确认名称和价格对客户可读'"
+      :icon="PriceTag"
       :saving="saving"
       :submit-text="form.id && form.price !== originPrice ? '保存并公开生效' : '保存'"
       @cancel="editVisible = false"
@@ -74,9 +86,11 @@
 
 <script setup>
 import { ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { Clock, EditPen, Hide, Plus, PriceTag } from "@element-plus/icons-vue";
 import { createItem, listItems, listVersions, offSale, updateItem } from "../../api/service-item";
 import { useTable } from "../../composables/useTable";
+import PxActionButton from "../../components/PxActionButton.vue";
 import PxTablePage from "../../components/PxTablePage.vue";
 import PxFormDrawer from "../../components/PxFormDrawer.vue";
 import PxEmpty from "../../components/PxEmpty.vue";
@@ -116,6 +130,15 @@ async function save() {
 }
 
 async function doOffSale(row) {
+  try {
+    await ElMessageBox.confirm(`确认下架「${row.name}」？C 端将不再展示该项目，历史订单不受影响。`, "下架服务项目", {
+      type: "warning",
+      confirmButtonText: "确认下架",
+      cancelButtonText: "取消",
+    });
+  } catch {
+    return;
+  }
   await offSale(row.id);
   ElMessage.success("已下架（历史订单不受影响）");
   load();

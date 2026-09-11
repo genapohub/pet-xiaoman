@@ -32,8 +32,16 @@ const icon = computed(() => ICONS[props.variant] || Box);
   text-align: center;
 }
 .px-empty__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--px-border);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--px-bg-card), var(--px-primary-softer));
   font-size: 40px;
-  color: var(--px-text-4);
+  color: var(--px-primary);
 }
 .px-empty__text {
   margin: 0;

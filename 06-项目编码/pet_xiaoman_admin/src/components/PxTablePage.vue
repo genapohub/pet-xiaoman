@@ -8,7 +8,13 @@
     <PxErrorState v-if="failed" :text="failedText" :loading="loading" @retry="$emit('retry')" />
 
     <template v-else>
-      <div v-if="$slots.filters" class="px-tp__filters"><slot name="filters" /></div>
+      <section v-if="$slots.filters" class="px-tp__filters" aria-label="筛选条件">
+        <div class="px-tp__filters-head">
+          <span class="px-tp__filters-dot" aria-hidden="true" />
+          <span>筛选条件</span>
+        </div>
+        <div class="px-tp__filters-body"><slot name="filters" /></div>
+      </section>
 
       <el-table
         :data="rows"
@@ -63,10 +69,33 @@ defineEmits(["retry", "page-change", "size-change", "row-click"]);
 
 <style scoped>
 .px-tp__filters {
+  padding: var(--px-sp-3);
+  margin-bottom: var(--px-sp-4);
+  background: linear-gradient(180deg, var(--px-bg-card), var(--px-bg-warm));
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-lg);
+  box-shadow: var(--px-shadow-card);
+}
+.px-tp__filters-head {
+  display: flex;
+  align-items: center;
+  gap: var(--px-sp-2);
+  margin-bottom: var(--px-sp-2);
+  color: var(--px-text-2);
+  font-size: var(--px-fs-xs);
+  font-weight: 600;
+}
+.px-tp__filters-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--px-primary);
+}
+.px-tp__filters-body {
   display: flex;
   flex-wrap: wrap;
   gap: var(--px-sp-2);
-  margin-bottom: var(--px-sp-4);
+  align-items: center;
 }
 .px-tp__pager {
   margin-top: var(--px-sp-4);

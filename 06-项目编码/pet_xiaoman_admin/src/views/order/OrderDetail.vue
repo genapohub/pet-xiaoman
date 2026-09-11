@@ -61,9 +61,11 @@
         <el-card shadow="never" class="block">
           <template #header><span class="card-title">状态操作</span></template>
           <el-button type="primary" class="full" v-if="order.status === '待确认'" @click="doConfirm">
+            <el-icon><CircleCheck /></el-icon>
             确认订单（30 分钟 SLA）
           </el-button>
           <el-button class="full" v-if="order.status === '已预约'" @click="doTransition('接宠中')">
+            <el-icon><Van /></el-icon>
             出发接宠
           </el-button>
 
@@ -75,22 +77,32 @@
               </el-button>
             </el-upload>
             <el-button v-if="order.status === '接宠中'" type="primary" class="full" @click="doTransition('服务中')">
+              <el-icon><House /></el-icon>
               到达门店，开始服务
             </el-button>
             <el-button v-if="order.status === '服务中'" type="primary" class="full" @click="doTransition('待交付')">
+              <el-icon><Finished /></el-icon>
               火化完成，待交付
             </el-button>
           </template>
 
           <template v-if="order.status === '待交付'">
-            <el-button type="warning" class="full" @click="settleVisible = true">结清收款（到店付）</el-button>
-            <el-button type="success" class="full last" @click="doTransition('已完成')">标记完成</el-button>
+            <el-button type="warning" class="full" @click="settleVisible = true">
+              <el-icon><Money /></el-icon> 结清收款（到店付）
+            </el-button>
+            <el-button type="success" class="full last" @click="doTransition('已完成')">
+              <el-icon><CircleCheck /></el-icon> 标记完成
+            </el-button>
           </template>
 
           <div class="secondary">
             <el-button text :disabled="order.reschedule_count >= 1 || terminal"
-              @click="rescheduleVisible = true">改期（免费 1 次）</el-button>
-            <el-button text type="danger" v-if="!terminal" @click="cancelVisible = true">取消订单</el-button>
+              @click="rescheduleVisible = true">
+              <el-icon><Calendar /></el-icon> 改期（免费 1 次）
+            </el-button>
+            <el-button text type="danger" v-if="!terminal" @click="cancelVisible = true">
+              <el-icon><CircleClose /></el-icon> 取消订单
+            </el-button>
           </div>
         </el-card>
 
@@ -136,7 +148,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
-import { Upload } from "@element-plus/icons-vue";
+import { Calendar, CircleCheck, CircleClose, Finished, House, Money, Upload, Van } from "@element-plus/icons-vue";
 import { confirmOrder, getOrderDetail, reschedule, saveNotes,
          settleOrder, transitionOrder, uploadMedia } from "../../api/order";
 import PxPageHeader from "../../components/PxPageHeader.vue";
@@ -243,13 +255,18 @@ onMounted(load);
 .full {
   width: 100%;
   margin-bottom: var(--px-sp-2);
+  justify-content: flex-start;
 }
+.full :deep(.el-icon) { margin-right: var(--px-sp-1); }
 .full.last { margin-bottom: 0; }
 .upload { margin-bottom: var(--px-sp-2); }
 .secondary {
   display: flex;
   justify-content: space-between;
   margin-top: var(--px-sp-2);
+}
+.secondary :deep(.el-button) {
+  margin-left: 0;
 }
 .amount-row {
   display: flex;

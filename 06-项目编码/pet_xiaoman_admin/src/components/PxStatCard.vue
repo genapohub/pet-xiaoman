@@ -1,6 +1,9 @@
 <template>
   <div class="px-stat">
-    <div class="px-stat__label">{{ label }}</div>
+    <div class="px-stat__top">
+      <div class="px-stat__label">{{ label }}</div>
+      <span class="px-stat__dot" aria-hidden="true" />
+    </div>
     <div class="px-stat__value">
       {{ value }}<span v-if="unit" class="px-stat__unit">{{ unit }}</span>
     </div>
@@ -20,14 +23,39 @@ defineProps({
 
 <style scoped>
 .px-stat {
+  position: relative;
+  overflow: hidden;
   padding: var(--px-sp-4);
-  background: var(--px-bg-card);
+  background: linear-gradient(180deg, var(--px-bg-card), var(--px-bg-warm));
   border: 1px solid var(--px-border);
-  border-radius: var(--px-radius-md);
+  border-radius: var(--px-radius-lg);
+  box-shadow: var(--px-shadow-card);
+}
+.px-stat::after {
+  content: "";
+  position: absolute;
+  right: -18px;
+  top: -18px;
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: rgba(91, 140, 133, 0.08);
+}
+.px-stat__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--px-sp-2);
 }
 .px-stat__label {
   font-size: var(--px-fs-sm);
   color: var(--px-text-2);
+}
+.px-stat__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--px-chart-2);
 }
 .px-stat__value {
   margin-top: var(--px-sp-2);

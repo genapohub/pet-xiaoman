@@ -9,7 +9,9 @@
       @retry="load"
     >
       <template #actions>
-        <el-button type="primary" @click="openEdit()">新建纪念品</el-button>
+        <el-button type="primary" @click="openEdit()">
+          <el-icon><Plus /></el-icon> 新建纪念品
+        </el-button>
       </template>
 
       <el-table-column label="图片" width="88">
@@ -31,10 +33,14 @@
       </el-table-column>
       <el-table-column label="操作" width="160" fixed="right">
         <template #default="{ row }">
-          <el-button text type="primary" @click="openEdit(row)">编辑</el-button>
-          <el-button text :type="row.status === '在售' ? 'danger' : 'success'" @click="doToggle(row)">
-            {{ row.status === "在售" ? "下架" : "上架" }}
-          </el-button>
+          <PxActionButton label="编辑" :icon="EditPen" tone="primary" @click="openEdit(row)" />
+          <PxActionButton
+            :label="row.status === '在售' ? '下架' : '上架'"
+            :icon="row.status === '在售' ? Hide : Top"
+            :tone="row.status === '在售' ? 'danger' : 'success'"
+            :tip="row.status === '在售' ? '下架后 C 端不再展示' : '上架后 C 端可见'"
+            @click="doToggle(row)"
+          />
         </template>
       </el-table-column>
 
@@ -46,6 +52,9 @@
     <px-form-drawer
       v-model="editVisible"
       :title="form.id ? '编辑纪念品' : '新建纪念品'"
+      :subtitle="form.id ? '调整图文、价格或库存备注，会同步影响 C 端纪念品展示' : '纪念品强调温情说明，避免写成促销商品'"
+      footer-hint="图片建议使用温和实拍图，避免强营销海报"
+      :icon="Present"
       :saving="saving"
       @cancel="editVisible = false"
       @submit="save"
@@ -65,9 +74,11 @@
 
 <script setup>
 import { ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { EditPen, Hide, Plus, Present, Top } from "@element-plus/icons-vue";
 import { createProduct, listProducts, toggleProduct, updateProduct } from "../../api/batch2";
 import { useTable } from "../../composables/useTable";
+import PxActionButton from "../../components/PxActionButton.vue";
 import PxTablePage from "../../components/PxTablePage.vue";
 import PxFormDrawer from "../../components/PxFormDrawer.vue";
 import PxEmpty from "../../components/PxEmpty.vue";
@@ -101,6 +112,16 @@ async function save() {
 }
 
 async function doToggle(row) {
+  const nextAction = row.status === "在售" ? "下架" : "上架";
+  try {
+    await ElMessageBox.confirm(`确认${nextAction}「${row.name}」？${nextAction === "下架" ? "C 端将不再展示该纪念品。" : "C 端将恢复展示该纪念品。"}`, `${nextAction}纪念品`, {
+      type: nextAction === "下架" ? "warning" : "success",
+      confirmButtonText: `确认${nextAction}`,
+      cancelButtonText: "取消",
+    });
+  } catch {
+    return;
+  }
   await toggleProduct(row.id);
   ElMessage.success(row.status === "在售" ? "已下架" : "已上架");
   load();

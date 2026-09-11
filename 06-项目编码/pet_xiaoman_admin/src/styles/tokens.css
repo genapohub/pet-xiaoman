@@ -23,7 +23,9 @@ body {
   font-size: var(--px-fs-base);
   line-height: var(--px-lh-body);
   color: var(--px-text-1);
-  background: var(--px-bg-page);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(217, 164, 104, 0.08), transparent 28%),
+    linear-gradient(180deg, var(--px-bg-paper) 0%, var(--px-bg-page) 38%);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -35,6 +37,7 @@ body {
   --px-primary-pressed: #4A756E;
   --px-primary-disabled: #C2D6D1;
   --px-primary-weak: #EAF1EF; /* 选中态浅底、引导区背景 */
+  --px-primary-softer: #F4F8F7; /* 纸感绿，用于后台工作区层次 */
 
   /* ===== 功能色 ===== */
   --px-success: #2ba471;
@@ -59,9 +62,14 @@ body {
   --px-border: #e5e6eb;
   --px-border-strong: #c9cdd4;
   --px-bg-page: #f7f8fa;
+  --px-bg-paper: #FAF9F6;
   --px-bg-card: #ffffff;
   --px-bg-hover: #f2f3f5;
-  --px-bg-selected: #e8f0ff;
+  --px-bg-selected: #EAF1EF;
+  --px-bg-warm: #FFFBF5;
+  --px-bg-warning: #FFF7ED;
+  --px-bg-error: #FEF2F1;
+  --px-bg-success: #EDF8F3;
 
   /* ===== 字体 ===== */
   --px-font: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
@@ -89,10 +97,13 @@ body {
   --px-radius-sm: 4px;
   --px-radius-md: 6px;
   --px-radius-lg: 12px;
+  --px-radius-xl: 16px;
 
   /* ===== 阴影（两级）===== */
-  --px-shadow-card: 0 1px 4px rgba(0, 0, 0, 0.04);
-  --px-shadow-popup: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --px-shadow-card: 0 1px 4px rgba(32, 52, 48, 0.04);
+  --px-shadow-card-hover: 0 10px 28px rgba(32, 52, 48, 0.08);
+  --px-shadow-popup: 0 18px 54px rgba(32, 52, 48, 0.16);
+  --px-shadow-focus: 0 0 0 3px rgba(91, 140, 133, 0.16);
 
   /* ===== 动效（PRD：hover 100ms / 弹窗 300ms，无弹跳）===== */
   --px-motion-fast: 100ms;
@@ -160,11 +171,15 @@ body {
 /* 表格：行高 48px + 表头弱化 */
 .el-table {
   --el-table-border-color: var(--px-border);
-  --el-table-header-bg-color: var(--px-bg-hover);
+  --el-table-header-bg-color: var(--px-primary-softer);
   --el-table-header-text-color: var(--px-text-2);
   --el-table-text-color: var(--px-text-2);
-  --el-table-row-hover-bg-color: var(--px-bg-hover);
+  --el-table-row-hover-bg-color: var(--px-primary-softer);
   font-size: var(--px-fs-base);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--px-shadow-card);
 }
 .el-table th.el-table__cell {
   font-weight: 600;
@@ -176,16 +191,29 @@ body {
 .el-table .is-right .cell {
   font-variant-numeric: tabular-nums;
 }
+.el-table .cell {
+  line-height: 1.45;
+}
+.el-table__empty-block {
+  min-height: 260px;
+}
 
 /* 按钮：主次高度 40/32，禁用态用 PRD 指定蓝灰而非半透明 */
 .el-button {
   height: var(--px-h-btn-sub);
   font-weight: 500;
+  border-radius: var(--px-radius-md);
   transition: background-color var(--px-motion-fast) linear,
-              border-color var(--px-motion-fast) linear;
+              border-color var(--px-motion-fast) linear,
+              color var(--px-motion-fast) linear,
+              box-shadow var(--px-motion-fast) linear,
+              transform var(--px-motion-fast) linear;
 }
 .el-button--large {
   height: var(--px-h-btn-main);
+}
+.el-button .el-icon + span {
+  margin-left: var(--px-sp-1);
 }
 .el-button:focus-visible {
   outline: 2px solid var(--px-primary);
@@ -201,22 +229,62 @@ body {
 .el-button--primary:hover:not(.is-disabled) {
   background-color: var(--px-primary-hover);
   border-color: var(--px-primary-hover);
+  box-shadow: 0 8px 18px rgba(91, 140, 133, 0.20);
+  transform: translateY(-1px);
+}
+.el-button--primary:active:not(.is-disabled) {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 /* 输入类控件统一 36px */
 .el-input__wrapper,
 .el-select__wrapper {
   height: var(--px-h-input);
+  border-radius: var(--px-radius-md);
+  box-shadow: 0 0 0 1px var(--px-border) inset;
+  transition: box-shadow var(--px-motion-fast) linear,
+              background-color var(--px-motion-fast) linear;
+}
+.el-input__wrapper:hover,
+.el-select__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--px-border-strong) inset;
+}
+.el-input__wrapper.is-focus,
+.el-select__wrapper.is-focused {
+  box-shadow: 0 0 0 1px var(--px-primary) inset, var(--px-shadow-focus);
+}
+.el-textarea__inner {
+  border-radius: var(--px-radius-md);
+  box-shadow: 0 0 0 1px var(--px-border) inset;
+}
+.el-textarea__inner:focus {
+  box-shadow: 0 0 0 1px var(--px-primary) inset, var(--px-shadow-focus);
+}
+.el-form-item__label {
+  color: var(--px-text-2);
+  font-weight: 600;
 }
 
 /* 侧栏菜单：选中态左侧色条而非整行染色（避免过度品牌色占用） */
 .el-menu {
   border-right: none;
   --el-menu-item-height: 44px;
+  background: transparent;
+}
+.el-menu-item {
+  position: relative;
+  margin: 3px var(--px-sp-2);
+  border-radius: var(--px-radius-md);
+  color: var(--px-text-2);
+}
+.el-menu-item:hover {
+  background-color: var(--px-primary-softer);
+  color: var(--px-primary-pressed);
 }
 .el-menu-item.is-active {
   background-color: var(--px-bg-selected);
-  color: var(--px-primary);
+  color: var(--px-primary-pressed);
   font-weight: 600;
 }
 .el-menu-item.is-active::before {
@@ -230,11 +298,59 @@ body {
   background: var(--px-primary);
 }
 
+.el-card {
+  border-color: rgba(201, 205, 212, 0.70);
+  border-radius: var(--px-radius-lg);
+  box-shadow: var(--px-shadow-card);
+}
+.el-card__header {
+  border-bottom-color: var(--px-border);
+  background: linear-gradient(180deg, #fff, var(--px-primary-softer));
+}
+.el-alert {
+  border-radius: var(--px-radius-lg);
+}
+.el-tag {
+  border-radius: 999px;
+  font-weight: 600;
+}
+
 /* 弹窗/抽屉动效 300ms */
 .el-dialog,
 .el-drawer {
   border-radius: var(--px-radius-lg);
   box-shadow: var(--px-shadow-popup);
+}
+.el-drawer__header {
+  margin-bottom: 0;
+  padding: var(--px-sp-6) var(--px-sp-6) var(--px-sp-4);
+  border-bottom: 1px solid var(--px-border);
+  color: var(--px-text-1);
+}
+.el-drawer__body {
+  padding: var(--px-sp-6);
+  background: linear-gradient(180deg, var(--px-bg-card), var(--px-bg-paper));
+}
+.el-drawer__footer {
+  padding: var(--px-sp-4) var(--px-sp-6);
+  border-top: 1px solid var(--px-border);
+  background: rgba(250, 249, 246, 0.92);
+  backdrop-filter: blur(10px);
+}
+.el-dialog {
+  overflow: hidden;
+}
+.el-dialog__header {
+  padding: 20px var(--px-sp-6) var(--px-sp-3);
+  border-bottom: 1px solid var(--px-border);
+}
+.el-dialog__body {
+  padding: var(--px-sp-6);
+}
+.el-dialog__footer {
+  padding: var(--px-sp-4) var(--px-sp-6);
+  border-top: 1px solid var(--px-border);
+  background: var(--px-bg-paper);
 }
 
 /* 尊重系统减动效偏好 */

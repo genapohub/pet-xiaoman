@@ -3,7 +3,10 @@
     <el-aside class="sider" :class="{ 'is-collapsed': collapsed }">
       <div class="brand">
         <span class="brand__mark">宠</span>
-        <span v-show="!collapsed" class="brand__name">宠小满</span>
+        <span v-show="!collapsed" class="brand__copy">
+          <span class="brand__name">宠小满</span>
+          <span class="brand__sub">门店履约后台</span>
+        </span>
       </div>
 
       <el-menu router :default-active="activeMenu" :collapse="collapsed" :collapse-transition="false">
@@ -27,6 +30,7 @@
         </el-breadcrumb>
 
         <div class="navbar__right">
+          <span class="navbar__badge">单店版</span>
           <span class="navbar__user">{{ user.name || "未登录" }}</span>
           <el-button text @click="onLogout">退出</el-button>
         </div>
@@ -42,7 +46,7 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessageBox } from "element-plus";
 import {
-  Box, DataLine, Expand, Fold, Odometer, Present, PriceTag, Tickets, User,
+  Box, DataLine, Expand, Fold, HomeFilled, Present, PriceTag, Tickets, User,
 } from "@element-plus/icons-vue";
 import { useUserStore } from "../stores/user";
 
@@ -51,7 +55,7 @@ const router = useRouter();
 const user = useUserStore();
 
 const menus = [
-  { path: "/dashboard", title: "今日工作台", icon: Odometer },
+  { path: "/dashboard", title: "今日工作台", icon: HomeFilled },
   { path: "/orders", title: "订单管理", icon: Tickets },
   { path: "/service-items", title: "服务项目与价格", icon: PriceTag },
   { path: "/products", title: "纪念品管理", icon: Present },
@@ -118,7 +122,9 @@ onUnmounted(() => window.removeEventListener("resize", syncViewport));
 
 .sider {
   width: var(--px-w-sider);
-  background: var(--px-bg-card);
+  background:
+    linear-gradient(180deg, rgba(234, 241, 239, 0.92), rgba(255, 251, 245, 0.96)),
+    var(--px-bg-card);
   border-right: 1px solid var(--px-border);
   transition: width var(--px-motion-normal) var(--px-ease-out);
   overflow-x: hidden;
@@ -132,6 +138,7 @@ onUnmounted(() => window.removeEventListener("resize", syncViewport));
   height: var(--px-h-navbar);
   padding: 0 var(--px-sp-4);
   white-space: nowrap;
+  border-bottom: 1px solid rgba(201, 205, 212, 0.55);
 }
 .brand__mark {
   display: inline-flex;
@@ -141,15 +148,26 @@ onUnmounted(() => window.removeEventListener("resize", syncViewport));
   height: 28px;
   flex-shrink: 0;
   border-radius: var(--px-radius-sm);
-  background: var(--px-primary);
+  background: linear-gradient(180deg, var(--px-primary), var(--px-primary-pressed));
   color: var(--px-text-inverse);
   font-size: var(--px-fs-base);
   font-weight: 600;
+  box-shadow: 0 8px 18px rgba(91, 140, 133, 0.18);
+}
+.brand__copy {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
 }
 .brand__name {
   font-size: var(--px-fs-md);
   font-weight: 600;
   color: var(--px-text-1);
+}
+.brand__sub {
+  margin-top: 2px;
+  font-size: var(--px-fs-xs);
+  color: var(--px-text-3);
 }
 
 .navbar {
@@ -158,7 +176,8 @@ onUnmounted(() => window.removeEventListener("resize", syncViewport));
   gap: var(--px-sp-3);
   height: var(--px-h-navbar);
   padding: 0 var(--px-sp-6);
-  background: var(--px-bg-card);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--px-border);
 }
 .navbar__icon {
@@ -187,6 +206,18 @@ onUnmounted(() => window.removeEventListener("resize", syncViewport));
   display: flex;
   align-items: center;
   gap: var(--px-sp-2);
+}
+.navbar__badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 var(--px-sp-2);
+  border: 1px solid var(--px-border);
+  border-radius: 999px;
+  background: var(--px-bg-warm);
+  color: var(--px-primary-pressed);
+  font-size: var(--px-fs-xs);
+  font-weight: 600;
 }
 .navbar__user {
   font-size: var(--px-fs-sm);

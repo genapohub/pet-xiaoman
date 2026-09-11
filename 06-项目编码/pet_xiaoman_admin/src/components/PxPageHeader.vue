@@ -5,6 +5,7 @@
         <el-icon><ArrowLeft /></el-icon>
       </button>
       <div>
+        <span class="px-header__eyebrow">PET XIAOMAN ADMIN</span>
         <h1 class="px-header__title">{{ title }}</h1>
         <p v-if="subtitle" class="px-header__sub">{{ subtitle }}</p>
       </div>
@@ -29,7 +30,9 @@ defineProps({
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--px-sp-4);
-  margin-bottom: var(--px-sp-4);
+  margin-bottom: var(--px-sp-5, 20px);
+  padding-bottom: var(--px-sp-3);
+  border-bottom: 1px solid rgba(201, 205, 212, 0.55);
 }
 .px-header__main {
   display: flex;
@@ -59,11 +62,27 @@ defineProps({
   outline-offset: 2px;
 }
 .px-header__title {
-  margin: 0;
+  margin: var(--px-sp-1) 0 0;
   font-size: var(--px-fs-xl);
   font-weight: 600;
   line-height: var(--px-lh-title);
   color: var(--px-text-1);
+}
+.px-header__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--px-sp-1);
+  color: var(--px-primary-pressed);
+  font-size: var(--px-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.px-header__eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--px-chart-2);
 }
 .px-header__sub {
   margin: var(--px-sp-1) 0 0;
