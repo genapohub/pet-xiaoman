@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="后台前端 Vite 5173" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/06-项目编码/pet_xiaoman_admin/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="dev" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs>
+      <env name="VITE_API_TARGET" value="http://127.0.0.1:8010" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>
