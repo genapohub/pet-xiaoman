@@ -1,13 +1,18 @@
-"""C 端鉴权依赖（软校验模式，对齐 WX_LOGIN_ENABLED 开关）：
+"""C 端 / 后台鉴权依赖。
 
-- 请求头 X-Customer-Token 存在 → 解出 customer_id（无效 401）
-- WX_LOGIN_ENABLED=true 且无 token → 401（强制模式）
-- 否则返回 None（legacy 放行，路由回退到请求体 user_id）
+C 端（软校验，对齐 WX_LOGIN_ENABLED）：`customer_auth` 解 X-Customer-Token。
+后台（强制）：`staff_auth` 解 Authorization: Bearer，并附带该员工的
+角色、菜单（menus）、操作权限（permissions），供路由与 RBAC 校验使用。
 """
-from fastapi import Header, HTTPException
+from fastapi import Header, HTTPException, Depends
+from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.services.auth_service import verify_token
+from app.services.staff_auth_service import verify_staff_token
+from app.database import get_db
+from app.models.staff import Staff, StaffStatus, StaffRole
+from app.models.rbac import Role, RoleMenu
 
 
 def customer_auth(x_customer_token: str | None = Header(default=None)) -> int | None:
@@ -32,3 +37,48 @@ def ensure_customer_match(token_customer_id: int | None, request_user_id: int | 
     if request_user_id and request_user_id != token_customer_id:
         raise HTTPException(403, "身份不匹配")
     return token_customer_id
+
+
+# ---------- 后台员工鉴权（强制）----------
+def _load_staff_with_perms(db: Session, staff_id: int) -> Staff:
+    staff = db.get(Staff, staff_id)
+    if staff is None or staff.status != StaffStatus.ACTIVE:
+        raise HTTPException(401, "账号已停用或不存在")
+    role = db.query(Role).filter(Role.key == staff.role.value).first()
+    # 把角色对应的菜单与操作权限挂在实例上，供路由响应与 require_perm 使用（非持久化列）
+    staff.permissions = list(role.permissions) if role else []
+    staff.menus = [rm.menu_key for rm in db.query(RoleMenu).filter(RoleMenu.role_id == role.id)] if role else []
+    return staff
+
+
+def staff_auth(authorization: str | None = Header(default=None), db: Session = Depends(get_db)) -> Staff:
+    """Authorization: Bearer <token> → 解出员工并附带 menus / permissions。"""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(401, "未登录或登录态缺失")
+    staff_id = verify_staff_token(authorization[len("Bearer "):])
+    if staff_id is None:
+        raise HTTPException(401, "登录态无效或已过期，请重新登录")
+    return _load_staff_with_perms(db, staff_id)
+
+
+def require_role(*roles: StaffRole):
+    """仅允许指定角色。例：require_role(StaffRole.MANAGER)。"""
+    allowed = set(roles)
+
+    def dep(staff: Staff = Depends(staff_auth)) -> Staff:
+        if staff.role not in allowed:
+            raise HTTPException(403, "当前角色无此操作权限")
+        return staff
+
+    return dep
+
+
+def require_perm(code: str):
+    """要求具备某操作权限 code（来自角色 permissions）。"""
+    def dep(staff: Staff = Depends(staff_auth)) -> Staff:
+        if code not in getattr(staff, "permissions", []):
+            raise HTTPException(403, "当前角色无此操作权限")
+        return staff
+
+    return dep
+

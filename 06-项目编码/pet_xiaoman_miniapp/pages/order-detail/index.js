@@ -1,6 +1,7 @@
 // C006 订单进度时间线（PRD：状态+节点影像，信任的载体）
 const { get } = require("../../utils/request");
 const { decorateOrder } = require("../../utils/format");
+const { absUrl } = require("../../utils/url");
 
 Page({
   data: { order: null, media: [], loading: true },
@@ -14,7 +15,11 @@ Page({
       const nodes = ["待确认", "已预约", "接宠中", "服务中", "待交付", "已完成"];
       const timeline = nodes.map((name, i) => {
         const idx = nodes.indexOf(order.status);
-        const nodeMedia = media.filter((m) => m.node === name);
+        // 后端媒体 URL 是相对路径（/uploads/...），小程序 <image>/<video>/previewImage
+        // 无法解析，必须拼成绝对地址；photoUrls 同样要绝对地址。
+        const nodeMedia = media
+          .filter((m) => m.node === name)
+          .map((m) => Object.assign({}, m, { url: absUrl(m.url) }));
         return {
           name,
           done: i <= idx,

@@ -6,6 +6,8 @@
     "pages/products/products",
     "pages/profile/index",
     "pages/prices/prices",
+    "pages/cashier/index",
+    "pages/order-success/index",
     "pages/order-detail/index",
     "pages/boarding-query/query",
     "pages/pets/pets"

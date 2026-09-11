@@ -2,7 +2,7 @@
   <el-container class="layout">
     <el-aside class="sider" :class="{ 'is-collapsed': collapsed }">
       <div class="brand">
-        <span class="brand__mark">宠</span>
+        <span class="brand__mark"><img class="brand__logo" src="/brand/logo-mark-white.png" alt="宠小满" /></span>
         <span v-show="!collapsed" class="brand__copy">
           <span class="brand__name">宠小满</span>
           <span class="brand__sub">门店履约后台</span>
@@ -153,6 +153,11 @@ onUnmounted(() => window.removeEventListener("resize", syncViewport));
   font-size: var(--px-fs-base);
   font-weight: 600;
   box-shadow: 0 8px 18px rgba(91, 140, 133, 0.18);
+}
+.brand__logo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
 }
 .brand__copy {
   display: flex;

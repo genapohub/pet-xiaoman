@@ -17,7 +17,7 @@
       <view class="card" wx:for="{{products}}" wx:key="id">
         <!-- 有图用图；无图时用品牌图形标兜底，比写「宠小满」三个字更像成品 -->
         <!-- 注意：注释不能夹在 wx:if 与 wx:else 之间，否则 wx:else 会与 wx:if 失联 -->
-        <image wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" class="img" />
+        <image wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" class="img" data-index="{{index}}" binderror="imageFailed" />
         <view wx:else class="img placeholder">
           <image class="placeholder__logo" src="/assets/logo/logo-mark-sm.png" mode="aspectFit" />
         </view>

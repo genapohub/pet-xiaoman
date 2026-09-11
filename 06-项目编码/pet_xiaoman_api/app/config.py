@@ -40,5 +40,8 @@ class Settings:
     WX_LOGIN_ENABLED = os.getenv("WX_LOGIN_ENABLED", "false").lower() == "true"
     TOKEN_SECRET = os.getenv("TOKEN_SECRET", "")
 
+    # 后台员工登录（账号密码 + 登录态管理）
+    STAFF_TOKEN_SECRET = os.getenv("STAFF_TOKEN_SECRET", "")
+
 
 settings = Settings()

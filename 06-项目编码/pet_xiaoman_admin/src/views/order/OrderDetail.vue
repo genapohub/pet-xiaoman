@@ -47,9 +47,9 @@
               <b>{{ group.node }}</b>
               <div class="thumbs">
                 <template v-for="m in group.items" :key="m.id">
-                  <el-image v-if="m.media_type === 'photo'" :src="m.url" fit="cover" class="thumb"
+                  <el-image v-if="m.media_type === 'photo'" :src="mediaUrl(m.url)" fit="cover" class="thumb"
                     :preview-src-list="photoList(group.items)" preview-teleported />
-                  <video v-else :src="m.url" class="thumb" controls />
+                  <video v-else :src="mediaUrl(m.url)" class="thumb" controls />
                 </template>
               </div>
             </el-timeline-item>
@@ -155,6 +155,7 @@ import PxPageHeader from "../../components/PxPageHeader.vue";
 import PxEmpty from "../../components/PxEmpty.vue";
 import PxStatusTag from "../../components/PxStatusTag.vue";
 import { fmtDateTime, fmtMoney } from "../../utils/format";
+import { mediaUrl } from "../../utils/url";
 
 const route = useRoute();
 const orderNo = route.params.orderNo;
@@ -181,7 +182,7 @@ const groupedMedia = computed(() => {
   }
   return Object.values(groups);
 });
-const photoList = (items) => items.filter((m) => m.media_type === "photo").map((m) => m.url);
+const photoList = (items) => items.filter((m) => m.media_type === "photo").map((m) => mediaUrl(m.url));
 
 async function load() {
   loading.value = true;

@@ -16,6 +16,9 @@ from app.database import Base, SessionLocal, engine  # noqa: E402
 from app.models import Product, ServiceItem  # noqa: E402
 from app.models.product import ProductStatus  # noqa: E402
 from app.models.service_item import ItemStatus, ItemType  # noqa: E402
+from app.models.staff import Store, Staff, StaffRole, StaffStatus  # noqa: E402
+from app.models.rbac import Role, Menu, RoleMenu, PERMISSION_CATALOG  # noqa: E402
+from app.services.staff_auth_service import hash_password  # noqa: E402
 
 SEED_VERSION = "v20260910"
 
@@ -42,6 +45,73 @@ PRODUCTS = [
 ]
 
 
+# 后台菜单（与 router/index.js 的路径一一对应；staff/rbac 仅店长可见）
+MENUS = [
+    ("dashboard", "今日工作台", "HomeFilled", 10),
+    ("orders", "订单管理", "Tickets", 20),
+    ("service-items", "服务项目与价格", "PriceTag", 30),
+    ("products", "纪念品管理", "Present", 40),
+    ("boarding", "骨灰寄存", "Box", 50),
+    ("customers", "客户档案", "User", 60),
+    ("stats", "数据看板", "DataLine", 70),
+    ("staff", "团队成员", "Avatar", 80),
+    ("rbac", "角色权限", "Setting", 90),
+]
+
+ALL_PERMS = [p["code"] for p in PERMISSION_CATALOG]
+# 店长默认拥有全部操作权限；店员为空 —— 这就是「按角色区分操作权限」的默认基线
+EMPLOYEE_PERMS: list[str] = []
+
+# 本地联调默认店长（生产请走 POST /api/b/auth/setup，并务必改密）
+DEV_ADMIN_USER = os.getenv("DEV_ADMIN_USER", "admin")
+DEV_ADMIN_PASS = os.getenv("DEV_ADMIN_PASS", "admin123")
+
+
+def _seed_org_and_rbac(db) -> None:
+    """组织与权限种子（幂等）：默认门店 + 两角色 + 菜单映射 + 首位店长。"""
+    store = db.query(Store).first()
+    if not store:
+        store = Store(name="宠小满·示例门店")
+        db.add(store)
+        db.commit()
+        db.refresh(store)
+
+    if db.query(Menu).count() == 0:
+        db.add_all([Menu(key=k, title=t, icon=i, sort=s) for (k, t, i, s) in MENUS])
+        db.commit()
+
+    def _role(key: str, name: str, perms: list) -> Role:
+        r = db.query(Role).filter(Role.key == key).first()
+        if not r:
+            r = Role(key=key, name=name, permissions=list(perms))
+            db.add(r)
+        else:
+            r.permissions = list(perms)
+        db.commit()
+        db.refresh(r)
+        return r
+
+    manager = _role("manager", "店长", ALL_PERMS)
+    employee = _role("employee", "店员", EMPLOYEE_PERMS)
+
+    all_keys = [k for (k, *_rest) in MENUS]
+    def _bind(role: Role, keys: list) -> None:
+        if db.query(RoleMenu).filter(RoleMenu.role_id == role.id).count():
+            return  # 已被后台改过就不覆盖，避免重置店长的权限分配
+        db.add_all([RoleMenu(role_id=role.id, menu_key=k) for k in keys])
+        db.commit()
+
+    _bind(manager, all_keys)
+    _bind(employee, [k for k in all_keys if k not in ("staff", "rbac")])
+
+    if db.query(Staff).count() == 0:
+        db.add(Staff(username=DEV_ADMIN_USER, password_hash=hash_password(DEV_ADMIN_PASS),
+                     name="示例店长", role=StaffRole.MANAGER, store_id=store.id,
+                     manager_id=None, status=StaffStatus.ACTIVE))
+        db.commit()
+        print(f"已创建默认店长：{DEV_ADMIN_USER} / {DEV_ADMIN_PASS}（仅本地联调，生产请改密或走 /api/b/auth/setup）")
+
+
 def init(reset: bool = False) -> None:
     if reset:
         Base.metadata.drop_all(engine)
@@ -49,6 +119,7 @@ def init(reset: bool = False) -> None:
 
     db = SessionLocal()
     try:
+        _seed_org_and_rbac(db)
         exist = db.query(ServiceItem).filter_by(version=SEED_VERSION).count()
         if exist:
             print(f"种子数据已存在（version={SEED_VERSION}，{exist} 条），跳过。如需重建：--reset")

@@ -45,16 +45,18 @@ Page({
     if (!expectTime) return wx.showToast({ title: "请选择期望服务时间", icon: "none" });
     const app = getApp();
     this.setData({ submitting: true });
-    post("/api/c/orders", {
-      pet_name: form.pet_name,
-      species: form.species,
-      weight: form.weight ? +form.weight : null,
-      pkg_id: packages[pkgIndex].id,
-      expect_time: expectTime,
-      address: form.address || null,
-    }).then((data) => {
+    app.ensureLogin().then(() => post("/api/c/orders", {
+        pet_name: form.pet_name,
+        species: form.species,
+        weight: form.weight ? +form.weight : null,
+        pkg_id: packages[pkgIndex].id,
+        expect_time: expectTime,
+        address: form.address || null,
+      })).then((data) => {
       wx.showToast({ title: "已提交", icon: "success" });
-      setTimeout(() => wx.navigateTo({ url: `/pages/order-detail/index?order_no=${data.order_no}` }), 800);
+      setTimeout(() => wx.navigateTo({
+        url: `/pages/cashier/index?order_no=${data.order_no}&amount=${data.total_amount || 0}`,
+      }), 800);
     }).catch((err) => {
       wx.showToast({ title: err.detail || "提交失败", icon: "none" });
     }).finally(() => this.setData({ submitting: false }));

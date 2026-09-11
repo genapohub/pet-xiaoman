@@ -2,12 +2,9 @@
   <div class="login-page">
     <div class="login-card">
       <div class="brand">
-        <span class="brand__mark">宠</span>
-        <div>
-          <h1 class="brand__name">宠小满</h1>
-          <p class="brand__sub">门店管理后台</p>
-          <p class="brand__slogan">爱意小满，不留遗憾</p>
-        </div>
+        <img class="brand__lockup" src="/brand/logo-lockup.png" alt="宠小满" />
+        <p class="brand__sub">门店管理后台</p>
+        <p class="brand__slogan">爱意小满，不留遗憾</p>
       </div>
       <el-form @submit.prevent>
         <el-form-item><el-input v-model="username" placeholder="账号" size="large" /></el-form-item>
@@ -64,35 +61,23 @@ async function onLogin() {
 }
 .brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--px-sp-3);
+  text-align: center;
   margin-bottom: var(--px-sp-6);
 }
-.brand__mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--px-radius-md);
-  background: var(--px-primary);
-  color: var(--px-text-inverse);
-  font-size: var(--px-fs-lg);
-  font-weight: 600;
-}
-.brand__name {
-  margin: 0;
-  font-size: var(--px-fs-xl);
-  font-weight: 600;
-  color: var(--px-text-1);
+.brand__lockup {
+  width: 200px;
+  height: auto;
+  margin-bottom: var(--px-sp-3);
 }
 .brand__sub {
-  margin: 2px 0 0;
-  font-size: var(--px-fs-sm);
+  margin: 0;
+  font-size: var(--px-fs-base);
   color: var(--px-text-2);
 }
 .brand__slogan {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   font-size: var(--px-fs-xs);
   color: var(--px-primary);
   letter-spacing: 1px;

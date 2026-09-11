@@ -63,7 +63,6 @@
   border: 1rpx solid rgba(61, 92, 87, 0.06);
 }
 .promise:first-child { flex: 1.2; }
-.promise__icon { width: 40rpx; height: 40rpx; }
 .promise__text {
   font-size: var(--fs-xs);
   color: var(--c-ink);

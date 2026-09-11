@@ -161,11 +161,11 @@ flowchart TD
 
 ### 2.2 支付三选一（C012 收银台）
 
-PRD v1.3 设计了收银台三选一，**当前实现只落到「支付框架 + 线下结清」两条腿**，线上收银台页面尚未实现（`PAY_ENABLED` 默认 `false`）。
+PRD v1.3 设计了收银台三选一；当前已实现 C012 页面承载，但 `PAY_ENABLED` 默认 `false`，所以定金/全款为置灰预留态，仅「到店付款」可提交到 C011。
 
 ```mermaid
 flowchart TD
-    A["C011 预约成功"] --> B["C012 收银台<br/>三选一（设计态）"]
+    A["C004 提交预约<br/>生成订单"] --> B["C012 收银台<br/>三选一"]
     B --> C1["付定金"]
     B --> C2["付全款"]
     B --> C3["到店付"]
@@ -179,7 +179,8 @@ flowchart TD
     ID -->|是| DUP["幂等：直接返回 duplicated"]
     ID -->|否| REC["落 payment_records<br/>+ 更新 pay_type / paid_amount"]
 
-    C3 --> OFF["线下收款"]
+    C3 --> OK["C011 预约成功<br/>门店电话确认"]
+    OK --> OFF["线下收款"]
     OFF --> SET["B003 到店付结清<br/>POST .../settle"]
     SET --> CHK{"实收 ≥ 应收尾款？"}
     CHK -->|否| Y["❌ 422 实收金额不足"]
@@ -754,8 +755,8 @@ flowchart TD
 | C008 | 骨灰寄存查询 | `pages/boarding-query/query` | `GET /api/c/boardings/query` | ✅ |
 | C009 | 宠物档案 | `pages/pets/pets` | `GET /api/c/pets` | ✅ |
 | C010 | 个人中心 | `pages/profile/index` | — | ✅ |
-| C011 | 预约成功结果页 | — | — | ⚠️ 已并入 C004 提交反馈 |
-| C012 | 收银台 | — | — | ❌ 未实现（`PAY_ENABLED=false`） |
+| C011 | 预约成功结果页 | `pages/order-success/index` | C012 到店付款确认后携带 `order_no` 跳转 | ✅ |
+| C012 | 收银台 | `pages/cashier/index` | C004 提交成功后携带 `order_no`/金额跳转；`PAY_ENABLED=false` 时仅到店付可选 | ✅ 一期已实现 |
 
 **其余 C 端接口**：`POST /api/c/customers`（轻量注册）、`POST /api/c/auth/login`、`GET /api/c/auth/me`、`POST /api/c/notify/wechat`（支付回调）
 
@@ -821,8 +822,8 @@ flowchart TD
 | 1 | **逆向流转** | 「已完成」原则上不可回退，确需回退由店长操作并强制原因；状态回退全量写审计日志 | `TRANSITIONS` 中**无任何逆向边**；`order_service.transition()` 注释「店长回退例外通道暂不实现」 | 收款纠纷等场景无系统出口，只能改库 | 短期：PRD 标注「v1.0 不实现」；中期：补店长回退边 + 审计日志 |
 | 2 | **服务中/待交付取消** | 「任意非终态 → 已取消」，需店长权限 + 必填原因 | `TRANSITIONS[服务中] = [待交付]`、`TRANSITIONS[待交付] = [已完成]`，**均无取消边**；`validate_transition` 还显式拦截 `服务中→已取消` | 服务中出事故（如宠物遗失）无法线上取消 | 明确 PRD：服务中之后只能线下处理；或补店长专用取消边 |
 | 3 | **无影像流转例外通道** | 「影像上传持续失败：允许店长权限『无影像流转』，标记例外并记录原因」 | `validate_transition` 中**无例外参数**，`TransitionContext.is_owner` 字段已定义但未被使用 | 网络/设备故障时业务卡死，无兜底 | 补 `is_owner=true` 时跳过影像校验，但强制写审计日志 |
-| 4 | **收银台 C012** | v1.3 新增 C012 收银台，三选一（定金/全款/到店付） | 页面未实现；`PAY_ENABLED=false`；仅保留微信回调 `POST /api/c/notify/wechat` + 线下结清两条腿 | C 端线上支付不可用，只能到店付 | 上线前必须补 C012，否则 PRD §6.1 主流程的「三选一」为空谈 |
-| 5 | **预约成功页 C011** | 独立页面承载提交反馈 | 未独立实现，反馈已并入 C004 提交结果 | 影响极小 | PRD 标注「并入 C004」即可 |
+| 4 | **收银台 C012** | v1.3 新增 C012 收银台，三选一（定金/全款/到店付） | 页面已实现；`PAY_ENABLED=false` 时定金/全款置灰，仅到店付可选；微信支付回调仍为商户号开通后的二期能力 | C 端线上支付不可用，但支付选择页闭环已补齐 | 商户号开通后接入 JSAPI 拉起与支付结果回写 |
+| 5 | **预约成功页 C011** | 独立页面承载提交反馈 | 已实现 `pages/order-success/index`，C012 到店付款确认后跳转并支持订单号复制/查看订单/返回首页 | 已收口 | 无 |
 | 6 | **服务详情页 C003** | 独立页面（P0） | 未实现 | 客户无法看科普内容，信任转化链路缺一环 | 排期补 |
 | 7 | **改期接口状态约束** | 「客户改期：免费改期 1 次」（语境在服务前） | `reschedule` 接口**不限状态**，`已完成` 订单也能改 `expect_time`，且消耗改期次数 | 口径漏洞，已交付订单被改时间会造成数据失真 | 补状态白名单：仅 `已预约/接宠中` 可改期 |
 | 8 | **客户取消 vs 店员取消** | 两者分列，店员取消需必填原因 | C 端 `cancel` 接口已实现；**B 端无独立取消接口**，只能走 `transition` + `target=已取消` | 店员取消未强制校验原因（`cancel_reason` 不会被写入） | 补 B 端取消接口或让 `transition` 支持写入 `cancel_reason` |

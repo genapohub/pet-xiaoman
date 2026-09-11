@@ -8,10 +8,9 @@
     <view class="hero__proof">价格公开 · 过程可见 · 24小时可约</view>
   </view>
 
-  <!-- 三承诺：上浮卡片压住 hero 底边 -->
+  <!-- 三承诺：上浮卡片压住 hero 底边，去图标、纯文字（spec §9.2），首卡 1.2 宽形成非对称节奏 -->
   <view class="promises">
     <view class="promise" wx:for="{{promises}}" wx:key="text">
-      <image class="promise__icon" src="/assets/icons/{{item.icon}}-primary.png" mode="aspectFit" />
       <view class="promise__text">{{item.text}}</view>
     </view>
   </view>

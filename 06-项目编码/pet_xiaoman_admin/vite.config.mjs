@@ -48,6 +48,11 @@ export default defineConfig({
           proxy.on("error", printApiProxyHelp);
         },
       },
+      // 后端上传的影像文件（/uploads/{order_no}/{file}）由 FastAPI StaticFiles 提供
+      "/uploads": {
+        target: apiTarget,
+        changeOrigin: true,
+      },
     },
   },
   build: {

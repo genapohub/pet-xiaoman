@@ -1,7 +1,7 @@
 <template>
   <px-table-page
     title="订单管理"
-    :subtitle="`共 ${total} 条订单`"
+    :subtitle="subtitle"
     :rows="rows"
     :loading="loading"
     :failed="failed"
@@ -43,22 +43,23 @@
     <el-table-column label="期望服务时间" width="160">
       <template #default="{ row }">{{ fmtDateTime(row.expect_time) }}</template>
     </el-table-column>
-      <el-table-column label="下单时间" min-width="160">
-        <template #default="{ row }">{{ fmtDateTime(row.created_at) }}</template>
-      </el-table-column>
-      <el-table-column label="操作" width="100" fixed="right">
-        <template #default="{ row }">
-          <PxActionButton label="查看" :icon="View" tone="primary" tip="进入订单详情与服务记录" @click="goDetail(row)" />
-        </template>
-      </el-table-column>
+    <el-table-column label="下单时间" min-width="160">
+      <template #default="{ row }">{{ fmtDateTime(row.created_at) }}</template>
+    </el-table-column>
+    <el-table-column label="操作" width="100" fixed="right">
+      <template #default="{ row }">
+        <PxActionButton label="查看" :icon="View" tone="primary" tip="进入订单详情与服务记录" @click="goDetail(row)" />
+      </template>
+    </el-table-column>
 
     <template #empty>
-      <PxEmpty variant="doc" text="没有符合条件的订单" hint="换个状态筛选，或清空关键字试试" />
+      <PxEmpty variant="doc" text="暂无待确认订单" hint="可切换状态或日期查看历史订单" />
     </template>
   </px-table-page>
 </template>
 
 <script setup>
+import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { Refresh, View } from "@element-plus/icons-vue";
 import { listOrders } from "../../api/order";
@@ -67,15 +68,21 @@ import PxActionButton from "../../components/PxActionButton.vue";
 import PxTablePage from "../../components/PxTablePage.vue";
 import PxEmpty from "../../components/PxEmpty.vue";
 import PxStatusTag from "../../components/PxStatusTag.vue";
-import { fmtDateTime, fmtMoney, todayStr } from "../../utils/format";
+import { fmtDateTime, fmtMoney } from "../../utils/format";
 import { ORDER_STATUS_LIST } from "../../utils/status";
 
 const router = useRouter();
 const { rows, total, loading, failed, query, load, search, setPage, setSize, debouncedLoad } = useTable(
   (params) => listOrders({ ...params, is_night: params.is_night || undefined }),
-  // 日期默认「今日」：与「今日工作台」的日常运营动线一致，进页面即看到当天要服务的单
-  { defaultQuery: { status: "", date: todayStr(), keyword: "", is_night: false } }
+  { defaultQuery: { status: "待确认", date: "", keyword: "", is_night: false } }
 );
+
+const subtitle = computed(() => {
+  if (query.status === "待确认" && !query.date && !query.keyword && !query.is_night) {
+    return `待确认订单优先处理 · 共 ${total.value} 条`;
+  }
+  return `共 ${total.value} 条订单`;
+});
 
 function goDetail(row) { router.push(`/orders/${row.order_no}`); }
 </script>

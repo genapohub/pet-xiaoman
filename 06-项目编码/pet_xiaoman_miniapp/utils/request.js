@@ -6,37 +6,60 @@ function buildHeader() {
   return token ? { "X-Customer-Token": token } : {};
 }
 
-function handle401() {
+function clearLogin() {
   wx.removeStorageSync("token");
   wx.removeStorageSync("customer_id");
-  getApp().ensureLogin();
 }
 
-function request(path, method = "GET", data = {}) {
+function messageFromResponse(res) {
+  return res.data?.detail || res.data?.message || "请求失败";
+}
+
+function request(path, method = "GET", data = {}, options = {}) {
   return new Promise((resolve, reject) => {
+    const apiBase = baseURL();
+    if (apiBase.includes(":8000")) {
+      console.warn(`[宠小满接口请求] 当前仍在访问旧端口 8000：${apiBase}。请在微信开发者工具控制台执行 wx.removeStorageSync('debug_base_url') 后重新编译。`);
+    }
     wx.request({
-      url: `${baseURL()}${path}`,
+      url: `${apiBase}${path}`,
       method,
       data,
       header: buildHeader(),
       success(res) {
         if (res.statusCode === 401) {
-          handle401();
-          return reject(res);
+          clearLogin();
+          if (options.retryAuth === false) return reject(res);
+          console.warn(`[宠小满登录] ${path} 返回 401，正在重新登录并重试一次。`);
+          return getApp().ensureLogin()
+            .then((loginData) => {
+              if (!loginData?.token) throw res;
+              return request(path, method, data, { ...options, retryAuth: false });
+            })
+            .then(resolve)
+            .catch((err) => {
+              if (!options.silentError) {
+                wx.showToast({ title: "登录已过期，请重试", icon: "none" });
+              }
+              reject(err);
+            });
         }
         if (res.statusCode >= 200 && res.statusCode < 300) {
           resolve(res.data.data !== undefined ? res.data.data : res.data);
         } else {
-          wx.showToast({ title: res.data?.detail || res.data?.message || "请求失败", icon: "none" });
+          if (!options.silentError) wx.showToast({ title: messageFromResponse(res), icon: "none" });
           reject(res);
         }
       },
       fail(err) {
-        wx.showToast({ title: "网络异常，请稍后重试", icon: "none" });
+        if (!options.silentError) wx.showToast({ title: "网络异常，请稍后重试", icon: "none" });
         reject(err);
       },
     });
   });
 }
 
-module.exports = { get: (p, d) => request(p, "GET", d), post: (p, d) => request(p, "POST", d) };
+module.exports = {
+  get: (p, d, options) => request(p, "GET", d, options),
+  post: (p, d, options) => request(p, "POST", d, options),
+};
