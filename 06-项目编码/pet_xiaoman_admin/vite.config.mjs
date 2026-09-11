@@ -4,7 +4,7 @@ import vue from "@vitejs/plugin-vue";
 import Components from "unplugin-vue-components/vite";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 
-const apiTarget = process.env.VITE_API_TARGET || "http://127.0.0.1:8000";
+const apiTarget = process.env.VITE_API_TARGET || "http://127.0.0.1:8010";
 
 function printApiProxyHelp(err, req) {
   const path = req?.url || "/api/...";

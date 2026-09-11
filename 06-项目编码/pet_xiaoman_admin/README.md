@@ -4,7 +4,7 @@
 
 ```bash
 npm install
-npm run dev     # 开发（/api 代理到 127.0.0.1:8000）
+npm run dev     # 开发（/api 默认代理到 127.0.0.1:8010）
 npm run build   # 构建产物 → 微信云托管静态托管（ADR-005）
 ```
 

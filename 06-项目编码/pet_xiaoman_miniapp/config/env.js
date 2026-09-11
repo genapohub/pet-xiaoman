@@ -3,14 +3,14 @@
 
 // 换 WiFi / 换开发机后改这一行即可（命令行查：ipconfig getifaddr en0）
 const DEV_BASE = {
-  simulator: "http://127.0.0.1:8000", // 开发者工具模拟器
-  device: "http://192.168.1.3:8000", // 真机预览/真机调试（手机与本机的同一局域网）
+  simulator: "http://127.0.0.1:8010", // 开发者工具模拟器
+  device: "http://192.168.1.3:8010", // 真机预览/真机调试（手机与本机的同一局域网）
 };
 
 // TODO: 云托管环境域名确认后填入
 const PROD_BASE = "https://dev.example.com";
 
-// 临时覆盖：控制台执行 wx.setStorageSync('debug_base_url', 'http://x.x.x.x:8000') 后重启小程序
+// 临时覆盖：控制台执行 wx.setStorageSync('debug_base_url', 'http://x.x.x.x:8010') 后重启小程序
 const OVERRIDE_KEY = "debug_base_url";
 
 function currentEnv() {
