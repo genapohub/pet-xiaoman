@@ -1,0 +1,23 @@
+<view class="login" style="{{brandStyle}}">
+  <view class="login__brand">
+    <image wx:if="{{theme.logoUrl}}" class="login__lockup" src="{{theme.logoUrl}}" mode="aspectFit" />
+    <view wx:else class="login__mark brandmark">{{shopInitial}}</view>
+    <text class="login__shop">{{theme.shopName}}</text>
+    <text class="login__slogan" wx:if="{{theme.slogan}}">{{theme.slogan}}</text>
+  </view>
+
+  <view class="login__card">
+    <button
+      class="login__phone"
+      open-type="getPhoneNumber"
+      bindgetphonenumber="onGetPhone"
+      loading="{{loading}}"
+    >微信手机号一键登录</button>
+
+    <button wx:if="{{dev}}" class="login__dev" bindtap="onDevLogin" loading="{{loading}}">
+      开发模式直接登录
+    </button>
+
+    <text class="login__hint">登录即表示授权获取微信绑定手机号，用于订单与回访通知</text>
+  </view>
+</view>

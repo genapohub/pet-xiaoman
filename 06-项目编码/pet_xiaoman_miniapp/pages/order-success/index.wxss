@@ -1,0 +1,124 @@
+.success-page {
+  min-height: 100vh;
+  padding: 112rpx var(--sp-4) var(--sp-8);
+}
+
+.success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.success__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--c-primary) 0%, var(--c-primary-press) 100%);
+  box-shadow: 0 16rpx 36rpx rgba(61, 92, 87, 0.18);
+  animation: success-pop 240ms ease-out both;
+}
+
+.success__icon image {
+  width: 72rpx;
+  height: 72rpx;
+}
+
+.success__title {
+  margin-top: var(--sp-4);
+  color: var(--c-ink);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: var(--lh-title);
+}
+
+.success__desc {
+  margin-top: var(--sp-2);
+  color: var(--c-gray);
+  font-size: var(--fs-base);
+}
+
+.order-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--sp-8);
+  padding: 28rpx var(--sp-4);
+}
+
+.order-card.button-hover {
+  background: var(--c-primary-pale);
+}
+
+.order-card__label {
+  color: var(--c-gray);
+  font-size: var(--fs-sm);
+}
+
+.order-card__no {
+  margin-top: 6rpx;
+  color: var(--c-ink);
+  font-size: 30rpx;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.copy-pill {
+  flex-shrink: 0;
+  padding: 8rpx 18rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-primary-light);
+  color: var(--c-primary);
+  font-size: var(--fs-xs);
+}
+
+.pay-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-1);
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--c-card-warm);
+  color: var(--c-gray);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+}
+
+.pay-note image {
+  flex-shrink: 0;
+  width: 32rpx;
+  height: 32rpx;
+  margin-top: 4rpx;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+}
+
+.actions button,
+.empty-action {
+  width: 100%;
+  margin: 0;
+}
+
+.empty-action {
+  margin-top: var(--sp-3);
+}
+
+@keyframes success-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

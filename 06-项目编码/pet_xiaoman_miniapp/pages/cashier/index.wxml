@@ -1,0 +1,38 @@
+<view class="page cashier-page" style="{{brandStyle}}">
+  <view class="amount-card" wx:if="{{orderNo}}">
+    <view class="amount-card__label">应付金额</view>
+    <view class="amount-card__value">¥{{amountText}}</view>
+    <view class="amount-card__order">订单号 {{orderNo}}</view>
+  </view>
+
+  <view class="pay-switch" wx:if="{{!payEnabled && orderNo}}">
+    <image src="/assets/icons/shield-primary.png" mode="aspectFit" />
+    <text>线上支付暂未开启，当前仅支持到店付款</text>
+  </view>
+
+  <view class="card method-card" wx:if="{{orderNo}}">
+    <view class="method {{item.key === selected ? 'is-selected' : ''}} {{item.disabled ? 'is-disabled' : ''}}"
+      wx:for="{{methods}}" wx:key="key" data-key="{{item.key}}" bindtap="selectMethod">
+      <view class="radio"></view>
+      <image class="method__icon" src="{{item.icon}}" mode="aspectFit" />
+      <view class="method__body">
+        <view class="method__name">{{item.name}}</view>
+        <view class="method__desc">{{item.disabled ? item.disabledText : item.desc}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="trust-note" wx:if="{{orderNo}}">
+    定金在接宠完成前取消可全额退回；选择到店付款不会影响门店确认预约。
+  </view>
+
+  <view class="cashier-bar" wx:if="{{orderNo}}">
+    <button class="btn-primary" disabled="{{submitting}}" bindtap="submit">{{submitting ? "处理中..." : actionText}}</button>
+  </view>
+
+  <view wx:else class="state state--card">
+    <image class="state__icon" src="/assets/icons/tab-order.png" mode="aspectFit" />
+    <view class="state__text">没有找到订单信息</view>
+    <view class="state__hint">可返回预约页重新提交</view>
+  </view>
+</view>

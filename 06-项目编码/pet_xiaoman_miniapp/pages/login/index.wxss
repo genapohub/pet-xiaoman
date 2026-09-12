@@ -1,0 +1,76 @@
+.login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 48rpx;
+  background: linear-gradient(180deg, var(--c-primary-light, #EAF1EF) 0%, #F7F8FA 60%);
+}
+.login__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 64rpx;
+}
+.login__lockup {
+  width: 320rpx;
+  height: auto;
+  max-height: 160rpx;
+}
+/* 未配 logo 时的中性占位标：登录页是浅底，把 .brandmark 的反白配色换掉 */
+.login__mark {
+  width: 136rpx;
+  height: 136rpx;
+  font-size: 62rpx;
+  border-color: var(--c-primary);
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--c-primary);
+}
+/* 店名：多租户白标下由门店资料驱动 */
+.login__shop {
+  margin-top: 20rpx;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: var(--c-primary-deep);
+  letter-spacing: 1rpx;
+}
+.login__slogan {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: var(--c-primary);
+  letter-spacing: 2rpx;
+}
+.login__card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.login__phone {
+  height: 92rpx;
+  border-radius: 16rpx;
+  background: var(--c-primary);
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  border: none;
+}
+.login__phone::after { border: none; }
+.login__dev {
+  margin-top: 24rpx;
+  height: 84rpx;
+  border-radius: 16rpx;
+  background: #fff;
+  color: var(--c-primary);
+  font-size: 28rpx;
+  border: 1rpx solid var(--c-primary);
+}
+.login__dev::after { border: none; }
+.login__hint {
+  margin-top: 28rpx;
+  font-size: 22rpx;
+  color: #86909C;
+  text-align: center;
+  line-height: 1.6;
+}
