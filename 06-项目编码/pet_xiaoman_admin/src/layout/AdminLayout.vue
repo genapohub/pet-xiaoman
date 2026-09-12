@@ -2,15 +2,19 @@
   <el-container class="layout">
     <el-aside class="sider" :class="{ 'is-collapsed': collapsed }">
       <div class="brand">
-        <span class="brand__mark"><img class="brand__logo" src="/brand/logo-mark-white.png" alt="宠小满" /></span>
+        <span class="brand__mark">
+          <img v-if="user.storeLogo" class="brand__logo" :src="user.storeLogo" alt="门店 logo" />
+          <!-- 未配 logo 时用店名首字占位：不回落到任何一家门店的标 -->
+          <template v-else>{{ user.storeInitial }}</template>
+        </span>
         <span v-show="!collapsed" class="brand__copy">
-          <span class="brand__name">宠小满</span>
-          <span class="brand__sub">门店履约后台</span>
+          <span class="brand__name">{{ user.storeName }}</span>
+          <span class="brand__sub">{{ user.storeSlogan || (user.isSuperAdmin ? "平台管理台" : "门店履约后台") }}</span>
         </span>
       </div>
 
       <el-menu router :default-active="activeMenu" :collapse="collapsed" :collapse-transition="false">
-        <el-menu-item v-for="m in menus" :key="m.path" :index="m.path">
+        <el-menu-item v-for="m in visibleMenus" :key="m.path" :index="m.path">
           <el-icon><component :is="m.icon" /></el-icon>
           <template #title>{{ m.title }}</template>
         </el-menu-item>
@@ -30,7 +34,7 @@
         </el-breadcrumb>
 
         <div class="navbar__right">
-          <span class="navbar__badge">单店版</span>
+          <span class="navbar__badge">{{ user.roleName || "员工" }}</span>
           <span class="navbar__user">{{ user.name || "未登录" }}</span>
           <el-button text @click="onLogout">退出</el-button>
         </div>
@@ -46,7 +50,7 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessageBox } from "element-plus";
 import {
-  Box, DataLine, Expand, Fold, HomeFilled, Present, PriceTag, Tickets, User,
+  Avatar, Box, DataLine, Expand, Fold, HomeFilled, Present, PriceTag, Setting, Shop, Tickets, User,
 } from "@element-plus/icons-vue";
 import { useUserStore } from "../stores/user";
 
@@ -55,20 +59,25 @@ const router = useRouter();
 const user = useUserStore();
 
 const menus = [
-  { path: "/dashboard", title: "今日工作台", icon: HomeFilled },
-  { path: "/orders", title: "订单管理", icon: Tickets },
-  { path: "/service-items", title: "服务项目与价格", icon: PriceTag },
-  { path: "/products", title: "纪念品管理", icon: Present },
-  { path: "/boarding", title: "骨灰寄存", icon: Box },
-  { path: "/customers", title: "客户档案", icon: User },
-  { path: "/stats", title: "数据看板", icon: DataLine },
+  // stores 是平台菜单：租户角色的菜单里没有它，故只会出现在超管的侧栏
+  { key: "stores", path: "/stores", title: "门店管理", icon: Shop },
+  { key: "dashboard", path: "/dashboard", title: "今日工作台", icon: HomeFilled },
+  { key: "orders", path: "/orders", title: "订单管理", icon: Tickets },
+  { key: "service-items", path: "/service-items", title: "服务项目与价格", icon: PriceTag },
+  { key: "products", path: "/products", title: "纪念品管理", icon: Present },
+  { key: "boarding", path: "/boarding", title: "骨灰寄存", icon: Box },
+  { key: "customers", path: "/customers", title: "客户档案", icon: User },
+  { key: "stats", path: "/stats", title: "数据看板", icon: DataLine },
+  { key: "staff", path: "/staff", title: "团队成员", icon: Avatar },
+  { key: "rbac", path: "/rbac", title: "角色权限", icon: Setting },
 ];
 
 const collapsed = ref(false);
+const visibleMenus = computed(() => menus.filter((m) => user.canMenu(m.key)));
 
 // 详情页要回溯到所属菜单：/orders/GD20260910001 应高亮「订单管理」
 const currentMenu = computed(() =>
-  menus.find((m) => route.path === m.path || route.path.startsWith(`${m.path}/`)));
+  visibleMenus.value.find((m) => route.path === m.path || route.path.startsWith(`${m.path}/`)));
 
 const activeMenu = computed(() => currentMenu.value?.path ?? route.path);
 

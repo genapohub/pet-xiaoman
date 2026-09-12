@@ -1,8 +1,10 @@
 // C001 品牌首页（PRD §5.6.2 C001）：24h 入口 + 三承诺 + 科普入口
 const theme = require("../../config/theme");
 const { go } = require("../../utils/nav");
+// 多租户换肤：brandPage 在 onLoad/onShow 注入 brandStyle（整套主色系）+ theme
+const { brandPage } = require("../../utils/brand");
 
-Page({
+Page(brandPage({
   data: {
     theme,
     promises: [
@@ -16,4 +18,4 @@ Page({
   goCreate() { go("/pages/order-create/index"); },
   goPrices() { go("/pages/prices/prices"); },
   callShop() { wx.makePhoneCall({ phoneNumber: wx.getStorageSync("shop_phone") || "" }); }, // 门店电话待接入
-});
+}));

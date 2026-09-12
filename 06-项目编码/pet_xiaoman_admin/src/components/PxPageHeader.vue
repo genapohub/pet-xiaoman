@@ -5,7 +5,7 @@
         <el-icon><ArrowLeft /></el-icon>
       </button>
       <div>
-        <span class="px-header__eyebrow">PET XIAOMAN ADMIN</span>
+        <span class="px-header__eyebrow">{{ eyebrow }}</span>
         <h1 class="px-header__title">{{ title }}</h1>
         <p v-if="subtitle" class="px-header__sub">{{ subtitle }}</p>
       </div>
@@ -15,13 +15,20 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
 import { ArrowLeft } from "@element-plus/icons-vue";
+import { useUserStore } from "../stores/user";
 
 defineProps({
   title: { type: String, required: true },
   subtitle: { type: String, default: "" },
   back: { type: Boolean, default: false },
 });
+
+// 页头小标签跟着身份走：平台上管的是「所有门店」，门店管的是「自己这家」。
+// 刻意不写平台产品名 —— 门店后台挂着别家/厂家的名字，店长会以为开错了账号。
+const user = useUserStore();
+const eyebrow = computed(() => (user.isSuperAdmin ? "PLATFORM ADMIN" : "STORE ADMIN"));
 </script>
 
 <style scoped>

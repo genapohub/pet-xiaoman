@@ -13,6 +13,10 @@
   width: 128rpx;
   height: 128rpx;
 }
+/* 未配 logo 时的中性占位标：尺寸与 logo 一致，字号按视觉重心调 */
+.brand__mark {
+  font-size: 60rpx;
+}
 .brand__name {
   margin-top: var(--sp-3);
   font-size: var(--fs-lg);

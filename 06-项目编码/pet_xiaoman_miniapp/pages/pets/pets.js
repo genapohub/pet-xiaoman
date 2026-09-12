@@ -3,8 +3,9 @@ const app = getApp();
 const { get } = require("../../utils/request");
 const { fmtDate } = require("../../utils/format");
 const { go } = require("../../utils/nav");
+const { brandPage } = require("../../utils/brand");
 
-Page({
+Page(brandPage({
   data: { pets: [], loading: true },
 
   onShow() {
@@ -23,4 +24,4 @@ Page({
   },
 
   goOrder(e) { go(`/pages/order-detail/index?order_no=${e.currentTarget.dataset.no}`); },
-});
+}));

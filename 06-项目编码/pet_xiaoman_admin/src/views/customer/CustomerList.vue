@@ -1,7 +1,7 @@
 <template>
   <px-table-page
     title="客户档案"
-    :subtitle="`${role}视角 · 共 ${rows.length} 位客户`"
+    subtitle="手机号脱敏按登录账号角色决定：店长看全量，店员脱敏"
     :rows="rows"
     :loading="loading"
     :failed="failed"
@@ -9,12 +9,7 @@
     @retry="load"
     @row-click="goDetail"
   >
-    <template #actions>
-      <el-radio-group v-model="role" @change="search">
-        <el-radio-button value="店长" label="店长" />
-        <el-radio-button value="店员" label="店员" />
-      </el-radio-group>
-    </template>
+    <template #actions />
 
     <el-table-column prop="nickname" label="客户" width="130" />
     <el-table-column prop="phone" label="手机号" width="140" />
@@ -38,7 +33,6 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { View } from "@element-plus/icons-vue";
 import { listCustomers } from "../../api/batch2";
@@ -49,8 +43,7 @@ import PxEmpty from "../../components/PxEmpty.vue";
 import PxStatusTag from "../../components/PxStatusTag.vue";
 
 const router = useRouter();
-const role = ref("店长");
-const { rows, loading, failed, load, search } = useTable(() => listCustomers(role.value));
+const { rows, loading, failed, load, search } = useTable(() => listCustomers());
 
 function goDetail(row) { router.push(`/customers/${row.customer_id}`); }
 </script>

@@ -91,3 +91,58 @@ def login(db: Session, code: str | None = None, dev_customer_id: int | None = No
             raise AuthError("客户不存在")
     return {"token": create_token(customer.id), "customer_id": customer.id,
             "nickname": customer.nickname}
+
+
+def get_access_token() -> str:
+    """client_credential 换 access_token（用于手机号解密等需服务端凭证的接口）。"""
+    if not (settings.WX_APPID and settings.WX_SECRET):
+        raise AuthError("微信登录配置缺失（WX_APPID/WX_SECRET）")
+    resp = httpx.get("https://api.weixin.qq.com/cgi-bin/token",
+                     params={"grant_type": "client_credential",
+                             "appid": settings.WX_APPID, "secret": settings.WX_SECRET},
+                     timeout=10)
+    data = resp.json()
+    if "access_token" not in data:
+        raise AuthError(f"获取 access_token 失败：{data.get('errcode')} {data.get('errmsg', '')}")
+    return data["access_token"]
+
+
+def get_phone_number(phone_code: str) -> str:
+    """getPhoneNumber code → 纯手机号（需 access_token）。"""
+    token = get_access_token()
+    resp = httpx.post("https://api.weixin.qq.com/wxa/business/getuserphonenumber",
+                      params={"access_token": token}, json={"code": phone_code}, timeout=10)
+    data = resp.json()
+    if data.get("errcode", 0) != 0 or "phone_info" not in data:
+        raise AuthError(f"获取手机号失败：{data.get('errcode')} {data.get('errmsg', '')}")
+    return data["phone_info"]["pure_phone_number"]
+
+
+def phone_login(db: Session, phone_code: str | None = None, dev_phone: str | None = None,
+                store_id: int | None = None) -> dict:
+    """手机号一键登录：运营商授权手机号（prod）或 dev 手机号（本地）。按手机号找/建客户。
+
+    多租户：同一手机号在不同门店各建一条客户档案（各店数据独立），故按 store_id 隔离查找。
+    store_id 为空时退回 legacy 单店行为（不按店过滤）。
+    """
+    if settings.WX_LOGIN_ENABLED:
+        if not phone_code:
+            raise AuthError("缺少手机号授权 code")
+        phone = get_phone_number(phone_code)
+    else:
+        if not dev_phone:
+            raise AuthError("微信登录未开启：请提供 dev_phone（本地联调）或开启 WX_LOGIN_ENABLED")
+        phone = dev_phone
+    query = db.query(Customer).filter(Customer.phone == phone)
+    if store_id is not None:
+        query = query.filter(Customer.store_id == store_id)
+    customer = query.first()
+    if not customer:
+        customer = Customer(nickname="微信用户", phone=phone, store_id=store_id)
+        db.add(customer)
+        db.commit()
+        db.refresh(customer)
+    else:
+        customer.updated_at = datetime.now()
+        db.commit()
+    return {"token": create_token(customer.id), "customer_id": customer.id, "nickname": customer.nickname}

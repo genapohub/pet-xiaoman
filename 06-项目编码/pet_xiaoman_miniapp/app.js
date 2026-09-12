@@ -1,48 +1,47 @@
-// 入口：微信登录（WX_LOGIN_ENABLED=true 走 code；关闭时轻量注册+dev login，接口语义不变）
-const { post } = require("./utils/request");
-const { repairDebugBaseURL, isDevelopEnv } = require("./config/env");
+// 入口：多租户白标换肤 + 手机号一键登录。未登录统一进入登录页，登录成功回退续跑原流程。
+const { repairDebugBaseURL } = require("./config/env");
+const { ensureBrand, saveSlug, slugFromOptions } = require("./utils/brand");
 
 App({
-  globalData: { theme: require("./config/theme") },
-  onLaunch() {
+  globalData: { theme: require("./config/theme") }, // 默认品牌；启动后按门店覆盖
+  _loginWaiters: [],
+  onLaunch(options) {
     repairDebugBaseURL();
-    this.ensureLogin();
+    // 门店标识：来自二维码/启动参数，记下后本机后续进入沿用
+    const slug = slugFromOptions(options);
+    if (slug) saveSlug(slug);
+    // 运行时换肤（异步，不阻塞登录判断；页面 onLoad 里 ensureBrand 会复用同一 Promise）
+    ensureBrand().catch(() => {});
+
+    const token = wx.getStorageSync("token");
+    const customerId = wx.getStorageSync("customer_id");
+    if (!(token && customerId)) {
+      // 未登录：进入手机号一键登录页（登录成功由 finishLogin 回首页）
+      wx.reLaunch({ url: "/pages/login/index" });
+    }
   },
+  // 当前客户 id（未登录返回 0）；订单/宠物/个人中心等页面取用
+  getCustomerId() {
+    return Number(wx.getStorageSync("customer_id")) || 0;
+  },
+  // 供需要登录的接口/页面调用：已登录立即 resolve；未登录跳登录页，登录完成后 resolve
   ensureLogin() {
     const token = wx.getStorageSync("token");
     const customerId = wx.getStorageSync("customer_id");
     if (token && customerId) return Promise.resolve({ token, customer_id: customerId });
-
-    if (isDevelopEnv()) return this._legacyLogin();
-
     return new Promise((resolve) => {
-      wx.login({
-        success: ({ code }) => {
-          post("/api/c/auth/login", { code }, { retryAuth: false, silentError: true })
-            .then((data) => this._save(data, resolve))
-            .catch(() => this._legacyLogin().then(resolve));
-        },
-        fail: () => this._legacyLogin().then(resolve),
-      });
+      this._loginWaiters.push(resolve);
+      wx.navigateTo({ url: "/pages/login/index" });
     });
   },
-  _save(data, resolve) {
+  // 登录页调用：落库 token，唤醒所有等待者，再回到原页面/首页
+  finishLogin(data) {
     wx.setStorageSync("token", data.token);
     wx.setStorageSync("customer_id", data.customer_id);
-    if (resolve) resolve(data);
-    return data;
-  },
-  // 轻量模式：注册客户 → dev login 换 token（后端开关关闭时）
-  _legacyLogin() {
-    return post("/api/c/customers", { nickname: "微信用户" }, { retryAuth: false, silentError: true })
-      .then((data) => post("/api/c/auth/login", { customer_id: data.customer_id }, { retryAuth: false, silentError: true }))
-      .then((data) => this._save(data))
-      .catch((err) => {
-        console.warn("[宠小满登录] 开发模式登录失败，请检查 API 服务是否启动，以及 /api/c/customers 与 /api/c/auth/login 是否正常。", err);
-        return {};
-      });
-  },
-  getCustomerId() {
-    return wx.getStorageSync("customer_id") || 0;
+    const waiters = this._loginWaiters;
+    this._loginWaiters = [];
+    waiters.forEach((r) => r({ token: data.token, customer_id: data.customer_id }));
+    if (getCurrentPages().length > 1) wx.navigateBack();
+    else wx.reLaunch({ url: "/pages/index/index" });
   },
 });

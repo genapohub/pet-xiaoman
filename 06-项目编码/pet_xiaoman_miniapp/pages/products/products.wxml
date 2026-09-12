@@ -1,4 +1,4 @@
-<view class="page">
+<view class="page" style="{{brandStyle}}">
   <view class="products-head">
     <view class="products-head__title">纪念品</view>
     <view class="products-head__desc">把想念留在可以触碰的地方。支持到店自取或随单交付。</view>
@@ -15,11 +15,11 @@
   <block wx:else>
     <view class="grid">
       <view class="card" wx:for="{{products}}" wx:key="id">
-        <!-- 有图用图；无图时用品牌图形标兜底，比写「宠小满」三个字更像成品 -->
+        <!-- 有图用图；无图时用店名首字占位，不顶别家门店的图形标 -->
         <!-- 注意：注释不能夹在 wx:if 与 wx:else 之间，否则 wx:else 会与 wx:if 失联 -->
         <image wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" class="img" data-index="{{index}}" binderror="imageFailed" />
         <view wx:else class="img placeholder">
-          <image class="placeholder__logo" src="/assets/logo/logo-mark-sm.png" mode="aspectFit" />
+          <view class="placeholder__mark brandmark">{{shopInitial}}</view>
         </view>
         <view class="name">{{item.name}}</view>
         <view class="desc" wx:if="{{item.description}}">{{item.description}}</view>

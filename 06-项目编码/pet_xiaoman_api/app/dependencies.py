@@ -10,9 +10,25 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.services.auth_service import verify_token
 from app.services.staff_auth_service import verify_staff_token
+from app.services.tenant import resolve_store_id_by_slug
 from app.database import get_db
 from app.models.staff import Staff, StaffStatus, StaffRole
 from app.models.rbac import Role, RoleMenu
+
+
+def store_context(x_store_slug: str | None = Header(default=None),
+                  db: Session = Depends(get_db)) -> int | None:
+    """C 端门店上下文：请求头 X-Store-Slug → store_id。
+
+    多租户入口（小程序按二维码带 slug）。未带 slug 返回 None = legacy 单店模式
+    （不按店过滤，兼容存量调用）。带 slug 但门店不存在 → 404，避免静默串店。
+    """
+    if not x_store_slug:
+        return None
+    store_id = resolve_store_id_by_slug(db, x_store_slug)
+    if store_id is None:
+        raise HTTPException(404, "门店不存在")
+    return store_id
 
 
 def customer_auth(x_customer_token: str | None = Header(default=None)) -> int | None:
@@ -47,7 +63,7 @@ def _load_staff_with_perms(db: Session, staff_id: int) -> Staff:
     role = db.query(Role).filter(Role.key == staff.role.value).first()
     # 把角色对应的菜单与操作权限挂在实例上，供路由响应与 require_perm 使用（非持久化列）
     staff.permissions = list(role.permissions) if role else []
-    staff.menus = [rm.menu_key for rm in db.query(RoleMenu).filter(RoleMenu.role_id == role.id)] if role else []
+    staff.menus = [rm.menu_key for rm in db.query(RoleMenu).filter(RoleMenu.role_id == role.id).all()] if role else []
     return staff
 
 
@@ -82,3 +98,17 @@ def require_perm(code: str):
 
     return dep
 
+
+# ---------- 平台层（超管）鉴权 ----------
+def require_super_admin(staff: Staff = Depends(staff_auth)) -> Staff:
+    """平台级接口：仅超管可进。
+
+    契约（重要，防止误操作串店）：
+    - 平台级接口（开店 / 列门店 / 启停门店）**不需要** store_id：超管本就不属于任何门店；
+    - 但任何**门店业务数据**的读写，必须由路由显式指定目标 store_id（路径参数），
+      绝不能依赖 `staff.store_id is None` 去"看到全部数据"——`tenant.scoped()` 在
+      store_id 为 None 时不加过滤，那是为兼容 legacy 单店调用而留的，不是超管特权。
+    """
+    if staff.role != StaffRole.SUPER_ADMIN:
+        raise HTTPException(403, "仅平台超管可执行此操作")
+    return staff

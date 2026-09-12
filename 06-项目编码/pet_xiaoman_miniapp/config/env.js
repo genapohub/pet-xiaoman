@@ -39,7 +39,7 @@ function normalizeDevBase(url) {
   if (!url || typeof url !== "string") return url;
   const fixed = url.replace(/:8000\b/g, `:${API_PORT}`);
   if (fixed !== url) {
-    console.warn(`[宠小满接口配置] 检测到旧调试地址 ${url}，已自动切换为 ${fixed}。如果仍异常，请清理 Storage 里的 ${OVERRIDE_KEY}。`);
+    console.warn(`[接口配置] 检测到旧调试地址 ${url}，已自动切换为 ${fixed}。如果仍异常，请清理 Storage 里的 ${OVERRIDE_KEY}。`);
     try {
       wx.setStorageSync(OVERRIDE_KEY, fixed);
     } catch (e) {

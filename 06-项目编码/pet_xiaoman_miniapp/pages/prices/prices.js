@@ -1,8 +1,9 @@
 // C002/C003 价格表（全量单项价公开，PRD §5.2.1 差异化核心）
 const { get } = require("../../utils/request");
 const { go } = require("../../utils/nav");
+const { brandPage } = require("../../utils/brand");
 
-Page({
+Page(brandPage({
   data: {
     tabs: ["套餐", "单项", "加购"],
     active: "套餐",
@@ -36,4 +37,4 @@ Page({
     // go() 会自动改用 switchTab 并把 pkg_id 暂存，由预约页 onShow 取用
     go(`/pages/order-create/index?pkg_id=${e.currentTarget.dataset.id}`);
   },
-});
+}));

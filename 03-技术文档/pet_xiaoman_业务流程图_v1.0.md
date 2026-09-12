@@ -1,5 +1,7 @@
-# pet_xiaoman（宠小满）· 业务流程总览 v1.0
+# pet_xiaoman（宠小满）· 业务流程总览 v1.1
 
+> **文件名固定为 `_v1.0.md`**：它是全项目的流程侧入口，路径被其他文档引用，版本号只在标题与 §10 修订记录里滚动。
+>
 > **定位**：C 端小程序 + B 端管理后台的**业务流程图唯一汇编**。开发、测试、交接、需求评审都以本文件为流程侧入口。
 > **事实源优先级**：代码 > PRD。凡两者不一致，本文件在 §9「PRD 与实现差异清单」中显式列出，**以代码为准**，并把差异回写 PRD 作为待办。
 > **配套文档**：`pet_xiaoman_PRD_v1.2.md`（§6 业务流程 / §6.4 状态机为设计态原文）、`pet_xiaoman_技术选型方案_v1.1.md`（ADR-001~006）。
@@ -15,8 +17,12 @@
 |---|---|---|---|
 | 👤 | **宠物主**（客户） | 微信小程序 | 仅本人订单/宠物档案/寄存查询；可预约、可改期 1 次、可取消（限待确认/已预约） |
 | 💻店员 | **门店店员** | Web 后台 | 订单状态**正向**流转、影像上传、改期、备注、到店付结清、寄存登记/续存/取回、回访登记；**不可**回退状态、不可撤回影像、不可改价格 |
-| 💻店长 | **店长（老板）** | Web 后台 | 店员全部 + 影像撤回（强制原因留审计）+ 价格配置 + 全量手机号 |
+| 💻店长 | **店长（老板）** | Web 后台 | 店员全部 + 影像撤回（强制原因留审计）+ 价格配置 + 全量手机号；**不可**配置本店品牌（见下） |
+| 🛡️ | **平台超管** | 同一套 Web 后台 | 平台级（`staff.store_id = null`）：开通门店、启停门店、**统一配置所有门店的品牌与 UI**、为门店开通/停用/改密账号。**不做门店履约**——菜单里只有「门店管理」 |
 | ⚙️ | **系统** | 后端 | 锁价快照、夜间单判定、SLA 计时、订单号生成、幂等落账 |
+
+> **平台层 vs 门店层**：`staff.store_id` 为空 = 平台级，有值 = 门店员工。二者共用一套后台与登录接口，靠 `role` + RBAC 菜单/权限区分。
+> ⚠️ **实现红线**：`tenant.store_clause()` 在 `store_id is None` 时**返回不过滤**（历史单店兼容留的口子），**这不是超管特权**。因此所有门店业务操作都必须在路径里显式带 `store_id`（见 `/api/b/platform/*`），绝不能靠「空的 store_id 就能看到全部」。
 
 ### 0.2 图例约定
 
@@ -678,6 +684,102 @@ flowchart TD
 
 > 该页面优先级为 **P2**，当前仅做 token 层面的视觉统一，未做深度打磨。
 
+### 3.11 平台层：门店开通与品牌配置（B011，仅超管）
+
+这一层在**任何门店业务发生之前**就要跑完——超管先开店、配品牌、开首位店长账号，那家店才存在，客户才可能扫码进来。它也是「一套小程序服务多家门店」的入口。
+
+```mermaid
+flowchart TD
+    S(["平台超管登录"]) --> M{"菜单里有什么？"}
+    M -->|"只有「门店管理」"| L["B011 门店列表<br/>店名 / C 端标识 / 主色 / 账号数 / 状态"]
+    M -.->|"租户角色：没有这一项"| T["只能进自己门店的菜单"]
+
+    L --> A1["点「开通门店」"]
+    A1 --> A2["填门店信息<br/>门店名称 + C 端标识 slug"]
+    A2 --> A3["填品牌与 UI<br/>对外店名 / 标语 / 主色 / Logo"]
+    A3 --> A4["填首位店长账号<br/>账号 + 初始密码 + 姓名"]
+    A4 --> A5["POST /api/b/platform/stores"]
+    A5 --> A6{"标识是否被占用？"}
+    A6 -->|是| R1["❌ 409 门店标识已被占用"]
+    A6 -->|否| A7{"登录账号是否已存在？"}
+    A7 -->|是| R2["❌ 409 账号已存在"]
+    A7 -->|否| A8["建 stores + store_profiles + 店长<br/>一次事务落库"]
+
+    A8 --> D["B011 门店详情"]
+    D --> D1["Tab1 品牌与 UI<br/>改店名/标语/主色/Logo → 立即生效"]
+    D --> D2["Tab2 门店账号<br/>开号 / 改密 / 停用 / 启用"]
+
+    D1 --> E1["PUT .../profile"]
+    E1 --> E2{"入参合法？"}
+    E2 -->|"主色非 hex / logo 非路径或 URL / slug 含非法字符"| R3["❌ 422 拒绝入库"]
+    E2 -->|通过| E3["C 端 GET /api/c/store/profile?slug=x<br/>即刻返回新店名/新色/新标语"]
+
+    D2 --> F1["POST .../staff<br/>role 只能是店长或店员"]
+    F1 --> F2{"role = super_admin？"}
+    F2 -->|是| R4["❌ 422 门店内只能创建店长或店员"]
+    F2 -->|否| F3["店员自动挂到本店首位店长名下"]
+
+    L --> G1["点「停用」"]
+    G1 --> G2["POST .../status = disabled"]
+    G2 --> G3["C 端按该 slug 访问一律 404<br/>后台数据与账号全部保留"]
+    G3 --> G4["可随时重新启用"]
+
+    style R1 fill:#FBE9E7,stroke:#D54941
+    style R2 fill:#FBE9E7,stroke:#D54941
+    style R3 fill:#FBE9E7,stroke:#D54941
+    style R4 fill:#FBE9E7,stroke:#D54941
+    style M fill:#F6EADB,stroke:#D9A468
+    style A6 fill:#F6EADB,stroke:#D9A468
+    style A7 fill:#F6EADB,stroke:#D9A468
+    style E2 fill:#F6EADB,stroke:#D9A468
+    style F2 fill:#F6EADB,stroke:#D9A468
+    style A8 fill:#EAF1FB,stroke:#3B7DD8
+    style E3 fill:#EAF1FB,stroke:#3B7DD8
+    style G3 fill:#EAF1FB,stroke:#3B7DD8
+```
+
+**接口一览（`/api/b/platform/*`，全部要求超管身份 + 对应平台权限）**
+
+| 方法 | 路径 | 平台权限 | 说明 |
+|---|---|---|---|
+| GET | `/stores` | `store.manage` | 门店列表（含账号数、店长数、品牌快照） |
+| POST | `/stores` | `store.manage` | 开通门店：一次事务建 门店 + 品牌 + 首位店长 |
+| GET | `/stores/{id}` | `store.manage` | 门店详情 |
+| POST | `/stores/{id}/status` | `store.manage` | 启用 / 停用门店（停用后 C 端 404） |
+| GET | `/stores/{id}/profile` | `store.brand` | 读指定门店品牌 |
+| PUT | `/stores/{id}/profile` | `store.brand` | 配品牌与 UI（店名/标语/logo/主色） |
+| GET | `/stores/{id}/staff` | `store.provision` | 该店账号列表 |
+| POST | `/stores/{id}/staff` | `store.provision` | 开门店账号（店长/店员） |
+| PUT | `/stores/{id}/staff/{sid}` | `store.provision` | 改名 / 改密 / 改状态 |
+| POST | `/stores/{id}/staff/{sid}/disable` | `store.provision` | 停用账号（不能停自己） |
+
+**关键约束**
+
+| 约束 | 落地位置 | 为什么 |
+|---|---|---|
+| 门店业务操作**必须**显式带 `store_id` | 全部平台路由的路径参数 | `store_id=None` 在 `tenant` 层是「不过滤」，不是特权；靠它取数据会串店 |
+| 门店接口不得创建 `super_admin` | `StoreStaffInput.role` 校验 | 否则任何门店都能造出一个平台级账号，直接提权 |
+| 品牌写入租户侧恒 403 | `PUT /api/b/store/profile` | 品牌收归平台统一配置，租户连自己那家也不能改（返回明确指引而非 404） |
+| 超管菜单只有「门店管理」 | `PLATFORM_MENU_KEYS` + RBAC | 防孤儿数据：超管在无门店上下文时建服务项目/纪念品，`store_id` 会是 `NULL`，任何门店都查不到 |
+| 租户角色拿不到平台菜单与权限 | `/api/b/menus`、`/permissions`、`/roles` 全部过滤；`PUT /roles/{key}` 拦 `super_admin` | 堵死「改自己的角色 → 拿到 `store.brand` → 改别人家品牌」这条提权链 |
+| 门店标识 `slug` 全局唯一 | `store_profiles.slug` 唯一索引 + 409 | 它是 C 端认店的唯一依据，重了就会串店 |
+
+**C 端换肤链路**
+
+```mermaid
+flowchart LR
+    A["顾客扫码 / 带 slug 进入"] --> B["小程序存下 slug"]
+    B --> C["GET /api/c/store/profile?slug=x"]
+    C --> D{"门店存在且在营业？"}
+    D -->|不存在 / 已停用| E["404 → 用中性默认品牌"]
+    D -->|正常| F["返回 name / slogan / logo_url / primary_color"]
+    F --> G["utils/brand.js mergeTheme()"]
+    G --> H["整站 --c-primary* 色阶重算<br/>+ tabBar 选中色 + 导航栏标题"]
+    H --> I["未配 logo 时用店名首字占位"]
+```
+
+> ⚠️ **中性兜底原则**：品牌兜底**不得**回落任何一家门店（或平台）的名字/logo。新门店在拉到资料前的那一帧，如果显示的是别家的品牌，顾客会以为进错了小程序。所以：默认店名是「宠物善终服务」这类中性词，未配 logo 一律用店名首字占位。
+
 ---
 
 ## 4. 异常与分支流程
@@ -722,6 +824,8 @@ flowchart TD
 
 | 实体 | 状态字段 | 状态集合 | 终态 | 代码位置 |
 |---|---|---|---|---|
+| 门店（平台层） | `store.status` | 营业中 / 已停用 | — | `app/models/staff.py` |
+| 员工 | `staff.status` | 在职 / 停用 | — | `app/models/staff.py` |
 | 订单（主） | `order.status` | 待确认 / 已预约 / 接宠中 / 服务中 / 待交付 / 已完成 / 已取消 | 已完成、已取消 | `app/services/order_state.py` |
 | 订单（支付） | `order.pay_type` | 未支付 / 定金已付 / 全款已付 / 到店付已结清 | — | `app/models/order.py` |
 | 订单（退款） | `order.refund_status` | 无 / 退款中 / 已退款 / 退款失败 | 已退款 | `app/models/order.py` |
@@ -775,6 +879,9 @@ flowchart TD
 | B008 | 客户档案列表 | `views/customer/CustomerList.vue` | `GET /api/b/customers` | ✅ |
 | B009 | 客户详情 | `views/customer/CustomerDetail.vue` | `GET /api/b/customers/{id}`<br/>`POST .../source`、`.../visit` | ✅ |
 | B010 | 数据看板 | `views/stats` | `GET /api/b/stats` | ⚠️ P2 |
+| **B011** | **门店管理（仅超管）** | `views/platform/StoreList.vue` | `GET/POST /api/b/platform/stores`<br/>`POST .../{id}/status` | ✅ |
+| **B011a** | **门店详情：品牌与 UI** | `views/platform/StoreDetail.vue` | `GET/PUT /api/b/platform/stores/{id}/profile` | ✅ |
+| **B011b** | **门店详情：门店账号** | 同上（Tab2） | `GET/POST .../{id}/staff`<br/>`PUT .../{id}/staff/{sid}`、`POST .../disable` | ✅ |
 
 ---
 
@@ -809,6 +916,10 @@ flowchart TD
 | **寄存位置唯一约束** | 允许重号后期人工整理 | 位置错乱会导致取错骨灰，这是不可接受的错误，必须数据库层兜住 |
 | **不做自动派单** | 派单算法 | 单店场景，接单的就是本人，派单是过度设计 |
 | **服务中锁死不可取消** | 允许店长强制取消 | 已发生服务成本，此刻取消会引发纠纷；线下谈妥比线上点按钮更可控 |
+| **品牌配置收归平台超管** | 各店自己配（租户自配） | 品牌是「一套小程序对外呈现谁」的承诺面。放开给各店，C 端会变成五花八门的拼贴；且出问题时是平台在背合规责任。超管统一配 = 品牌口径唯一、可追溯 |
+| **超管菜单只有门店管理** | 超管能进所有门店的业务页 | 超管没有门店上下文，进租户页建服务项目/纪念品会落 `store_id=NULL`，产生任何门店都查不到的孤儿数据。与其给一个会造脏数据的入口，不如不给 |
+| **品牌兜底一律中性** | 兜底回落到平台品牌 | 门店在拉到资料前的那一帧若显示别家的名字/logo，顾客会以为进错小程序。中性占位（店名首字）比「借一个标」更安全 |
+| **停用门店而非删除** | 提供删店 | 删店会连带删掉订单/客户资产，误操作不可逆。停用后 C 端 404、数据全留，可随时恢复 —— 用可逆操作覆盖 99% 的真实诉求 |
 
 ---
 
@@ -829,6 +940,10 @@ flowchart TD
 | 8 | **客户取消 vs 店员取消** | 两者分列，店员取消需必填原因 | C 端 `cancel` 接口已实现；**B 端无独立取消接口**，只能走 `transition` + `target=已取消` | 店员取消未强制校验原因（`cancel_reason` 不会被写入） | 补 B 端取消接口或让 `transition` 支持写入 `cancel_reason` |
 | 9 | **权限校验** | 三角色权限矩阵（店长/店员/宠物主） | 骨架期**信任 `payload.role`**，无 token 鉴权；`b_orders.py` 文件头注释已注明「鉴权中间件接入后从 token 解出」 | **当前任意调用方传 `role=店长` 即可撤回影像** | 上线前必须接入鉴权中间件，这是安全红线 |
 | 10 | **自动退款执行** | 取消后原路退回 1-3 个工作日 | `cancel_by_customer` 只把 `refund_status` 置为 `退款中`；`query_and_reconcile()` 有 TODO 未实现 | 退款不会真正执行，会累积待退款单 | 商户号开通后补退款任务 |
+| 11 | **多租户已提前落地** | §12.1 定位「单门店」，§12.2 多租户列为「未来方向，当前不实现」 | **已实现**：全部业务表加 `store_id` 行级隔离、按店 slug 进入、跨店数据零共享、平台层 RBAC | 与 PRD 的版本定位不一致（文档说单店，代码是多店） | 回写 PRD：§12.1/§12.2 从「未来」移到「已实现」，并补 §5 平台层功能需求 |
+| 12 | **品牌配置的归属** | §12.3 只说「品牌色/logo/头图/承诺文案可配置」，未明确谁配；且写明「不做装修管理界面」 | **已实现配置界面，且归属平台超管**；租户侧写入恒 403；定制项收敛为 4 项（店名/标语/logo/主色），**不含头图** | 若按「各店自配」理解，实现与预期相反；头图能力缺失 | 回写 PRD 明确「品牌由平台统一配置」与 4 项范围；头图另立需求 |
+| 13 | **平台超管的可见范围** | §12.2 写「平台管理员角色跨店只看汇总」（隐含能进业务页看汇总） | **超管菜单只有「门店管理」**，进不了订单/客户/看板等租户页 | 「跨店汇总看板」目前不存在；超管看不到经营数据 | 若确实要跨店汇总，需单做 B012 平台经营看板（带门店维度），而不是把超管塞进租户页 |
+| 14 | **隔离字段命名** | §12.2 / ADR-006 用 `shop_id` | 实现用 **`store_id`**（表 `stores`、接口 `X-Store-Slug`、白标表 `store_profiles`） | 文档与代码命名不一致，交接时易误解 | 回写 ADR-006 与 PRD：统一改称 `store_id` |
 
 ---
 
@@ -837,6 +952,7 @@ flowchart TD
 | 版本 | 日期 | 修订人 | 变更内容 |
 |---|---|---|---|
 | v1.0 | 2026-09-10 | 张孟博 | 首版：梳理 C 端 7 条 + B 端 10 条业务流程、订单/支付/寄存三套状态机、端到端全景图、22 个接口映射、10 项 PRD 与实现差异 |
+| v1.1 | 2026-09-12 | 张孟博 | **多租户 + 白标落地**：① §0.1 新增「平台超管」角色与平台/门店双层说明（含 `store_id is None` 的实现红线）；② 新增 §3.11 平台层流程（开店→配品牌→开账号→启停门店）+ 10 个平台接口 + 6 条硬约束 + C 端换肤链路；③ §5 补门店/员工状态；④ §6.2 补 B011/B011a/B011b；⑤ §8 补 4 条设计决策（品牌收归平台、超管不做履约、中性兜底、停用而非删除）;⑥ §9 新增差异项 11-14（多租户提前落地 / 品牌归属与 PRD 记录相反 / 超管可见范围与「跨店汇总」不符 / `shop_id`→`store_id` 命名）；⑦ §11 补平台层与白标源码索引 |
 
 ---
 
@@ -852,3 +968,10 @@ flowchart TD
 | 状态机源码 | `06-项目编码/pet_xiaoman_api/app/services/order_state.py` | 订单状态机唯一真相 |
 | 订单业务逻辑 | `06-项目编码/pet_xiaoman_api/app/services/order_service.py` | 五道闸门与锁价 |
 | 影像服务 | `06-项目编码/pet_xiaoman_api/app/services/media_service.py` | 强制影像校验入口 |
+| 平台层接口 | `06-项目编码/pet_xiaoman_api/app/routes/b_platform.py` | 开店/启停/配品牌/开门店账号（仅超管） |
+| 租户隔离 | `06-项目编码/pet_xiaoman_api/app/services/tenant.py` | `scoped()` / `resolve_store_id_by_slug()` / `store_is_active()` |
+| 平台鉴权 | `06-项目编码/pet_xiaoman_api/app/dependencies.py` | `require_super_admin` 与平台/门店边界契约 |
+| 入参校验 | `06-项目编码/pet_xiaoman_api/app/services/validators.py` | slug / hex 主色 / logo / 标语 唯一事实源 |
+| C 端换肤 | `06-项目编码/pet_xiaoman_miniapp/utils/brand.js` | 按门店 slug 拉品牌 → 派生整套色阶 + 中性占位 |
+| 后台换肤 | `06-项目编码/pet_xiaoman_admin/src/utils/theme.js` | 主色 → `--px-*` / `--el-color-primary*` |
+| 存量库升级 | `06-项目编码/pet_xiaoman_api/scripts/migrate_tenant.py` | 补列 + 平台 RBAC + 枚举归一 + 回填 |

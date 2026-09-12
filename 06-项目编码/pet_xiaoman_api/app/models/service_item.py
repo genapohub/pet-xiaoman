@@ -2,7 +2,7 @@ import enum
 from sqlalchemy import String, Integer, Enum, DECIMAL
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import BaseModel
+from app.models.base import StoreScopedModel
 
 
 class ItemType(str, enum.Enum):
@@ -16,7 +16,7 @@ class ItemStatus(str, enum.Enum):
     OFF_SALE = "下架"  # 只下架不物理删除（历史订单引用）
 
 
-class ServiceItem(BaseModel):
+class ServiceItem(StoreScopedModel):
     __tablename__ = "service_items"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

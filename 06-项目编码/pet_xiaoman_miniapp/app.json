@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/login/index",
     "pages/order-create/index",
     "pages/order-list/index",
     "pages/products/products",
@@ -52,7 +53,7 @@
     ]
   },
   "window": {
-    "navigationBarTitleText": "宠小满",
+    "navigationBarTitleText": "宠物善终服务",
     "navigationBarBackgroundColor": "#5B8C85",
     "navigationBarTextStyle": "white"
   },

@@ -73,3 +73,76 @@ def order_input(seed):
         "expect_time": datetime.now().isoformat(),
         "address": "郑州市金水区XX路1号",
     }
+
+
+@pytest.fixture
+def org(db):
+    """最小组织 + RBAC 基线（供后台鉴权/RBAC/两级组织/超管测试复用）：
+    门店 + 10 菜单 + 超管(平台级)/店长(全部租户权限)/店员(无操作权限)三角色 + 各一名在职员工。"""
+    from app.models.staff import Store, Staff, StaffRole, StaffStatus
+    from app.models.rbac import (
+        Role, Menu, RoleMenu, PERMISSION_CATALOG, PLATFORM_MENU_KEYS, TENANT_PERMISSION_CODES,
+    )
+    from app.models.store_profile import StoreProfile, DEFAULT_PRIMARY_COLOR
+    from app.services.staff_auth_service import hash_password, create_staff_token
+
+    ALL_PERMS = [p["code"] for p in PERMISSION_CATALOG]
+    TENANT_PERMS = list(TENANT_PERMISSION_CODES)
+    MENU_KEYS = ["stores", "dashboard", "orders", "service-items", "products", "boarding",
+                 "customers", "stats", "staff", "rbac"]
+    TENANT_MENUS = [k for k in MENU_KEYS if k not in PLATFORM_MENU_KEYS]
+    EMPLOYEE_MENUS = [k for k in TENANT_MENUS if k not in ("staff", "rbac")]
+
+    store = Store(name="测试门店")
+    db.add(store)
+    db.commit()
+    db.refresh(store)
+
+    # 白标资料（供 C 端按 slug 换肤与跨店隔离测试）
+    db.add(StoreProfile(store_id=store.id, slug="store-a", name="门店A",
+                        slogan="门店A 的标语",
+                        primary_color=DEFAULT_PRIMARY_COLOR, theme_json={}))
+    db.commit()
+
+    db.add_all([Menu(key=k, title=k, icon="", sort=i) for i, k in enumerate(MENU_KEYS)])
+    db.commit()
+
+    sa = Role(key="super_admin", name="平台超管", permissions=list(ALL_PERMS))
+    manager = Role(key="manager", name="店长", permissions=TENANT_PERMS)
+    employee = Role(key="employee", name="店员", permissions=[])
+    db.add_all([sa, manager, employee])
+    db.commit()
+    for r in (sa, manager, employee):
+        db.refresh(r)
+
+    # 超管只绑平台菜单：他不管门店履约，进租户页会以 store_id=None 落库成孤儿数据
+    db.add_all([RoleMenu(role_id=sa.id, menu_key=k) for k in PLATFORM_MENU_KEYS])
+    db.add_all([RoleMenu(role_id=manager.id, menu_key=k) for k in TENANT_MENUS])
+    db.add_all([RoleMenu(role_id=employee.id, menu_key=k) for k in EMPLOYEE_MENUS])
+    db.commit()
+
+    mgr = Staff(username="admin", password_hash=hash_password("admin123"),
+                name="示例店长", role=StaffRole.MANAGER, store_id=store.id,
+                manager_id=None, status=StaffStatus.ACTIVE)
+    emp = Staff(username="emp", password_hash=hash_password("emp123"),
+                name="示例店员", role=StaffRole.EMPLOYEE, store_id=store.id,
+                manager_id=None, status=StaffStatus.ACTIVE)
+    root = Staff(username="superadmin", password_hash=hash_password("super123"),
+                 name="平台管理员", role=StaffRole.SUPER_ADMIN, store_id=None,
+                 manager_id=None, status=StaffStatus.ACTIVE)
+    db.add_all([mgr, emp, root])
+    db.commit()
+    for s in (mgr, emp, root):
+        db.refresh(s)
+    emp.manager_id = mgr.id  # 两级归属：店员上级为店长
+    db.commit()
+
+    return {
+        "store_id": store.id,
+        "manager_id": mgr.id,
+        "employee_id": emp.id,
+        "super_id": root.id,
+        "manager_token": create_staff_token(mgr.id),
+        "employee_token": create_staff_token(emp.id),
+        "super_token": create_staff_token(root.id),
+    }

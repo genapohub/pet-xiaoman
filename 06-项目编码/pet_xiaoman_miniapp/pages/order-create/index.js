@@ -1,8 +1,9 @@
 // C004 预约下单（PRD §5.2.1）：套餐预选 + 表单 + 提交（支付开关关闭=到店付提示）
 const { get, post } = require("../../utils/request");
 const { takeParams } = require("../../utils/nav");
+const { brandPage } = require("../../utils/brand");
 
-Page({
+Page(brandPage({
   data: {
     packages: [], pkgIndex: 0, currentPackage: null,
     form: { pet_name: "", species: "犬", weight: "", address: "" },
@@ -61,4 +62,4 @@ Page({
       wx.showToast({ title: err.detail || "提交失败", icon: "none" });
     }).finally(() => this.setData({ submitting: false }));
   },
-});
+}));

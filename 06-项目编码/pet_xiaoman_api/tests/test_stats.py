@@ -46,8 +46,9 @@ def seeded_stats(client, db):
     return {"done1_id": done1.id}
 
 
-def test_stats_month_aggregation(client, seeded_stats):
-    data = client.get("/api/b/stats").json()
+def test_stats_month_aggregation(client, seeded_stats, org):
+    data = client.get("/api/b/stats",
+                      headers={"Authorization": f"Bearer {org['manager_token']}"}).json()
     assert data["north_star"]["value"] == 2        # 本月完成 2 单
     assert data["north_star"]["prev"] == 0         # 上月 0 → 环比 None 语义
     # 口径=本月下单的订单（GDST002 上月下单不计入）：2 单中 GDST001 已付/带加购
@@ -60,8 +61,9 @@ def test_stats_month_aggregation(client, seeded_stats):
     assert "待埋点" in data["funnel_note"]
 
 
-def test_stats_specific_month(client, seeded_stats):
+def test_stats_specific_month(client, seeded_stats, org):
     prev_month = (datetime.now().replace(day=1) - timedelta(days=1)).strftime("%Y-%m")
-    data = client.get("/api/b/stats", params={"month": prev_month}).json()
+    data = client.get("/api/b/stats", params={"month": prev_month},
+                      headers={"Authorization": f"Bearer {org['manager_token']}"}).json()
     # 上月完成单（GDST002 的 updated_at 仍是现在——按 updated_at 统计为 0，合理：改状态时间非回填）
     assert "north_star" in data

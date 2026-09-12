@@ -5,10 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.dependencies import staff_auth
 from app.models.customer import Customer, Source
 from app.models.order import Order, OrderStatus
 from app.models.pet import Pet
+from app.models.staff import Staff, StaffRole
 from app.models.visit_record import VisitRecord
+from app.services.tenant import belongs, scoped
 
 router = APIRouter()
 
@@ -16,14 +19,14 @@ VISIT_AFTER_DAYS = 30  # PRD：完成 30 天后回访
 
 
 def _mask(phone: str, is_owner: bool) -> str:
-    """店长可见全量，店员脱敏（PRD §8.5）。当前骨架期由前端传角色。"""
+    """店长可见全量，店员脱敏（PRD §8.5）。角色来自登录态 token 解析，不信任前端。"""
     return phone if is_owner else (phone[:3] + "****" + phone[-4:] if len(phone) >= 7 else "****")
 
 
 @router.get("/customers", summary="B008 客户列表（含动态回访状态）")
-def b_list(role: str = "店员", db: Session = Depends(get_db)):
-    is_owner = role == "店长"
-    customers = db.query(Customer).order_by(Customer.id.desc()).all()
+def b_list(staff: Staff = Depends(staff_auth), db: Session = Depends(get_db)):
+    is_owner = staff.role == StaffRole.MANAGER
+    customers = scoped(db, Customer, staff.store_id).order_by(Customer.id.desc()).all()
     result = []
     for c in customers:
         pets = db.query(Pet).filter(Pet.owner_id == c.id, Pet.deleted.is_(False)).all()
@@ -47,11 +50,11 @@ def b_list(role: str = "店员", db: Session = Depends(get_db)):
 
 
 @router.get("/customers/{customer_id}", summary="B009 客户详情（服务历史 + 回访记录）")
-def b_detail(customer_id: int, role: str = "店员", db: Session = Depends(get_db)):
+def b_detail(customer_id: int, staff: Staff = Depends(staff_auth), db: Session = Depends(get_db)):
     c = db.get(Customer, customer_id)
-    if not c:
+    if not belongs(c, staff.store_id):
         raise HTTPException(404, "客户不存在")
-    is_owner = role == "店长"
+    is_owner = staff.role == StaffRole.MANAGER
     pets = db.query(Pet).filter(Pet.owner_id == c.id, Pet.deleted.is_(False)).all()
     orders = db.query(Order).filter(Order.user_id == c.id).order_by(Order.created_at.desc()).all()
     visits = (db.query(VisitRecord).filter(VisitRecord.customer_id == c.id)
@@ -69,9 +72,10 @@ def b_detail(customer_id: int, role: str = "店员", db: Session = Depends(get_d
 
 
 @router.post("/customers/{customer_id}/source", summary="来源渠道标记（可修正一次留痕）")
-def set_source(customer_id: int, payload: dict, db: Session = Depends(get_db)):
+def set_source(customer_id: int, payload: dict, staff: Staff = Depends(staff_auth),
+               db: Session = Depends(get_db)):
     c = db.get(Customer, customer_id)
-    if not c:
+    if not belongs(c, staff.store_id):
         raise HTTPException(404, "客户不存在")
     c.source = Source(payload["source"])
     db.commit()
@@ -79,15 +83,17 @@ def set_source(customer_id: int, payload: dict, db: Session = Depends(get_db)):
 
 
 @router.post("/customers/{customer_id}/visit", summary="回访登记（提交后待回访关闭）")
-def register_visit(customer_id: int, payload: dict, db: Session = Depends(get_db)):
-    if db.get(Customer, customer_id) is None:
+def register_visit(customer_id: int, payload: dict, staff: Staff = Depends(staff_auth),
+                   db: Session = Depends(get_db)):
+    customer = db.get(Customer, customer_id)
+    if not belongs(customer, staff.store_id):
         raise HTTPException(404, "客户不存在")
     satisfaction = payload.get("satisfaction")
     if not satisfaction or not 1 <= int(satisfaction) <= 5:
         raise HTTPException(422, "满意度需为 1-5")
     v = VisitRecord(customer_id=customer_id, satisfaction=int(satisfaction),
                     would_recommend=bool(payload.get("would_recommend")),
-                    notes=payload.get("notes"))
+                    notes=payload.get("notes"), store_id=staff.store_id)
     db.add(v)
     db.commit()
     return {"visit_id": v.id}

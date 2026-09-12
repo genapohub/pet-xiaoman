@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import String, Integer, Enum, DateTime, DECIMAL
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import BaseModel
+from app.models.base import StoreScopedModel
 
 
 class BizType(str, enum.Enum):
@@ -22,7 +22,7 @@ class PayStatus(str, enum.Enum):
     PARTIAL_REFUNDED = "部分退款"
 
 
-class PaymentRecord(BaseModel):
+class PaymentRecord(StoreScopedModel):
     __tablename__ = "payment_records"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

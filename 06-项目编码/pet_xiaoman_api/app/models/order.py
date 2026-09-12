@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import String, Integer, Enum, DateTime, Boolean, DECIMAL, JSON, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import BaseModel
+from app.models.base import StoreScopedModel
 
 
 class OrderStatus(str, enum.Enum):
@@ -32,7 +32,7 @@ class RefundStatus(str, enum.Enum):
     FAILED = "退款失败"
 
 
-class Order(BaseModel):
+class Order(StoreScopedModel):
     __tablename__ = "orders"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

@@ -34,24 +34,27 @@ def gen_order_no(db: Session) -> str:
     return f"{prefix}{count + 1:03d}"
 
 
-def _get_or_create_pet(db: Session, user_id: int, name: str, species: str, weight) -> Pet:
+def _get_or_create_pet(db: Session, user_id: int, name: str, species: str, weight,
+                       store_id: int | None = None) -> Pet:
     """宠物档案复用：同名未删除档案直接复用，否则新建（PRD C009）。"""
     pet = (db.query(Pet)
            .filter(Pet.owner_id == user_id, Pet.name == name, Pet.deleted.is_(False))
            .first())
     if pet:
+        if store_id is not None and pet.store_id is None:
+            pet.store_id = store_id  # 顺手打标历史档案
         return pet
     try:
         species_enum = Species(species)
     except ValueError:
         species_enum = Species.OTHER
-    pet = Pet(name=name, species=species_enum, weight=weight, owner_id=user_id)
+    pet = Pet(name=name, species=species_enum, weight=weight, owner_id=user_id, store_id=store_id)
     db.add(pet)
     db.flush()
     return pet
 
 
-def create_order(db: Session, data) -> Order:
+def create_order(db: Session, data, store_id: int | None = None) -> Order:
     """提交预约：校验 → 重复单拦截 → 锁价快照 → 落库（PRD §5.2.1）。"""
     # ① 重复单拦截：同客户存在进行中订单
     active = (db.query(Order)
@@ -60,19 +63,21 @@ def create_order(db: Session, data) -> Order:
     if active:
         raise BusinessError("您有进行中的订单，请联系门店处理")
 
-    # ② 套餐锁价：只接受在售套餐，价格与版本快照
+    # ② 套餐锁价：只接受在售套餐，价格与版本快照（并限本店，防跨店下单）
     pkg = db.get(ServiceItem, data.pkg_id)
-    if not pkg or pkg.type != ItemType.PACKAGE or pkg.status != ItemStatus.ON_SALE:
+    if (not pkg or pkg.type != ItemType.PACKAGE or pkg.status != ItemStatus.ON_SALE
+            or (store_id is not None and pkg.store_id not in (store_id, None))):
         raise BusinessError("套餐不存在或已下架")
     addons_snap, total = [], float(pkg.price)
     for aid in data.addon_ids or []:
         item = db.get(ServiceItem, aid)
-        if not item or item.status != ItemStatus.ON_SALE:
+        if (not item or item.status != ItemStatus.ON_SALE
+                or (store_id is not None and item.store_id not in (store_id, None))):
             raise BusinessError("包含不可用的加购项，请刷新后重试")
         addons_snap.append({"item_id": aid, "name": item.name, "price_snapshot": float(item.price)})
         total += float(item.price)
 
-    pet = _get_or_create_pet(db, data.user_id, data.pet_name, data.species, data.weight)
+    pet = _get_or_create_pet(db, data.user_id, data.pet_name, data.species, data.weight, store_id)
     now = datetime.now()
     order = Order(
         order_no=gen_order_no(db),
@@ -85,6 +90,7 @@ def create_order(db: Session, data) -> Order:
         address=data.address,
         is_night=is_night_order(now),
         total_amount=round(total, 2),
+        store_id=store_id,
     )
     db.add(order)
     try:

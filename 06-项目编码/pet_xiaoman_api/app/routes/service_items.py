@@ -6,8 +6,11 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.dependencies import staff_auth
 from app.models.service_item import ItemType, ItemStatus, ServiceItem
 from app.models.service_item_version import ServiceItemVersion
+from app.models.staff import Staff
+from app.services.tenant import belongs, scoped
 
 router = APIRouter()
 
@@ -28,8 +31,9 @@ def _log_version(db: Session, item: ServiceItem) -> None:
 
 
 @router.get("/service-items", summary="列表（type 筛选）")
-def list_items(type: str | None = None, db: Session = Depends(get_db)):
-    query = db.query(ServiceItem)
+def list_items(type: str | None = None, staff: Staff = Depends(staff_auth),
+               db: Session = Depends(get_db)):
+    query = scoped(db, ServiceItem, staff.store_id)
     if type:
         query = query.filter(ServiceItem.type == ItemType(type))
     rows = query.order_by(ServiceItem.id).all()
@@ -39,11 +43,13 @@ def list_items(type: str | None = None, db: Session = Depends(get_db)):
 
 
 @router.post("/service-items", summary="新建（含首版价格记录）")
-def create_item(payload: ItemInput, db: Session = Depends(get_db)):
+def create_item(payload: ItemInput, staff: Staff = Depends(staff_auth),
+                db: Session = Depends(get_db)):
     item = ServiceItem(type=ItemType(payload["type"] if isinstance(payload, dict) else payload.type),
                        name=payload.name, price=payload.price,
                        weight_tier=payload.weight_tier,
-                       status=ItemStatus.ON_SALE, version=_version_stamp())
+                       status=ItemStatus.ON_SALE, version=_version_stamp(),
+                       store_id=staff.store_id)
     db.add(item)
     db.flush()
     _log_version(db, item)
@@ -52,9 +58,10 @@ def create_item(payload: ItemInput, db: Session = Depends(get_db)):
 
 
 @router.put("/service-items/{item_id}", summary="编辑（改价即新版本生效，历史订单不受影响）")
-def update_item(item_id: int, payload: ItemInput, db: Session = Depends(get_db)):
+def update_item(item_id: int, payload: ItemInput, staff: Staff = Depends(staff_auth),
+                db: Session = Depends(get_db)):
     item = db.get(ServiceItem, item_id)
-    if not item:
+    if not belongs(item, staff.store_id):
         raise HTTPException(404, "服务项目不存在")
     price_changed = float(item.price) != payload.price
     item.name = payload.name
@@ -70,9 +77,9 @@ def update_item(item_id: int, payload: ItemInput, db: Session = Depends(get_db))
 
 
 @router.post("/service-items/{item_id}/off-sale", summary="下架（不物理删除，历史订单引用不受影响）")
-def off_sale(item_id: int, db: Session = Depends(get_db)):
+def off_sale(item_id: int, staff: Staff = Depends(staff_auth), db: Session = Depends(get_db)):
     item = db.get(ServiceItem, item_id)
-    if not item:
+    if not belongs(item, staff.store_id):
         raise HTTPException(404, "服务项目不存在")
     item.status = ItemStatus.OFF_SALE
     db.commit()
@@ -80,7 +87,9 @@ def off_sale(item_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/service-items/{item_id}/versions", summary="价格版本历史")
-def versions(item_id: int, db: Session = Depends(get_db)):
+def versions(item_id: int, staff: Staff = Depends(staff_auth), db: Session = Depends(get_db)):
+    if not belongs(db.get(ServiceItem, item_id), staff.store_id):
+        raise HTTPException(404, "服务项目不存在")
     rows = (db.query(ServiceItemVersion)
             .filter(ServiceItemVersion.item_id == item_id)
             .order_by(ServiceItemVersion.created_at.desc()).all())

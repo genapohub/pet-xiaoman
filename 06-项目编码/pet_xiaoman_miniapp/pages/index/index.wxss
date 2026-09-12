@@ -21,6 +21,10 @@
   height: 124rpx;
   margin-top: var(--sp-5);
 }
+/* 未配 logo 时的中性占位标：与 logo 同尺寸，字号按视觉重心调 */
+.hero__mark {
+  font-size: 58rpx;
+}
 .hero__name {
   margin-top: var(--sp-3);
   color: #fff;

@@ -19,7 +19,7 @@ function request(path, method = "GET", data = {}, options = {}) {
   return new Promise((resolve, reject) => {
     const apiBase = baseURL();
     if (apiBase.includes(":8000")) {
-      console.warn(`[宠小满接口请求] 当前仍在访问旧端口 8000：${apiBase}。请在微信开发者工具控制台执行 wx.removeStorageSync('debug_base_url') 后重新编译。`);
+      console.warn(`[门店接口请求] 当前仍在访问旧端口 8000：${apiBase}。请在微信开发者工具控制台执行 wx.removeStorageSync('debug_base_url') 后重新编译。`);
     }
     wx.request({
       url: `${apiBase}${path}`,
@@ -30,7 +30,7 @@ function request(path, method = "GET", data = {}, options = {}) {
         if (res.statusCode === 401) {
           clearLogin();
           if (options.retryAuth === false) return reject(res);
-          console.warn(`[宠小满登录] ${path} 返回 401，正在重新登录并重试一次。`);
+          console.warn(`[门店登录] ${path} 返回 401，正在重新登录并重试一次。`);
           return getApp().ensureLogin()
             .then((loginData) => {
               if (!loginData?.token) throw res;
@@ -62,4 +62,9 @@ function request(path, method = "GET", data = {}, options = {}) {
 module.exports = {
   get: (p, d, options) => request(p, "GET", d, options),
   post: (p, d, options) => request(p, "POST", d, options),
+  // 手机号一键登录：dev 走 dev_phone，真机走 phone_code（getPhoneNumber 返回）
+  phoneLogin: (payload) => request("/api/c/auth/phone-login", "POST", payload),
+  // 门店白标（多租户换肤）：按门店标识拉 logo/主色/店名；缺失不弹错（回退默认品牌）
+  getStoreProfile: (slug) =>
+    request("/api/c/store/profile", "GET", slug ? { slug } : {}, { silentError: true }),
 };

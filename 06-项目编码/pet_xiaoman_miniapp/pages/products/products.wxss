@@ -60,10 +60,14 @@
   align-items: center;
   justify-content: center;
 }
-.placeholder__logo {
+/* 浅底卡片上的占位标：覆盖 .brandmark 的反白配色，改为主色浅底 + 主色字 */
+.placeholder__mark {
   width: 88rpx;
   height: 88rpx;
-  opacity: 0.32;
+  font-size: 40rpx;
+  border: none;
+  background: var(--c-primary-light);
+  color: var(--c-primary);
 }
 .name {
   padding: var(--sp-3) var(--sp-3) 0;

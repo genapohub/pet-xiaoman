@@ -16,7 +16,8 @@ function pickMessage(err) {
   const detail = err.response?.data?.detail;
   if (!err.response) return "网络异常，请检查门店网络后重试";
   if (status === 401) return "登录已过期，正在跳转登录";
-  if (status === 403) return "当前角色无此操作权限";
+  // 403 优先用后端给的说明（如「仅平台超管可执行此操作」），比泛化文案更可诊断
+  if (status === 403) return typeof detail === "string" && detail ? detail : "当前角色无此操作权限";
   if (status === 404) return "接口不存在（可能已下线或地址变更）";
   if (status >= 500) return "服务异常，已通知技术侧";
   if (Array.isArray(detail) && detail[0]?.msg) return detail[0].msg; // FastAPI 422 校验结构

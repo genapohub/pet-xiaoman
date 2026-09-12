@@ -2,10 +2,10 @@
 import enum
 from datetime import date, datetime
 
-from sqlalchemy import String, Integer, Enum, Date, Boolean
+from sqlalchemy import String, Integer, Enum, Date, Boolean, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import BaseModel
+from app.models.base import StoreScopedModel
 
 
 class BoardingStatus(str, enum.Enum):
@@ -14,13 +14,15 @@ class BoardingStatus(str, enum.Enum):
     TAKEN = "已取回"
 
 
-class Boarding(BaseModel):
+class Boarding(StoreScopedModel):
     __tablename__ = "boardings"
+    # 位置唯一改为「同门店内唯一」（多门店可各自使用 A-01）
+    __table_args__ = (UniqueConstraint("store_id", "location", name="uq_boarding_store_location"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     pet_id: Mapped[int] = mapped_column(Integer, index=True)
     customer_id: Mapped[int] = mapped_column(Integer, index=True)
-    location: Mapped[str] = mapped_column(String(50), unique=True)  # 如 A-01，在存状态唯一
+    location: Mapped[str] = mapped_column(String(50))  # 如 A-01，同门店内位置唯一
     start_date: Mapped[date] = mapped_column(Date, default=date.today)
     expire_date: Mapped[date] = mapped_column(Date)
     status: Mapped[BoardingStatus] = mapped_column(Enum(BoardingStatus), default=BoardingStatus.STORED)

@@ -13,4 +13,4 @@ export const uploadMedia = (orderNo, node, file) => {
 export const saveNotes = (orderNo, notes) => http.put(`/orders/${orderNo}/notes`, { notes });
 export const reschedule = (orderNo, expectTime) => http.post(`/orders/${orderNo}/reschedule`, { expect_time: expectTime });
 export const settleOrder = (orderNo, amount) => http.post(`/orders/${orderNo}/settle`, { amount });
-export const revokeMedia = (mediaId, reason) => http.post(`/media/${mediaId}/revoke`, { role: "店长", reason });
+export const revokeMedia = (mediaId, reason) => http.post(`/media/${mediaId}/revoke`, { reason });

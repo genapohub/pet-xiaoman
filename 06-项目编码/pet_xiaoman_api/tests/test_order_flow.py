@@ -73,11 +73,12 @@ def test_cancel_with_deposit_triggers_refund(client, order_input, db):
     assert "原路退回" in data["message"]
 
 
-def test_cancel_in_service_rejected(client, order_input, db):
+def test_cancel_in_service_rejected(client, order_input, db, org):
     """服务中订单客户不可直接取消（PRD §6.4：已发生服务）。"""
     from app.models.order import Order
+    H = {"Authorization": f"Bearer {org['manager_token']}"}
     order_no = create(client, order_input).json()["order_no"]
-    assert client.post(f"/api/b/orders/{order_no}/confirm", json={}).status_code == 200
+    assert client.post(f"/api/b/orders/{order_no}/confirm", json={}, headers=H).status_code == 200
     order = db.query(Order).filter(Order.order_no == order_no).first()
     order.status = "服务中"
     db.commit()
@@ -87,12 +88,14 @@ def test_cancel_in_service_rejected(client, order_input, db):
     assert "请联系门店" in resp.json()["detail"]
 
 
-def test_transition_full_path_requires_media_and_settlement(client, order_input, db):
+def test_transition_full_path_requires_media_and_settlement(client, order_input, db, org):
     """主链路流转：确认→接宠中→服务中（需影像）→待交付（需影像）→已完成（需结清）。"""
+    H = {"Authorization": f"Bearer {org['manager_token']}"}
     order_no = create(client, order_input).json()["order_no"]
     import io
     upload = lambda node: client.post(f"/api/b/orders/{order_no}/media?node={node}",
-                                      files={"file": (f"{node}.jpg", io.BytesIO(b"x"), "image/jpeg")})
+                                      files={"file": (f"{node}.jpg", io.BytesIO(b"x"), "image/jpeg")},
+                                      headers=H)
     path = [
         ("confirm", {}, "已预约"),
         ("transition", {"target": "接宠中"}, "接宠中"),
@@ -104,7 +107,7 @@ def test_transition_full_path_requires_media_and_settlement(client, order_input,
     assert upload("接宠完成").status_code == 200
     assert upload("火化完成").status_code == 200
     for action, payload, expected in path:
-        resp = client.post(f"/api/b/orders/{order_no}/{action}", json=payload)
+        resp = client.post(f"/api/b/orders/{order_no}/{action}", json=payload, headers=H)
         if expected is None:
             assert resp.status_code == 422
             assert "未结清" in resp.json()["detail"]
@@ -114,24 +117,25 @@ def test_transition_full_path_requires_media_and_settlement(client, order_input,
 
     # 到店付结清后可标记完成
     resp = client.post(f"/api/b/orders/{order_no}/transition",
-                       json={"target": "已完成", "pay_settled": True})
+                       json={"target": "已完成", "pay_settled": True}, headers=H)
     assert resp.status_code == 422  # pay_type 仍为未支付，结清校验在状态机内，需真实标记
 
     from app.models.order import Order, PayType
     order = db.query(Order).filter(Order.order_no == order_no).first()
     order.pay_type = PayType.SETTLED_OFFLINE
     db.commit()
-    resp = client.post(f"/api/b/orders/{order_no}/transition", json={"target": "已完成"})
+    resp = client.post(f"/api/b/orders/{order_no}/transition", json={"target": "已完成"}, headers=H)
     assert resp.status_code == 200
     assert resp.json()["status"] == "已完成"
 
 
-def test_transition_without_media_blocked(client, order_input):
+def test_transition_without_media_blocked(client, order_input, org):
     """强制影像节点：待确认→已预约→接宠中 后，无影像不可流转服务中。"""
+    H = {"Authorization": f"Bearer {org['manager_token']}"}
     order_no = create(client, order_input).json()["order_no"]
-    client.post(f"/api/b/orders/{order_no}/confirm", json={})
-    client.post(f"/api/b/orders/{order_no}/transition", json={"target": "接宠中"})
-    resp = client.post(f"/api/b/orders/{order_no}/transition", json={"target": "服务中"})
+    client.post(f"/api/b/orders/{order_no}/confirm", json={}, headers=H)
+    client.post(f"/api/b/orders/{order_no}/transition", json={"target": "接宠中"}, headers=H)
+    resp = client.post(f"/api/b/orders/{order_no}/transition", json={"target": "服务中"}, headers=H)
     assert resp.status_code == 422
     assert "影像" in resp.json()["detail"]
 

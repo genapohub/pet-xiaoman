@@ -10,10 +10,11 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.dependencies import customer_auth, ensure_customer_match
+from app.dependencies import customer_auth, ensure_customer_match, store_context
 from app.models.order import Order
 from app.services import media_service, order_service
 from app.services.order_service import BusinessError
+from app.services.tenant import belongs, store_clause
 
 router = APIRouter()
 
@@ -46,10 +47,11 @@ def _order_brief(o: Order) -> dict:
 
 @router.post("/orders", summary="提交预约（价格按下单时刻版本锁定，PRD §5.2.1）")
 def create_order(payload: OrderCreateInput, db: Session = Depends(get_db),
-                 token_customer_id: int | None = Depends(customer_auth)):
+                 token_customer_id: int | None = Depends(customer_auth),
+                 store_id: int | None = Depends(store_context)):
     payload.user_id = ensure_customer_match(token_customer_id, payload.user_id)
     try:
-        order = order_service.create_order(db, payload)
+        order = order_service.create_order(db, payload, store_id=store_id)
     except BusinessError as e:
         raise HTTPException(422, str(e))
     return {
@@ -64,19 +66,22 @@ def create_order(payload: OrderCreateInput, db: Session = Depends(get_db),
 
 @router.get("/orders", summary="我的订单（按创建时间倒序）")
 def list_orders(user_id: int, db: Session = Depends(get_db),
-                token_customer_id: int | None = Depends(customer_auth)):
+                token_customer_id: int | None = Depends(customer_auth),
+                store_id: int | None = Depends(store_context)):
     user_id = ensure_customer_match(token_customer_id, user_id)
-    orders = (db.query(Order)
-              .filter(Order.user_id == user_id)
-              .order_by(Order.created_at.desc())
-              .all())
+    query = db.query(Order).filter(Order.user_id == user_id)
+    clause = store_clause(Order, store_id)
+    if clause is not None:
+        query = query.filter(clause)
+    orders = query.order_by(Order.created_at.desc()).all()
     return [_order_brief(o) for o in orders]
 
 
 @router.get("/orders/{order_no}", summary="订单详情（C006 进度时间线数据源）")
-def get_order(order_no: str, db: Session = Depends(get_db)):
+def get_order(order_no: str, db: Session = Depends(get_db),
+              store_id: int | None = Depends(store_context)):
     order = db.query(Order).filter(Order.order_no == order_no).first()
-    if not order:
+    if not belongs(order, store_id):
         raise HTTPException(404, "订单不存在")
     return {
         **_order_brief(order),
@@ -87,7 +92,11 @@ def get_order(order_no: str, db: Session = Depends(get_db)):
 
 
 @router.post("/orders/{order_no}/cancel", summary="客户取消（待确认/已预约可取消；已付自动转退款）")
-def cancel_order(order_no: str, payload: dict, db: Session = Depends(get_db)):
+def cancel_order(order_no: str, payload: dict, db: Session = Depends(get_db),
+                 store_id: int | None = Depends(store_context)):
+    existing = db.query(Order).filter(Order.order_no == order_no).first()
+    if not belongs(existing, store_id):
+        raise HTTPException(404, "订单不存在")
     try:
         order = order_service.cancel_by_customer(db, order_no, payload.get("reason", ""))
     except BusinessError as e:
@@ -102,8 +111,9 @@ def cancel_order(order_no: str, payload: dict, db: Session = Depends(get_db)):
 
 
 @router.get("/orders/{order_no}/media", summary="订单影像（C006 时间线数据源，不含已撤回）")
-def list_media(order_no: str, db: Session = Depends(get_db)):
+def list_media(order_no: str, db: Session = Depends(get_db),
+               store_id: int | None = Depends(store_context)):
     order = db.query(Order).filter(Order.order_no == order_no).first()
-    if not order:
+    if not belongs(order, store_id):
         raise HTTPException(404, "订单不存在")
     return media_service.list_order_media(db, order)

@@ -1,4 +1,7 @@
-"""第二批测试：纪念品/寄存/客户档案（PRD B006-B009/C007/C008 验收标准）。"""
+"""第二批测试：纪念品/寄存/客户档案（PRD B006-B009/C007/C008 验收标准）。
+
+多租户改造后：B 端接口一律需员工 token（org fixture 提供），C 端保持 legacy（无 slug）。
+"""
 from datetime import date, datetime, timedelta
 
 import pytest
@@ -27,70 +30,79 @@ def seeded_order(client, db):
     return {"customer_id": customer.id, "pet_id": pet.id, "order_no": "GDTEST001", "phone": "13812345678"}
 
 
+def _H(org):
+    return {"Authorization": f"Bearer {org['manager_token']}"}
+
+
 # ===== B006/C007 纪念品 =====
-def test_product_crud_and_c_list(client):
+def test_product_crud_and_c_list(client, org):
+    H = _H(org)
     create = client.post("/api/b/products", json={"name": "爪印相框", "price": 128,
-                                                  "description": "实木相框"})
+                                                  "description": "实木相框"}, headers=H)
     assert create.status_code == 200
     pid = create.json()["id"]
     # C 端可见
     c_list = client.get("/api/c/products").json()
     assert any(p["id"] == pid for p in c_list)
     # 下架后 C 端不可见
-    client.post(f"/api/b/products/{pid}/toggle")
+    client.post(f"/api/b/products/{pid}/toggle", headers=H)
     c_list = client.get("/api/c/products").json()
     assert not any(p["id"] == pid for p in c_list)
 
 
-def test_c_buy_blocked_when_pay_disabled(client):
-    create = client.post("/api/b/products", json={"name": "陶瓷摆件", "price": 200})
+def test_c_buy_blocked_when_pay_disabled(client, org):
+    H = _H(org)
+    create = client.post("/api/b/products", json={"name": "陶瓷摆件", "price": 200}, headers=H)
     pid = create.json()["id"]
     resp = client.post(f"/api/c/products/{pid}/buy", json={"customer_id": 1})
     assert resp.status_code == 422
     assert "到店选购" in resp.json()["detail"]
 
 
-def test_c_buy_linked_order_check(client):
-    create = client.post("/api/b/products", json={"name": "木质牌", "price": 88})
+def test_c_buy_linked_order_check(client, org):
+    H = _H(org)
+    create = client.post("/api/b/products", json={"name": "木质牌", "price": 88}, headers=H)
     pid = create.json()["id"]
-    client.post("/api/b/products", json={"name": "占位", "price": 1})
+    client.post("/api/b/products", json={"name": "占位", "price": 1}, headers=H)
     resp = client.post(f"/api/c/products/{pid}/buy",
                        json={"customer_id": 1, "fulfillment": "随单交付", "linked_order_no": "GDNOPE"})
     assert resp.status_code == 422
 
 
 # ===== B007/C008 寄存 =====
-def test_boarding_location_conflict(client, seeded_order):
+def test_boarding_location_conflict(client, seeded_order, org):
+    H = _H(org)
     body = {"pet_id": seeded_order["pet_id"], "customer_id": seeded_order["customer_id"],
             "location": "A-01", "expire_date": (date.today() + timedelta(days=30)).isoformat()}
-    assert client.post("/api/b/boardings", json=body).status_code == 200
-    conflict = client.post("/api/b/boardings", json=body)
+    assert client.post("/api/b/boardings", json=body, headers=H).status_code == 200
+    conflict = client.post("/api/b/boardings", json=body, headers=H)
     assert conflict.status_code == 422
     assert "已被占用" in conflict.json()["detail"]
 
 
-def test_boarding_renew_and_take(client, seeded_order):
+def test_boarding_renew_and_take(client, seeded_order, org):
+    H = _H(org)
     body = {"pet_id": seeded_order["pet_id"], "customer_id": seeded_order["customer_id"],
             "location": "B-02", "expire_date": (date.today() + timedelta(days=30)).isoformat()}
-    bid = client.post("/api/b/boardings", json=body).json()["id"]
+    bid = client.post("/api/b/boardings", json=body, headers=H).json()["id"]
     # 续存不能早于当前到期
     bad = client.post(f"/api/b/boardings/{bid}/renew",
-                      json={"expire_date": (date.today() + timedelta(days=10)).isoformat()})
+                      json={"expire_date": (date.today() + timedelta(days=10)).isoformat()}, headers=H)
     assert bad.status_code == 422
     ok = client.post(f"/api/b/boardings/{bid}/renew",
-                     json={"expire_date": (date.today() + timedelta(days=60)).isoformat()})
+                     json={"expire_date": (date.today() + timedelta(days=60)).isoformat()}, headers=H)
     assert ok.status_code == 200
     # 取回必填取回人
-    no_taker = client.post(f"/api/b/boardings/{bid}/take", json={})
+    no_taker = client.post(f"/api/b/boardings/{bid}/take", json={}, headers=H)
     assert no_taker.status_code == 422
-    taken = client.post(f"/api/b/boardings/{bid}/take", json={"taken_by": "张三"})
+    taken = client.post(f"/api/b/boardings/{bid}/take", json={"taken_by": "张三"}, headers=H)
     assert taken.json()["status"] == "已取回"
 
 
-def test_c_query_phone_tail(client, seeded_order):
+def test_c_query_phone_tail(client, seeded_order, org):
     body = {"pet_id": seeded_order["pet_id"], "customer_id": seeded_order["customer_id"],
             "location": "C-03", "expire_date": (date.today() + timedelta(days=3)).isoformat()}
-    client.post("/api/b/boardings", json=body)
+    client.post("/api/b/boardings", json=body, headers=_H(org))
     # 手机号 13812345678 后四位 5678
     resp = client.get("/api/c/boardings/query", params={"phone_tail": "5678"})
     assert resp.status_code == 200
@@ -100,35 +112,38 @@ def test_c_query_phone_tail(client, seeded_order):
 
 
 # ===== B008/B009 客户档案与回访 =====
-def test_customer_list_masked_for_staff(client, seeded_order):
-    staff = client.get("/api/b/customers", params={"role": "店员"}).json()
-    owner = client.get("/api/b/customers", params={"role": "店长"}).json()
+def test_customer_list_masked_for_staff(client, seeded_order, org):
+    """手机号脱敏由登录角色决定（店长全量 / 店员脱敏），不再信任前端 role 参数。"""
+    staff = client.get("/api/b/customers",
+                       headers={"Authorization": f"Bearer {org['employee_token']}"}).json()
+    owner = client.get("/api/b/customers", headers=_H(org)).json()
     assert staff[0]["phone"] == "138****5678"
     assert owner[0]["phone"] == "13812345678"
 
 
-def test_visit_pending_and_register(client, seeded_order, db):
+def test_visit_pending_and_register(client, seeded_order, db, org):
     """订单完成 30 天后动态待回访；登记后关闭。"""
     from app.models.order import Order
+    H = _H(org)
     # 把完成时间改到 31 天前
     order = db.query(Order).filter(Order.order_no == "GDTEST001").first()
     order.updated_at = datetime.now() - timedelta(days=31)
     db.commit()
 
-    listed = client.get("/api/b/customers", params={"role": "店长"}).json()
+    listed = client.get("/api/b/customers", headers=H).json()
     assert listed[0]["visit_status"] == "待回访"
 
     bad = client.post(f"/api/b/customers/{seeded_order['customer_id']}/visit",
-                      json={"satisfaction": 9})
+                      json={"satisfaction": 9}, headers=H)
     assert bad.status_code == 422
     ok = client.post(f"/api/b/customers/{seeded_order['customer_id']}/visit",
-                     json={"satisfaction": 5, "would_recommend": True, "notes": "很满意"})
+                     json={"satisfaction": 5, "would_recommend": True, "notes": "很满意"}, headers=H)
     assert ok.status_code == 200
-    listed = client.get("/api/b/customers", params={"role": "店长"}).json()
+    listed = client.get("/api/b/customers", headers=H).json()
     assert listed[0]["visit_status"] == "已回访"
 
 
-def test_source_tag_update(client, seeded_order):
+def test_source_tag_update(client, seeded_order, org):
     resp = client.post(f"/api/b/customers/{seeded_order['customer_id']}/source",
-                       json={"source": "小红书"})
+                       json={"source": "小红书"}, headers=_H(org))
     assert resp.json()["source"] == "小红书"

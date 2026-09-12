@@ -1,9 +1,10 @@
-<view class="page">
-  <!-- 品牌头部：暖松绿底 + 反白图形标 -->
+<view class="page" style="{{brandStyle}}">
+  <!-- 品牌头部：主色底 + 反白标；门店有自有 logo 用图，没有则用店名首字占位 -->
   <view class="brand">
-    <image class="brand__logo" src="/assets/logo/logo-mark-white.png" mode="aspectFit" />
-    <view class="brand__name">{{shopName}}</view>
-    <view class="brand__slogan">爱意小满，不留遗憾</view>
+    <image wx:if="{{theme.logoUrl}}" class="brand__logo" src="{{theme.logoUrl}}" mode="aspectFit" />
+    <view wx:else class="brand__logo brand__mark brandmark">{{shopInitial}}</view>
+    <view class="brand__name">{{theme.shopName}}</view>
+    <view class="brand__slogan" wx:if="{{theme.slogan}}">{{theme.slogan}}</view>
     <view class="brand__id">客户编号 {{customerId || "未注册"}}</view>
   </view>
 

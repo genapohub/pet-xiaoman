@@ -3,7 +3,7 @@ import enum
 from sqlalchemy import String, Integer, Enum, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import BaseModel
+from app.models.base import StoreScopedModel
 
 
 class Source(str, enum.Enum):
@@ -13,7 +13,7 @@ class Source(str, enum.Enum):
     OTHER = "其他"
 
 
-class Customer(BaseModel):
+class Customer(StoreScopedModel):
     __tablename__ = "customers"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

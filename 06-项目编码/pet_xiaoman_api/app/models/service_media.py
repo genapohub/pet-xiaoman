@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import String, Integer, Enum, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import BaseModel
+from app.models.base import StoreScopedModel
 
 
 class MediaNode(str, enum.Enum):
@@ -20,7 +20,7 @@ class MediaType(str, enum.Enum):
     VIDEO = "video"
 
 
-class ServiceMedia(BaseModel):
+class ServiceMedia(StoreScopedModel):
     __tablename__ = "service_media"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

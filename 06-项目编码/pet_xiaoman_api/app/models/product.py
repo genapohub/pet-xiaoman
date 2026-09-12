@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import String, Integer, Enum, DECIMAL, JSON, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import BaseModel
+from app.models.base import StoreScopedModel
 
 
 class ProductStatus(str, enum.Enum):
@@ -13,7 +13,7 @@ class ProductStatus(str, enum.Enum):
     OFF_SALE = "下架"
 
 
-class Product(BaseModel):
+class Product(StoreScopedModel):
     __tablename__ = "products"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -26,7 +26,7 @@ class Product(BaseModel):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
 
-class ProductOrder(BaseModel):
+class ProductOrder(StoreScopedModel):
     """纪念品购买记录（单件直购）：随单交付或到店自取。"""
     __tablename__ = "product_orders"
 

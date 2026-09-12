@@ -3,8 +3,9 @@ const app = getApp();
 const { get } = require("../../utils/request");
 const { decorateOrder } = require("../../utils/format");
 const { go } = require("../../utils/nav");
+const { brandPage } = require("../../utils/brand");
 
-Page({
+Page(brandPage({
   data: {
     orders: [],
     loading: true,
@@ -32,4 +33,4 @@ Page({
   switchTab(e) { this.setData({ active: e.currentTarget.dataset.tab }); },
   goDetail(e) { go(`/pages/order-detail/index?order_no=${e.currentTarget.dataset.no}`); },
   goCreate() { go("/pages/order-create/index"); },
-});
+}));

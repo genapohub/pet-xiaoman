@@ -15,8 +15,8 @@ export const createBoarding = (payload) => http.post("/boardings", payload);
 export const renewBoarding = (id, expireDate) => http.post(`/boardings/${id}/renew`, { expire_date: expireDate });
 export const takeBoarding = (id, takenBy) => http.post(`/boardings/${id}/take`, { taken_by: takenBy });
 
-// 客户（B008/B009）
-export const listCustomers = (role = "店长") => http.get("/customers", { params: { role } });
-export const getCustomer = (id, role = "店长") => http.get(`/customers/${id}`, { params: { role } });
+// 客户（B008/B009）—— 手机号脱敏由后端按登录账号角色决定，前端不再传 role
+export const listCustomers = () => http.get("/customers");
+export const getCustomer = (id) => http.get(`/customers/${id}`);
 export const setSource = (id, source) => http.post(`/customers/${id}/source`, { source });
 export const registerVisit = (id, payload) => http.post(`/customers/${id}/visit`, payload);

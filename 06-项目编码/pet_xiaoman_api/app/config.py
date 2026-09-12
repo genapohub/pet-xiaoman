@@ -25,7 +25,8 @@ class Settings:
                     f"@{cls.DB_HOST}:{cls.DB_PORT}/{cls.DB_NAME}?charset=utf8mb4")
         # 开发：默认 Docker MySQL；SQLITE_FALLBACK=true 显式切换（跑测试/无 Docker 时）
         if os.getenv("SQLITE_FALLBACK", "false").lower() == "true":
-            return "sqlite:///./pet_xiaoman-dev.sqlite"
+            path = os.getenv("SQLITE_PATH", "./pet_xiaoman-dev.sqlite")
+            return f"sqlite:///{path}"
         return (f"mysql+pymysql://{cls.DB_USER}:{cls.DB_PASS}"
                 f"@{cls.DB_HOST}:{cls.DB_PORT}/{cls.DB_NAME}?charset=utf8mb4")
 

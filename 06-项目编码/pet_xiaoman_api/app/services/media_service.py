@@ -59,7 +59,7 @@ def save_media(db: Session, order: Order, node: str, filename: str,
 
     media = ServiceMedia(order_id=order.id, node=node_enum, media_type=media_type,
                          url=f"/uploads/{order.order_no}/{dest.name}",
-                         uploaded_by=uploaded_by)
+                         uploaded_by=uploaded_by, store_id=order.store_id)
     db.add(media)
     db.commit()
     db.refresh(media)

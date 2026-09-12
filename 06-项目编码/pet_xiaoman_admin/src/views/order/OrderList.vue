@@ -53,7 +53,7 @@
     </el-table-column>
 
     <template #empty>
-      <PxEmpty variant="doc" text="暂无待确认订单" hint="可切换状态或日期查看历史订单" />
+      <PxEmpty variant="doc" text="暂无订单" hint="可切换状态、日期或关键词查看历史订单" />
     </template>
   </px-table-page>
 </template>
@@ -74,12 +74,12 @@ import { ORDER_STATUS_LIST } from "../../utils/status";
 const router = useRouter();
 const { rows, total, loading, failed, query, load, search, setPage, setSize, debouncedLoad } = useTable(
   (params) => listOrders({ ...params, is_night: params.is_night || undefined }),
-  { defaultQuery: { status: "待确认", date: "", keyword: "", is_night: false } }
+  { defaultQuery: { status: "", date: "", keyword: "", is_night: false } }
 );
 
 const subtitle = computed(() => {
-  if (query.status === "待确认" && !query.date && !query.keyword && !query.is_night) {
-    return `待确认订单优先处理 · 共 ${total.value} 条`;
+  if (!query.status && !query.date && !query.keyword && !query.is_night) {
+    return `全部订单 · 共 ${total.value} 条`;
   }
   return `共 ${total.value} 条订单`;
 });

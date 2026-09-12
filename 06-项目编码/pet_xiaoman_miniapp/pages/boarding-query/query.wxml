@@ -1,4 +1,4 @@
-<view class="page">
+<view class="page" style="{{brandStyle}}">
   <view class="query-head">
     <view class="query-head__title">骨灰寄存查询</view>
     <view class="query-head__desc">输入预留手机号后四位，查看寄存位置和到期时间。</view>

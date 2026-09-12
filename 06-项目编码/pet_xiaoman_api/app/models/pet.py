@@ -2,7 +2,7 @@ import enum
 from sqlalchemy import String, Integer, Enum, DECIMAL, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import BaseModel
+from app.models.base import StoreScopedModel
 
 
 class Species(str, enum.Enum):
@@ -12,7 +12,7 @@ class Species(str, enum.Enum):
     OTHER = "其他"
 
 
-class Pet(BaseModel):
+class Pet(StoreScopedModel):
     __tablename__ = "pets"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

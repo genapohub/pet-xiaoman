@@ -1,6 +1,6 @@
 """B 端订单路由（PRD §5.1 B002/B003）：列表筛选、确认、状态流转。
 
-角色控制（PRD §8.5）：当前骨架期信任 payload.role，鉴权中间件接入后从 token 解出。
+角色控制（PRD §8.5）：关键危险操作走后台员工 token + RBAC 权限校验。
 """
 from datetime import datetime
 
@@ -8,10 +8,13 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.dependencies import require_perm, staff_auth
 from app.models.order import Order, OrderStatus
+from app.models.staff import Staff, StaffRole
 from app.services import media_service, order_service, payment_service
 from app.services.order_service import BusinessError
 from app.services.order_state import TransitionContext
+from app.services.tenant import belongs, store_clause
 
 router = APIRouter()
 
@@ -22,8 +25,12 @@ def list_orders(status: str | None = None,
                 is_night: bool | None = None,
                 keyword: str | None = None,
                 page: int = 1, size: int = 20,
+                staff: Staff = Depends(staff_auth),
                 db: Session = Depends(get_db)):
     query = db.query(Order)
+    clause = store_clause(Order, staff.store_id)  # 多租户：仅本店
+    if clause is not None:
+        query = query.filter(clause)
     if status:
         query = query.filter(Order.status == OrderStatus(status))
     if date:
@@ -49,27 +56,28 @@ def list_orders(status: str | None = None,
 
 
 @router.post("/orders/{order_no}/confirm", summary="确认订单（待确认→已预约，SLA 30 分钟）")
-def confirm_order(order_no: str, payload: dict, db: Session = Depends(get_db)):
-    return _transition(order_no, {"target": OrderStatus.BOOKED.value}, db)
+def confirm_order(order_no: str, payload: dict, staff: Staff = Depends(staff_auth), db: Session = Depends(get_db)):
+    return _transition(order_no, {"target": OrderStatus.BOOKED.value}, db, staff)
 
 
 @router.post("/orders/{order_no}/transition", summary="状态流转（强制影像=服务端查库校验，结清校验在状态机内）")
-def transition(order_no: str, payload: dict, db: Session = Depends(get_db)):
-    return _transition(order_no, payload, db)
+def transition(order_no: str, payload: dict, staff: Staff = Depends(staff_auth), db: Session = Depends(get_db)):
+    return _transition(order_no, payload, db, staff)
 
 
-def _transition(order_no: str, payload: dict, db: Session) -> dict:
+def _transition(order_no: str, payload: dict, db: Session, staff: Staff) -> dict:
     target = payload.get("target")
     if not target:
         raise HTTPException(422, "缺少 target 状态")
     order = db.query(Order).filter(Order.order_no == order_no).first()
-    if not order:
+    if not belongs(order, staff.store_id):  # 多租户：防跨店操作
         raise HTTPException(404, "订单不存在")
     # 强制影像：服务端查 service_media 表，不信任前端 has_media 参数（PRD §5.2.2）
+    # 店长判定：来自登录态 token 解析的角色，不再信任前端 payload.role（堵伪造）
     ctx = TransitionContext(
         has_media=media_service.node_media_satisfied(db, order.id, target),
         pay_type=order.pay_type.value if hasattr(order.pay_type, "value") else str(order.pay_type),
-        is_owner=payload.get("role") == "店长",
+        is_owner=staff.role == StaffRole.MANAGER,
     )
     try:
         order = order_service.transition(db, order_no, target, ctx)
@@ -80,9 +88,10 @@ def _transition(order_no: str, payload: dict, db: Session) -> dict:
 
 
 @router.get("/orders/{order_no}", summary="订单详情（B003：全字段 + 影像 + 备注）")
-def get_order_detail(order_no: str, db: Session = Depends(get_db)):
+def get_order_detail(order_no: str, staff: Staff = Depends(staff_auth),
+                     db: Session = Depends(get_db)):
     order = db.query(Order).filter(Order.order_no == order_no).first()
-    if not order:
+    if not belongs(order, staff.store_id):
         raise HTTPException(404, "订单不存在")
     return {
         "order_no": order.order_no,
@@ -107,9 +116,10 @@ def get_order_detail(order_no: str, db: Session = Depends(get_db)):
 
 
 @router.put("/orders/{order_no}/notes", summary="内部备注（客户不可见，自动保存）")
-def save_notes(order_no: str, payload: dict, db: Session = Depends(get_db)):
+def save_notes(order_no: str, payload: dict, staff: Staff = Depends(staff_auth),
+               db: Session = Depends(get_db)):
     order = db.query(Order).filter(Order.order_no == order_no).first()
-    if not order:
+    if not belongs(order, staff.store_id):
         raise HTTPException(404, "订单不存在")
     order.notes = payload.get("notes", "")
     db.commit()
@@ -117,9 +127,10 @@ def save_notes(order_no: str, payload: dict, db: Session = Depends(get_db)):
 
 
 @router.post("/orders/{order_no}/reschedule", summary="改期（免费 1 次，PRD §6.2）")
-def reschedule(order_no: str, payload: dict, db: Session = Depends(get_db)):
+def reschedule(order_no: str, payload: dict, staff: Staff = Depends(staff_auth),
+               db: Session = Depends(get_db)):
     order = db.query(Order).filter(Order.order_no == order_no).first()
-    if not order:
+    if not belongs(order, staff.store_id):
         raise HTTPException(404, "订单不存在")
     if order.reschedule_count >= 1:
         raise HTTPException(422, "免费改期次数已用完，请联系店长")
@@ -134,13 +145,14 @@ def reschedule(order_no: str, payload: dict, db: Session = Depends(get_db)):
 
 
 @router.post("/orders/{order_no}/media", summary="上传节点影像（强制流转证据，同步 C 端时间线）")
-def upload_media(order_no: str, node: str, file: UploadFile, db: Session = Depends(get_db)):
+def upload_media(order_no: str, node: str, file: UploadFile,
+                 staff: Staff = Depends(staff_auth), db: Session = Depends(get_db)):
     order = db.query(Order).filter(Order.order_no == order_no).first()
-    if not order:
+    if not belongs(order, staff.store_id):
         raise HTTPException(404, "订单不存在")
     try:
         media = media_service.save_media(db, order, node, file.filename,
-                                         file.file.read(), uploaded_by=1)
+                                         file.file.read(), uploaded_by=staff.id)
     except ValueError as e:
         raise HTTPException(422, str(e))
     return {"media_id": media.id, "node": media.node.value,
@@ -148,10 +160,14 @@ def upload_media(order_no: str, node: str, file: UploadFile, db: Session = Depen
 
 
 @router.post("/orders/{order_no}/settle", summary="到店付结清标记（实收金额落流水，B003）")
-def settle(order_no: str, payload: dict, db: Session = Depends(get_db)):
+def settle(order_no: str, payload: dict, staff: Staff = Depends(staff_auth),
+           db: Session = Depends(get_db)):
+    order = db.query(Order).filter(Order.order_no == order_no).first()
+    if not belongs(order, staff.store_id):
+        raise HTTPException(404, "订单不存在")
     try:
         order = payment_service.settle_offline(db, order_no,
-                                               float(payload.get("amount", 0)), staff_id=1)
+                                               float(payload.get("amount", 0)), staff_id=staff.id)
     except ValueError as e:
         raise HTTPException(422, str(e))
     return {"order_no": order.order_no, "pay_type": order.pay_type.value,
@@ -159,11 +175,12 @@ def settle(order_no: str, payload: dict, db: Session = Depends(get_db)):
 
 
 @router.post("/media/{media_id}/revoke", summary="影像撤回（仅店长，强制原因留审计）")
-def revoke_media(media_id: int, payload: dict, db: Session = Depends(get_db)):
+def revoke_media(media_id: int, payload: dict,
+                 staff: Staff = Depends(require_perm("media.revoke")),
+                 db: Session = Depends(get_db)):
     try:
         media = media_service.revoke_media(db, media_id,
-                                           payload.get("role") == "店长",
-                                           payload.get("reason", ""))
+                                           True, payload.get("reason", ""))
     except PermissionError as e:
         raise HTTPException(403, str(e))
     except ValueError as e:

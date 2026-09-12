@@ -1,7 +1,8 @@
 // C008 骨灰寄存查询（手机号后四位）
 const { get } = require("../../utils/request");
+const { brandPage } = require("../../utils/brand");
 
-Page({
+Page(brandPage({
   data: { tail: "", result: null, searched: false },
   onInput(e) { this.setData({ tail: e.detail.value }); },
   query() {
@@ -11,4 +12,4 @@ Page({
       .catch((err) => this.setData({ result: [], searched: true,
         error: err.detail || "未找到匹配的寄存记录" }));
   },
-});
+}));

@@ -2,8 +2,9 @@
 const { get } = require("../../utils/request");
 const { decorateOrder } = require("../../utils/format");
 const { absUrl } = require("../../utils/url");
+const { brandPage } = require("../../utils/brand");
 
-Page({
+Page(brandPage({
   data: { order: null, media: [], loading: true },
   onLoad(options) { this.orderNo = options.order_no; },
   onShow() { this.load(); },
@@ -36,4 +37,4 @@ Page({
     wx.previewImage({ urls, current });
   },
   callShop() { wx.makePhoneCall({ phoneNumber: wx.getStorageSync("shop_phone") || "" }); },
-});
+}));

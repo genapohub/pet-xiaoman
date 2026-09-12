@@ -1,7 +1,9 @@
-/* 宠小满小程序 · Design Token
+/* 小程序（多门店白标）· Design Token
  * 唯一事实源：04-品牌设计/pet_xiaoman_brand_kit_v1.0/02-color/chongxiaoman_色值表_v1.0.md
  * 规则：页面禁止写死色值/间距，一律引用本文件变量；需要新值先问「现有 Token 能否覆盖」。
  * 配比纪律：中性 60% / 主绿 30% / 陶土+点缀 10%；五禁忌=纯黑/冷蓝/促销红/荧光绿/紫色系。
+ * 多租户：以下 --c-primary* 全套会在运行时按门店主色重算（utils/brand.js brandStyle()），
+ *        故页面只能引用变量、不得写死主色，否则该门店会「一半绿一半自己色」。
  */
 
 page {
@@ -198,3 +200,21 @@ page {
   background: var(--c-card);
 }
 .row-link__label { flex: 1; font-size: var(--fs-base); color: var(--c-ink); }
+
+/* ===== 品牌占位标（门店未上传 logo 时）=====
+ * 用店名首字 + 反白描边顶位，绝不用平台或别家门店的图形标：
+ * 否则新门店上线第一天，顾客看到的是另一家门店的 logo。
+ * 深底场景直接用 .brandmark；浅底场景覆盖 color / border-color / background 三个值。 */
+.brandmark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 4rpx solid rgba(255, 255, 255, 0.72);
+  border-radius: 30rpx;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+}
