@@ -33,6 +33,7 @@ from app.models.store_profile import StoreProfile, DEFAULT_PRIMARY_COLOR  # noqa
 from scripts.backfill_store_scope import SCOPED_MODELS  # noqa: E402
 
 DEFAULT_STORE_NAME = "宠小满·示例门店"
+DEFAULT_STORE_SLOGAN = "爱意小满，不留遗憾"
 DEV_STORE_SLUG = os.getenv("DEV_STORE_SLUG", "chongxiaoman")
 IS_SQLITE = engine.dialect.name == "sqlite"
 
@@ -252,12 +253,24 @@ def migrate() -> None:
 
         profile = db.query(StoreProfile).filter(StoreProfile.store_id == store.id).first()
         if profile:
+            if profile.slug in ("default", "", None):
+                target_slug = DEV_STORE_SLUG
+                holder = db.query(StoreProfile).filter(StoreProfile.slug == target_slug).first()
+                if holder and holder.store_id != store.id:
+                    target_slug = f"{target_slug}-{store.id}"
+                profile.slug = target_slug
+            if not profile.slogan:
+                profile.slogan = DEFAULT_STORE_SLOGAN
+            if not profile.name:
+                profile.name = DEFAULT_STORE_NAME
+            db.commit()
             print(f"   白标资料：已存在 slug={profile.slug} 主色={profile.primary_color}")
         else:
             slug = DEV_STORE_SLUG
             if db.query(StoreProfile).filter(StoreProfile.slug == slug).first():
                 slug = f"{slug}-{store.id}"
             profile = StoreProfile(store_id=store.id, slug=slug, name=store.name,
+                                   slogan=DEFAULT_STORE_SLOGAN,
                                    primary_color=DEFAULT_PRIMARY_COLOR, theme_json={})
             db.add(profile)
             db.commit()

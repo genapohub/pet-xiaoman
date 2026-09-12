@@ -24,8 +24,13 @@ class LoginInput(BaseModel):
     password: str
 
 
+DEFAULT_DEMO_STORE_SLUG = "chongxiaoman"
+DEFAULT_DEMO_STORE_NAME = "宠小满·示例门店"
+DEFAULT_DEMO_STORE_SLOGAN = "爱意小满，不留遗憾"
+
+
 class SetupInput(BaseModel):
-    store_name: str = "宠小满门店"
+    store_name: str = DEFAULT_DEMO_STORE_NAME
     username: str
     password: str
     name: str = "店长"
@@ -64,8 +69,11 @@ def setup(payload: SetupInput, db: Session = Depends(get_db)):
     db.add(store)
     db.commit()
     db.refresh(store)
-    db.add(StoreProfile(store_id=store.id, slug="default", name=payload.store_name,
-                        primary_color=DEFAULT_PRIMARY_COLOR, theme_json={}))
+    db.add(StoreProfile(
+        store_id=store.id, slug=DEFAULT_DEMO_STORE_SLUG, name=payload.store_name,
+        slogan=DEFAULT_DEMO_STORE_SLOGAN,
+        primary_color=DEFAULT_PRIMARY_COLOR, theme_json={},
+    ))
     mgr = Staff(
         username=payload.username, password_hash=hash_password(payload.password),
         name=payload.name, role=StaffRole.MANAGER, store_id=store.id,

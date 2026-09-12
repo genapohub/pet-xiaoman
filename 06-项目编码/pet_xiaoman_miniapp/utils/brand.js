@@ -13,10 +13,19 @@ const SLUG_KEY = "store_slug";
 let _cached = null;
 let _promise = null;
 
+function normalizeSlug(slug) {
+  return typeof slug === "string" ? slug.trim() : "";
+}
+
 function saveSlug(slug) {
-  if (slug && typeof slug === "string") {
-    try { wx.setStorageSync(SLUG_KEY, slug.trim()); } catch (e) { /* 忽略 */ }
+  const next = normalizeSlug(slug);
+  if (!next) return "";
+  const prev = currentSlug();
+  try { wx.setStorageSync(SLUG_KEY, next); } catch (e) { /* 忽略 */ }
+  if (prev !== next) {
+    resetBrand();
   }
+  return next;
 }
 
 function currentSlug() {
@@ -26,15 +35,15 @@ function currentSlug() {
 // 从 onLaunch/onShow 的 options 里解析门店标识
 function slugFromOptions(options) {
   if (!options) return "";
-  if (options.query && options.query.slug) return options.query.slug;
+  if (options.query && options.query.slug) return normalizeSlug(options.query.slug);
   if (options.scene) {
     let scene = options.scene;
     try { scene = decodeURIComponent(scene); } catch (e) { /* 原样 */ }
     if (scene.indexOf("=") >= 0) {
       const pair = scene.split("&").find((p) => p.indexOf("slug=") === 0);
-      if (pair) return pair.slice("slug=".length);
+      if (pair) return normalizeSlug(pair.slice("slug=".length));
     }
-    return scene; // 扫码直接传 slug 的情况
+    return normalizeSlug(scene); // 扫码直接传 slug 的情况
   }
   return "";
 }

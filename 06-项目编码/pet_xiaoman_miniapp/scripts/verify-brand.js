@@ -7,7 +7,7 @@
  * 校验点：
  *  1) initialOf：未配 logo 时的占位字取店名首字，不回落固定门店名
  *  2) brandStyle：由门店主色派生整套 --c-primary* 色阶
- *  3) mergeTheme 切店：门店 B 没有标语/店名时，绝不能留着门店 A 的
+ *  3) 扫码/链接参数解析 + 切店缓存失效：扫 B 店后不能继续展示 A 店
  *  4) brandPage：预置 shopInitial + brandStyle，onLoad/onShow 生命周期仍被调用
  *  5) 12 个页面模块全部可加载且已接入换肤
  *  6) 源码中不再有「宠小满 / 爱意小满 / logo-mark」硬编码
@@ -51,6 +51,7 @@ global.Component = () => {};
 
 /* ---------- 注入假的 C 端门店资料接口 ---------- */
 let profileResponse = null;
+let lastProfileSlug = null;
 function fakeModule(absPath, exports) {
   const m = new Module(absPath);
   m.filename = absPath;
@@ -59,7 +60,10 @@ function fakeModule(absPath, exports) {
   require.cache[absPath] = m;
 }
 fakeModule(path.join(ROOT, "utils/request.js"), {
-  getStoreProfile: () => Promise.resolve(profileResponse),
+  getStoreProfile: (slug) => {
+    lastProfileSlug = slug || "";
+    return Promise.resolve(profileResponse);
+  },
   absUrl: (u) => u,
 });
 fakeModule(path.join(ROOT, "utils/url.js"), { absUrl: (u) => u });
@@ -107,20 +111,27 @@ const dirty = brand.brandStyle({ colorPrimary: "红色" }).toLowerCase();
 checkTrue("脏色值回退平台默认主色",
   dirty.includes(`--c-primary:${DEFAULT_THEME.colorPrimary.toLowerCase()};`), dirty);
 
-/* ---------- 3) 切店不串品牌 ---------- */
-console.log("\n== 3) 切换门店：不能留着上一家的店名/标语 ==");
+/* ---------- 3) 扫码/链接参数 + 切店不串品牌 ---------- */
+console.log("\n== 3) 扫码/链接参数与切换门店 ==");
 async function run() {
+  check("query.slug 解析", brand.slugFromOptions({ query: { slug: " store-a " } }), "store-a");
+  check("scene=slug%3Dstore-b 解析", brand.slugFromOptions({ scene: "slug%3Dstore-b" }), "store-b");
+  check("scene 直接传 slug 解析", brand.slugFromOptions({ scene: "store-c" }), "store-c");
+
+  brand.saveSlug("store-a");
   profileResponse = { name: "门店A", slogan: "A 的标语", primary_color: "#5B8C85", logo_url: "" };
   let theme = await brand.ensureBrand();
+  check("门店A 请求带 slug", lastProfileSlug, "store-a");
   check("门店A 店名", theme.shopName, "门店A");
   check("门店A 标语", theme.slogan, "A 的标语");
   checkTrue("tabBar 选中色跟随门店主色", tabBarColor === "#5B8C85", String(tabBarColor));
   check("导航栏标题跟随门店名", navTitle, "门店A");
 
-  // 切到门店 B：B 没有 slogan、也没有 name → 必须回落中性值，而不是沿用 A
-  brand.resetBrand();
+  // 切到门店 B：saveSlug 会让品牌缓存失效；B 没有 slogan、也没有 name → 不能沿用 A
+  brand.saveSlug("store-b");
   profileResponse = { name: null, slogan: null, primary_color: "#C97B63", logo_url: "" };
   theme = await brand.ensureBrand();
+  check("门店B 请求带 slug", lastProfileSlug, "store-b");
   check("门店B 无店名 → 回落平台中性店名", theme.shopName, DEFAULT_THEME.shopName);
   check("门店B 无标语 → 清空，不留 A 的标语", theme.slogan, "");
   checkTrue("门店B 主色已切换", theme.colorPrimary === "#C97B63", theme.colorPrimary);

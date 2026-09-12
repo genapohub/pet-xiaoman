@@ -2,16 +2,20 @@
 const { repairDebugBaseURL } = require("./config/env");
 const { ensureBrand, saveSlug, slugFromOptions } = require("./utils/brand");
 
+function applyBrandFromLaunchOptions(options) {
+  // 门店标识：来自小程序码 scene 或普通链接 query，记下后本机后续进入沿用。
+  const slug = slugFromOptions(options);
+  if (slug) saveSlug(slug);
+  // 运行时换肤（异步，不阻塞登录判断；页面 onLoad 里 ensureBrand 会复用同一 Promise）
+  return ensureBrand().catch(() => {});
+}
+
 App({
   globalData: { theme: require("./config/theme") }, // 默认品牌；启动后按门店覆盖
   _loginWaiters: [],
   onLaunch(options) {
     repairDebugBaseURL();
-    // 门店标识：来自二维码/启动参数，记下后本机后续进入沿用
-    const slug = slugFromOptions(options);
-    if (slug) saveSlug(slug);
-    // 运行时换肤（异步，不阻塞登录判断；页面 onLoad 里 ensureBrand 会复用同一 Promise）
-    ensureBrand().catch(() => {});
+    applyBrandFromLaunchOptions(options);
 
     const token = wx.getStorageSync("token");
     const customerId = wx.getStorageSync("customer_id");
@@ -19,6 +23,10 @@ App({
       // 未登录：进入手机号一键登录页（登录成功由 finishLogin 回首页）
       wx.reLaunch({ url: "/pages/login/index" });
     }
+  },
+  onShow(options) {
+    // 小程序已在后台时再扫另一家门店码，不会触发 onLaunch；这里负责二次切店。
+    applyBrandFromLaunchOptions(options);
   },
   // 当前客户 id（未登录返回 0）；订单/宠物/个人中心等页面取用
   getCustomerId() {

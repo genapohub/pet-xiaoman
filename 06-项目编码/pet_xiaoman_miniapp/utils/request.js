@@ -3,7 +3,13 @@ const { baseURL } = require("../config/env");
 
 function buildHeader() {
   const token = wx.getStorageSync("token");
-  return token ? { "X-Customer-Token": token } : {};
+  const header = {};
+  if (token) header["X-Customer-Token"] = token;
+  // 多租户门店上下文：扫码/链接进入后 utils/brand.js 会保存 store_slug。
+  // 所有 C 端业务接口都带上它，才能读取对应门店的价格、商品、订单与档案。
+  const slug = wx.getStorageSync("store_slug");
+  if (slug) header["X-Store-Slug"] = slug;
+  return header;
 }
 
 function clearLogin() {

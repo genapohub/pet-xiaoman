@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="后台前端 Vite 5173" type="js.build_tools.npm">
+  <configuration default="false" name="后台前端 5173" type="js.build_tools.npm">
     <package-json value="$PROJECT_DIR$/06-项目编码/pet_xiaoman_admin/package.json" />
     <command value="run" />
     <scripts>
