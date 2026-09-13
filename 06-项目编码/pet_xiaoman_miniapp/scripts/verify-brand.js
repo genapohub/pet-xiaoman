@@ -8,9 +8,10 @@
  *  1) initialOf：未配 logo 时的占位字取店名首字，不回落固定门店名
  *  2) brandStyle：由门店主色派生整套 --c-primary* 色阶
  *  3) 扫码/链接参数解析 + 切店缓存失效：扫 B 店后不能继续展示 A 店
- *  4) brandPage：预置 shopInitial + brandStyle，onLoad/onShow 生命周期仍被调用
- *  5) 12 个页面模块全部可加载且已接入换肤
- *  6) 源码中不再有「宠小满 / 爱意小满 / logo-mark」硬编码
+ *  4) 独立 AppID 无启动参数时，使用包内 DEFAULT_STORE_SLUG
+ *  5) brandPage：预置 shopInitial + brandStyle，onLoad/onShow 生命周期仍被调用
+ *  6) 12 个页面模块全部可加载且已接入换肤
+ *  7) 源码中不再有「宠小满 / 爱意小满 / logo-mark」硬编码
  *
  * 用法：
  *   NODE_PATH=<workbuddy node workspace>/node_modules node scripts/verify-brand.js
@@ -117,6 +118,7 @@ async function run() {
   check("query.slug 解析", brand.slugFromOptions({ query: { slug: " store-a " } }), "store-a");
   check("scene=slug%3Dstore-b 解析", brand.slugFromOptions({ scene: "slug%3Dstore-b" }), "store-b");
   check("scene 直接传 slug 解析", brand.slugFromOptions({ scene: "store-c" }), "store-c");
+  check("独立 AppID 默认门店 slug", brand.defaultStoreSlug(), "chongxiaoman");
 
   brand.saveSlug("store-a");
   profileResponse = { name: "门店A", slogan: "A 的标语", primary_color: "#5B8C85", logo_url: "" };
@@ -138,15 +140,24 @@ async function run() {
   check("导航栏标题跟着换", navTitle, DEFAULT_THEME.shopName);
   checkTrue("门店B 的占位字来自中性店名", brand.initialOf(theme) === DEFAULT_THEME.shopName.slice(0, 1), brand.initialOf(theme));
 
+  console.log("\n== 4) 独立 AppID 默认入口 ==");
+  wx.removeStorageSync("store_slug");
+  brand.resetBrand();
+  profileResponse = { name: "宠小满·示例门店", slogan: "爱意小满，不留遗憾", primary_color: "#5B8C85", logo_url: "" };
+  theme = await brand.ensureBrand();
+  check("无启动参数时请求默认门店", lastProfileSlug, "chongxiaoman");
+  check("默认门店品牌加载", theme.shopName, "宠小满·示例门店");
+
   // 门店 B 配了自有 logo → 用图，不用占位
+  brand.saveSlug("store-b");
   brand.resetBrand();
   profileResponse = { name: "喵星人", slogan: "给ta最后的体面", primary_color: "#C97B63", logo_url: "/uploads/meow.png" };
   theme = await brand.ensureBrand();
   checkTrue("有 logo 时用绝对地址", theme.logoUrl === "/uploads/meow.png", theme.logoUrl);
   check("有标语时展示门店标语", theme.slogan, "给ta最后的体面");
 
-  /* ---------- 4) brandPage 包装 ---------- */
-  console.log("\n== 4) brandPage 注入与生命周期 ==");
+  /* ---------- 5) brandPage 包装 ---------- */
+  console.log("\n== 5) brandPage 注入与生命周期 ==");
   let loadCalled = 0;
   let showCalled = 0;
   const opts = brand.brandPage({
@@ -176,8 +187,8 @@ async function run() {
   check("仅有 onShow 的页面也接上换肤", ctx2.data.theme.shopName, "喵星人");
   check("onShow 仍被调用", fallbackShow, 1);
 
-  /* ---------- 5) 12 个页面全部接入 ---------- */
-  console.log("\n== 5) 页面模块加载与换肤接入 ==");
+  /* ---------- 6) 12 个页面全部接入 ---------- */
+  console.log("\n== 6) 页面模块加载与换肤接入 ==");
   const PAGES = [
     "pages/index/index", "pages/login/index", "pages/order-create/index",
     "pages/order-list/index", "pages/products/products", "pages/profile/index",
@@ -201,8 +212,8 @@ async function run() {
   check("接入换肤的页面数", PAGES.length - notWrapped.length, PAGES.length);
   checkTrue("没有漏接的页面", notWrapped.length === 0, notWrapped.join(", "));
 
-  /* ---------- 6) 源码里不该再出现别家门店的品牌硬编码 ---------- */
-  console.log("\n== 6) 硬编码品牌残留扫描 ==");
+  /* ---------- 7) 源码里不该再出现别家门店的品牌硬编码 ---------- */
+  console.log("\n== 7) 硬编码品牌残留扫描 ==");
   const fs = require("fs");
   const hits = [];
   // 只扫"会呈现给用户"的代码。scripts/ 是构建与自检工具（本文件自己就写着这些字样），
@@ -215,8 +226,10 @@ async function run() {
       const st = fs.statSync(full);
       if (st.isDirectory()) { walk(full); continue; }
       if (!/\.(js|json|wxml|wxss)$/.test(name)) continue;
+      const rel = path.relative(ROOT, full);
+      if (rel === "config/store.js") continue; // 发布包默认门店配置允许写入当前门店名称
       const text = fs.readFileSync(full, "utf8");
-      if (/宠小满|爱意小满|logo-mark|logo-lockup/.test(text)) hits.push(path.relative(ROOT, full));
+      if (/宠小满|爱意小满|logo-mark|logo-lockup/.test(text)) hits.push(rel);
     }
   };
   walk(ROOT);

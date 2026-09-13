@@ -20,6 +20,7 @@ from app.models.store_profile import StoreProfile, DEFAULT_PRIMARY_COLOR
 from app.services.staff_auth_service import hash_password
 from app.services.validators import (
     valid_slug, valid_hex_color, valid_logo_url, valid_slogan,
+    valid_miniapp_appid, valid_miniapp_name,
 )
 
 router = APIRouter()
@@ -43,6 +44,9 @@ class StoreCreateInput(BaseModel):
     slogan: str | None = None
     primary_color: str | None = None
     logo_url: str | None = None
+    miniapp_name: str | None = Field(default=None, max_length=50, description="独立小程序名称，留空默认同对外店名")
+    miniapp_appid: str | None = Field(default=None, max_length=64, description="独立小程序 AppID")
+    miniapp_entry_enabled: bool = Field(default=True, description="是否启用独立小程序搜索入口")
     admin_username: str = Field(max_length=32, description="该店首位店长账号")
     admin_password: str = Field(min_length=6)
     admin_name: str = Field(default="店长", max_length=50)
@@ -50,6 +54,8 @@ class StoreCreateInput(BaseModel):
     _check_slug = field_validator("slug")(valid_slug)
     _check_slogan = field_validator("slogan")(valid_slogan)
     _check_logo = field_validator("logo_url")(valid_logo_url)
+    _check_miniapp_name = field_validator("miniapp_name")(valid_miniapp_name)
+    _check_miniapp_appid = field_validator("miniapp_appid")(valid_miniapp_appid)
 
     @field_validator("primary_color")
     @classmethod
@@ -63,9 +69,14 @@ class StoreProfileInput(BaseModel):
     logo_url: str | None = None
     primary_color: str | None = None
     theme_json: dict | None = None
+    miniapp_name: str | None = Field(default=None, max_length=50)
+    miniapp_appid: str | None = Field(default=None, max_length=64)
+    miniapp_entry_enabled: bool | None = None
 
     _check_slogan = field_validator("slogan")(valid_slogan)
     _check_logo = field_validator("logo_url")(valid_logo_url)
+    _check_miniapp_name = field_validator("miniapp_name")(valid_miniapp_name)
+    _check_miniapp_appid = field_validator("miniapp_appid")(valid_miniapp_appid)
 
     @field_validator("primary_color")
     @classmethod
@@ -102,7 +113,9 @@ class StoreStaffUpdate(BaseModel):
 # ---------- 序列化 ----------
 def _profile_dict(p: StoreProfile) -> dict:
     return {"store_id": p.store_id, "slug": p.slug, "name": p.name, "slogan": p.slogan,
-            "logo_url": p.logo_url, "primary_color": p.primary_color, "theme": p.theme}
+            "logo_url": p.logo_url, "primary_color": p.primary_color, "theme": p.theme,
+            "miniapp_name": p.miniapp_name, "miniapp_appid": p.miniapp_appid,
+            "miniapp_entry_enabled": p.miniapp_entry_enabled}
 
 
 def _staff_dict(s: Staff) -> dict:
@@ -124,6 +137,16 @@ def _get_profile(db: Session, store_id: int) -> StoreProfile:
     if prof is None:
         raise HTTPException(404, "该门店尚未配置品牌资料")
     return prof
+
+
+def _ensure_miniapp_appid_available(db: Session, appid: str | None, exclude_store_id: int | None = None) -> None:
+    if not appid:
+        return
+    q = db.query(StoreProfile).filter(StoreProfile.miniapp_appid == appid)
+    if exclude_store_id is not None:
+        q = q.filter(StoreProfile.store_id != exclude_store_id)
+    if q.first():
+        raise HTTPException(409, f"小程序 AppID {appid} 已被其他门店绑定")
 
 
 def _store_dict(db: Session, store: Store) -> dict:
@@ -156,6 +179,7 @@ def create_store(payload: StoreCreateInput,
                  db: Session = Depends(get_db)):
     if db.query(StoreProfile).filter(StoreProfile.slug == payload.slug).first():
         raise HTTPException(409, f"门店标识 {payload.slug} 已被占用")
+    _ensure_miniapp_appid_available(db, payload.miniapp_appid)
     if db.query(Staff).filter(Staff.username == payload.admin_username).first():
         raise HTTPException(409, "账号已存在")
 
@@ -169,6 +193,9 @@ def create_store(payload: StoreCreateInput,
         name=payload.brand_name or payload.store_name, slogan=payload.slogan,
         logo_url=payload.logo_url,
         primary_color=payload.primary_color or DEFAULT_PRIMARY_COLOR, theme_json={},
+        miniapp_name=payload.miniapp_name or payload.brand_name or payload.store_name,
+        miniapp_appid=payload.miniapp_appid,
+        miniapp_entry_enabled=payload.miniapp_entry_enabled,
     )
     db.add(prof)
     mgr = Staff(username=payload.admin_username,
@@ -224,6 +251,13 @@ def update_store_profile(store_id: int, payload: StoreProfileInput,
         prof.primary_color = payload.primary_color
     if payload.theme_json is not None:
         prof.theme_json = payload.theme_json
+    if payload.miniapp_name is not None:
+        prof.miniapp_name = payload.miniapp_name
+    if payload.miniapp_appid is not None:
+        _ensure_miniapp_appid_available(db, payload.miniapp_appid, exclude_store_id=store_id)
+        prof.miniapp_appid = payload.miniapp_appid
+    if payload.miniapp_entry_enabled is not None:
+        prof.miniapp_entry_enabled = payload.miniapp_entry_enabled
     db.commit()
     db.refresh(prof)
     return _profile_dict(prof)

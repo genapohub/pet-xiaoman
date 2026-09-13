@@ -33,6 +33,26 @@
         </template>
       </el-table-column>
 
+      <el-table-column label="独立小程序" min-width="190">
+        <template #default="{ row }">
+          <div v-if="row.profile?.miniapp_appid" class="cell-main">
+            <span class="cell-name">{{ row.profile.miniapp_name || brandName(row) }}</span>
+            <span class="cell-sub">
+              {{ row.profile.miniapp_appid }}
+              <el-tag
+                class="entry-tag"
+                size="small"
+                :type="row.profile.miniapp_entry_enabled ? 'success' : 'info'"
+                effect="light"
+              >
+                {{ row.profile.miniapp_entry_enabled ? "已启用" : "已关闭" }}
+              </el-tag>
+            </span>
+          </div>
+          <span v-else class="muted">未绑定 AppID</span>
+        </template>
+      </el-table-column>
+
       <el-table-column label="主色" width="142">
         <template #default="{ row }">
           <div class="swatch-cell">
@@ -120,6 +140,18 @@
           <el-input v-model="form.logo_url" placeholder="站内路径 /uploads/logo.png 或 http(s) 地址" />
         </el-form-item>
 
+        <div class="group">独立小程序入口（可后补）</div>
+        <el-form-item label="小程序名称">
+          <el-input v-model="form.miniapp_name" maxlength="50" placeholder="微信侧可搜索的小程序名称，留空同对外店名" />
+        </el-form-item>
+        <el-form-item label="小程序 AppID">
+          <el-input v-model="form.miniapp_appid" maxlength="64" placeholder="如 wx667ddd8e0d8dd8fb，暂未申请可留空" />
+        </el-form-item>
+        <el-form-item label="默认入口">
+          <el-switch v-model="form.miniapp_entry_enabled" active-text="启用" inactive-text="关闭" />
+          <span class="field-hint">启用后，微信搜索进入该 AppID 时默认绑定本门店；扫码参数仍可临时切到其他门店</span>
+        </el-form-item>
+
         <div class="group">首位店长账号</div>
         <el-form-item label="店长姓名">
           <el-input v-model="form.admin_name" maxlength="50" placeholder="如：王店长" />
@@ -157,6 +189,7 @@ const saving = ref(false);
 const blank = () => ({
   store_name: "", slug: "", brand_name: "", slogan: "",
   primary_color: DEFAULT_PRIMARY, logo_url: "",
+  miniapp_name: "", miniapp_appid: "", miniapp_entry_enabled: true,
   admin_name: "店长", admin_username: "", admin_password: "",
 });
 const form = reactive(blank());
@@ -188,6 +221,9 @@ async function save() {
       slogan: form.slogan.trim() || null,
       primary_color: form.primary_color,
       logo_url: form.logo_url.trim() || null,
+      miniapp_name: form.miniapp_name.trim() || null,
+      miniapp_appid: form.miniapp_appid.trim() || null,
+      miniapp_entry_enabled: form.miniapp_entry_enabled,
       admin_username: form.admin_username.trim(),
       admin_password: form.admin_password,
       admin_name: form.admin_name.trim() || "店长",
@@ -227,6 +263,7 @@ function goDetail(row) {
 .cell-main { display: flex; flex-direction: column; line-height: 1.35; }
 .cell-name { font-weight: 600; color: var(--px-text-1); }
 .cell-sub { font-size: var(--px-fs-xs); color: var(--px-text-2); }
+.entry-tag { margin-left: var(--px-sp-1); }
 .muted { color: var(--px-text-3); font-size: var(--px-fs-sm); }
 .warn {
   margin-left: var(--px-sp-1);

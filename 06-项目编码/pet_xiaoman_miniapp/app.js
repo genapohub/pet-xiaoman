@@ -1,10 +1,11 @@
 // 入口：多租户白标换肤 + 手机号一键登录。未登录统一进入登录页，登录成功回退续跑原流程。
 const { repairDebugBaseURL } = require("./config/env");
-const { ensureBrand, saveSlug, slugFromOptions } = require("./utils/brand");
+const { defaultStoreSlug, ensureBrand, saveSlug, slugFromOptions } = require("./utils/brand");
 
 function applyBrandFromLaunchOptions(options) {
-  // 门店标识：来自小程序码 scene 或普通链接 query，记下后本机后续进入沿用。
-  const slug = slugFromOptions(options);
+  // 门店标识：扫码/链接优先；没有参数时，用该 AppID 发布包内置的默认门店。
+  // 这样顾客从微信搜索进入独立小程序，也能自动进入对应门店。
+  const slug = slugFromOptions(options) || defaultStoreSlug();
   if (slug) saveSlug(slug);
   // 运行时换肤（异步，不阻塞登录判断；页面 onLoad 里 ensureBrand 会复用同一 Promise）
   return ensureBrand().catch(() => {});

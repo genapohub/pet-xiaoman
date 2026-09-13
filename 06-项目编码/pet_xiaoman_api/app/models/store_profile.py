@@ -5,7 +5,7 @@
 """
 from datetime import datetime
 
-from sqlalchemy import String, Integer, JSON, DateTime, ForeignKey
+from sqlalchemy import Boolean, String, Integer, JSON, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import BaseModel
@@ -24,6 +24,9 @@ class StoreProfile(BaseModel):
     logo_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     primary_color: Mapped[str] = mapped_column(String(20), default=DEFAULT_PRIMARY_COLOR)
     theme_json: Mapped[dict] = mapped_column(JSON, default=dict)            # 预留其他 UI token
+    miniapp_name: Mapped[str | None] = mapped_column(String(50), nullable=True)     # 独立小程序名称
+    miniapp_appid: Mapped[str | None] = mapped_column(String(64), nullable=True)    # 独立小程序 AppID
+    miniapp_entry_enabled: Mapped[bool] = mapped_column(Boolean, default=True)      # 搜索入口是否启用
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     @property

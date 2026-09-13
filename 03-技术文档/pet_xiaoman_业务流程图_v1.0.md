@@ -738,9 +738,9 @@ flowchart TD
     style G3 fill:#EAF1FB,stroke:#3B7DD8
 ```
 
-#### 3.11.1 C 端扫码后如何切换对应品牌
+#### 3.11.1 C 端如何切换对应品牌
 
-运营给每个门店生成一个带 `slug` 的小程序码。示例门店「宠小满·示例门店」的 slug 为 `chongxiaoman`；其他门店由平台超管在 B011 开店时填写。
+C 端有两类入口：一类是“每店独立小程序搜索入口”，同一套源码按门店 AppID 发布，包内写入 `DEFAULT_STORE_SLUG`；另一类是“多门店扫码入口”，二维码或链接携带 `slug`。示例门店「宠小满·示例门店」的 slug 为 `chongxiaoman`；其他门店由平台超管在 B011 开店时填写。
 
 ```mermaid
 sequenceDiagram
@@ -750,9 +750,10 @@ sequenceDiagram
     participant API as FastAPI
     participant DB as store_profiles
 
-    U->>WX: 扫门店小程序码
-    WX->>Mini: onLaunch({ query.slug 或 scene })
-    Mini->>Mini: 解析 slug 并保存 store_slug
+    U->>WX: 搜索门店小程序或扫门店码
+    WX->>Mini: onLaunch({ query.slug / scene / 无参数 })
+    Mini->>Mini: 入口优先级：参数 slug > DEFAULT_STORE_SLUG > 本地 store_slug
+    Mini->>Mini: 保存当前 store_slug
     Mini->>API: GET /api/c/store/profile?slug=门店标识
     API->>DB: 按 slug 查 store_id / 店名 / 标语 / logo / 主色
     DB-->>API: 返回门店白标资料
@@ -769,10 +770,11 @@ sequenceDiagram
 |---|---|
 | 小程序码参数 | 推荐 `scene=slug=chongxiaoman` 或直接 `scene=chongxiaoman` |
 | 链接参数 | 开发/调试可用 `?slug=chongxiaoman` |
-| 本地记忆 | `utils/brand.js` 保存 `store_slug`，用户下次进入沿用上次门店 |
+| 独立搜索入口 | 发布某门店 AppID 前写入 `config/store.js` 的 `DEFAULT_STORE_SLUG`、`MINIAPP_APPID`、`MINIAPP_NAME` |
+| 本地记忆 | `utils/brand.js` 保存当前 `store_slug`；搜索进入独立 AppID 时会回到包内默认门店，扫码参数可临时切店 |
 | 品牌接口 | `/api/c/store/profile?slug=xxx`，门店停用或 slug 不存在返回 404 |
 | 业务隔离 | `utils/request.js` 对所有 C 端业务接口加 `X-Store-Slug` |
-| 默认样品间 | 不带 slug 时返回默认门店；本地默认是「宠小满·示例门店」 |
+| 默认样品间 | 本地默认发布配置为「宠小满·示例门店」；后端默认门店只作为最终兜底 |
 
 **接口一览（`/api/b/platform/*`，全部要求超管身份 + 对应平台权限）**
 

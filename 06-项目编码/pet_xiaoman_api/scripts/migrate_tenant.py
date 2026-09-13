@@ -46,6 +46,9 @@ IS_SQLITE = engine.dialect.name == "sqlite"
 EXTRA_COLUMNS = [
     ("stores", "status", "VARCHAR(8) DEFAULT 'ACTIVE'"),          # 门店启用/停用
     ("store_profiles", "slogan", "VARCHAR(50)"),                  # 对外标语，可空
+    ("store_profiles", "miniapp_name", "VARCHAR(50)"),            # 独立小程序名称，可空
+    ("store_profiles", "miniapp_appid", "VARCHAR(64)"),           # 独立小程序 AppID，可空
+    ("store_profiles", "miniapp_entry_enabled", "BOOLEAN DEFAULT 1"),  # 独立搜索入口开关
 ]
 
 # 枚举列的历史脏值归一（只归一由脚本原始 DDL 引入的那一列）
@@ -263,6 +266,10 @@ def migrate() -> None:
                 profile.slogan = DEFAULT_STORE_SLOGAN
             if not profile.name:
                 profile.name = DEFAULT_STORE_NAME
+            if not profile.miniapp_name:
+                profile.miniapp_name = profile.name or DEFAULT_STORE_NAME
+            if profile.miniapp_entry_enabled is None:
+                profile.miniapp_entry_enabled = True
             db.commit()
             print(f"   白标资料：已存在 slug={profile.slug} 主色={profile.primary_color}")
         else:
@@ -271,6 +278,7 @@ def migrate() -> None:
                 slug = f"{slug}-{store.id}"
             profile = StoreProfile(store_id=store.id, slug=slug, name=store.name,
                                    slogan=DEFAULT_STORE_SLOGAN,
+                                   miniapp_name=store.name, miniapp_entry_enabled=True,
                                    primary_color=DEFAULT_PRIMARY_COLOR, theme_json={})
             db.add(profile)
             db.commit()

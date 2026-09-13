@@ -21,6 +21,7 @@ def new_store(client, org):
         "store_name": "喵星人善终", "slug": "meow",
         "brand_name": "喵星人宠物善终", "slogan": "给ta最后的体面",
         "primary_color": "#C97B63",
+        "miniapp_name": "喵星人善终小程序", "miniapp_appid": "wxmeow1234567890",
         "admin_username": "meow_boss", "admin_password": "meow123456", "admin_name": "喵店长",
     }, headers=_H(org["super_token"]))
     assert resp.status_code == 200, resp.text
@@ -38,6 +39,9 @@ def test_created_store_carries_brand_from_onboarding(client, new_store):
     assert p["name"] == "喵星人宠物善终"     # brand_name 优先于 store_name
     assert p["slogan"] == "给ta最后的体面"
     assert p["primary_color"] == "#C97B63"
+    assert p["miniapp_name"] == "喵星人善终小程序"
+    assert p["miniapp_appid"] == "wxmeow1234567890"
+    assert p["miniapp_entry_enabled"] is True
 
 
 def test_created_store_brand_visible_on_c_end(client, new_store):
@@ -45,6 +49,7 @@ def test_created_store_brand_visible_on_c_end(client, new_store):
     assert c["name"] == "喵星人宠物善终"
     assert c["slogan"] == "给ta最后的体面"
     assert c["primary_color"] == "#C97B63"
+    assert c["miniapp_name"] == "喵星人善终小程序"
 
 
 # ---------- 开账号 ----------

@@ -36,6 +36,129 @@
           </div>
         </el-tab-pane>
 
+        <el-tab-pane label="小程序入口" name="miniapp">
+          <div class="panel">
+            <div class="panel__head panel__head--row">
+              <div>
+                <h3 class="panel__title">C 端小程序入口</h3>
+                <p class="panel__hint">
+                  同一套小程序源码支持两种入口：顾客微信搜索该店独立小程序时默认进入本门店；
+                  顾客扫码时则按二维码里的门店标识切换品牌与数据。
+                </p>
+              </div>
+              <el-tag :type="miniappEntryEnabled ? 'success' : 'info'" effect="light">
+                {{ miniappEntryEnabled ? "独立入口已启用" : "独立入口已关闭" }}
+              </el-tag>
+            </div>
+
+            <div v-if="!slug" class="miniapp-empty">
+              <PxEmpty
+                variant="box"
+                text="该门店还没有 C 端入口标识"
+                hint="先到「品牌与 UI」确认门店白标资料，再生成小程序码"
+              />
+            </div>
+
+            <div v-else class="miniapp-grid">
+              <section class="entry-config">
+                <div class="entry-config__head">
+                  <div>
+                    <h4>独立小程序搜索入口</h4>
+                    <p>微信侧搜索小程序名称进入时，没有二维码参数，系统使用默认门店标识绑定品牌与业务数据。</p>
+                  </div>
+                  <el-button type="primary" :loading="miniappSaving" @click="saveMiniappEntry">
+                    保存入口
+                  </el-button>
+                </div>
+
+                <el-form class="entry-form" label-width="112px">
+                  <el-form-item label="小程序名称">
+                    <el-input v-model="miniappForm.miniapp_name" maxlength="50" placeholder="如：宠小满·示例门店" />
+                  </el-form-item>
+                  <el-form-item label="小程序 AppID">
+                    <el-input v-model="miniappForm.miniapp_appid" maxlength="64" placeholder="如 wx667ddd8e0d8dd8fb，暂未申请可留空" />
+                  </el-form-item>
+                  <el-form-item label="默认入口">
+                    <el-switch v-model="miniappForm.miniapp_entry_enabled" active-text="启用" inactive-text="关闭" />
+                  </el-form-item>
+                </el-form>
+
+                <div class="entry-summary">
+                  <div>
+                    <span>默认门店标识</span>
+                    <code>{{ slug }}</code>
+                  </div>
+                  <div>
+                    <span>发布配置</span>
+                    <code>{{ publishCommand }}</code>
+                  </div>
+                  <el-button text type="primary" @click="copyText(publishCommand, '发布配置命令已复制')">
+                    <el-icon><CopyDocument /></el-icon> 复制
+                  </el-button>
+                </div>
+              </section>
+
+              <section class="miniapp-code">
+                <div class="qr-box">
+                  <img v-if="qrDataUrl" :src="qrDataUrl" alt="门店小程序码参数二维码" />
+                  <span v-else>生成中</span>
+                </div>
+                <div class="miniapp-code__title">{{ profileName }}</div>
+                <div class="miniapp-code__meta">门店标识：{{ slug }}</div>
+                <el-button class="miniapp-code__btn" type="primary" plain @click="copyText(qrPayload, '二维码内容已复制')">
+                  <el-icon><CopyDocument /></el-icon> 复制二维码内容
+                </el-button>
+              </section>
+
+              <section class="entry-panel">
+                <div class="entry-item">
+                  <div class="entry-label">微信官方码参数</div>
+                  <code>{{ miniappPage }}</code>
+                  <code>{{ miniappScene }}</code>
+                  <el-button text type="primary" @click="copyText(officialMiniappPayload, '官方码参数已复制')">
+                    <el-icon><CopyDocument /></el-icon> 复制
+                  </el-button>
+                </div>
+
+                <div class="entry-item">
+                  <div class="entry-label">开发者工具启动路径</div>
+                  <code>{{ launchPath }}</code>
+                  <el-button text type="primary" @click="copyText(launchPath, '启动路径已复制')">
+                    <el-icon><Link /></el-icon> 复制
+                  </el-button>
+                </div>
+
+                <div class="entry-item">
+                  <div class="entry-label">C 端白标验收接口</div>
+                  <code>{{ storeProfileApi }}</code>
+                  <el-button text type="primary" @click="copyText(storeProfileApi, '接口地址已复制')">
+                    <el-icon><CopyDocument /></el-icon> 复制
+                  </el-button>
+                </div>
+
+                <div class="entry-item">
+                  <div class="entry-label">业务请求门店头</div>
+                  <code>X-Store-Slug: {{ slug }}</code>
+                  <el-button text type="primary" @click="copyText(`X-Store-Slug: ${slug}`, '请求头已复制')">
+                    <el-icon><CopyDocument /></el-icon> 复制
+                  </el-button>
+                </div>
+              </section>
+
+              <section class="entry-note">
+                <el-icon><Tickets /></el-icon>
+                <div>
+                  <strong>两种入口共用同一套租户隔离。</strong>
+                  <span>
+                    独立 AppID 发布包会写入默认门店标识；二维码入口继续带 scene=slug。
+                    C 端业务请求都会携带 X-Store-Slug，价格、商品、订单和宠物档案不会串店。
+                  </span>
+                </div>
+              </section>
+            </div>
+          </div>
+        </el-tab-pane>
+
         <el-tab-pane label="门店账号" name="staff">
           <div class="panel">
             <div class="panel__head panel__head--row">
@@ -139,12 +262,14 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { Check, Hide, Key, Plus, UserFilled } from "@element-plus/icons-vue";
+import QRCode from "qrcode";
+import { Check, CopyDocument, Hide, Key, Link, Plus, Tickets, UserFilled } from "@element-plus/icons-vue";
 import {
-  createStoreStaff, disableStoreStaff, getStore, listStoreStaff, setStoreStatus, updateStoreStaff,
+  createStoreStaff, disableStoreStaff, getStore, listStoreStaff, setStoreStatus,
+  updateStoreBrand, updateStoreStaff,
 } from "../../api/platform";
 import PxActionButton from "../../components/PxActionButton.vue";
 import PxBrandForm from "../../components/PxBrandForm.vue";
@@ -162,6 +287,39 @@ const loading = ref(false);
 const staffLoading = ref(false);
 const failed = ref(false);
 const tab = ref("brand");
+const qrDataUrl = ref("");
+const miniappSaving = ref(false);
+
+const miniappPage = "pages/index/index";
+const profile = computed(() => store.value?.profile || null);
+const slug = computed(() => profile.value?.slug || "");
+const profileName = computed(() => profile.value?.name || store.value?.name || "门店");
+const miniappName = computed(() => profile.value?.miniapp_name || profileName.value);
+const miniappAppid = computed(() => profile.value?.miniapp_appid || "");
+const miniappEntryEnabled = computed(() => profile.value?.miniapp_entry_enabled !== false);
+const miniappScene = computed(() => slug.value ? `scene=slug=${slug.value}` : "scene=—");
+const launchPath = computed(() => slug.value ? `${miniappPage}?slug=${slug.value}` : miniappPage);
+const storeProfileApi = computed(() => slug.value ? `/api/c/store/profile?slug=${slug.value}` : "/api/c/store/profile");
+const officialMiniappPayload = computed(() => `page=${miniappPage}\nscene=slug=${slug.value}`);
+const publishCommand = computed(() => [
+  `STORE_SLUG=${slug.value}`,
+  `MINIAPP_APPID=${miniappAppid.value || "wx请替换为该店AppID"}`,
+  `MINIAPP_NAME="${miniappName.value}"`,
+  `PROJECT_NAME=pet_xiaoman_${slug.value}`,
+  "node scripts/build-store-config.js",
+].join(" "));
+const qrPayload = computed(() => JSON.stringify({
+  type: "pet_xiaoman_store_entry",
+  page: miniappPage,
+  scene: `slug=${slug.value}`,
+  slug: slug.value,
+  name: profileName.value,
+}));
+const miniappForm = reactive({
+  miniapp_name: "",
+  miniapp_appid: "",
+  miniapp_entry_enabled: true,
+});
 
 const subtitle = computed(() => {
   if (!store.value) return "";
@@ -195,6 +353,12 @@ async function reloadStaff() {
   }
 }
 
+function syncMiniappForm() {
+  miniappForm.miniapp_name = miniappName.value;
+  miniappForm.miniapp_appid = miniappAppid.value;
+  miniappForm.miniapp_entry_enabled = miniappEntryEnabled.value;
+}
+
 const createVisible = ref(false);
 const saving = ref(false);
 const blank = () => ({ role: "manager", name: "", username: "", password: "", phone: "" });
@@ -222,6 +386,25 @@ async function save() {
     reloadStaff();
   } finally {
     saving.value = false;
+  }
+}
+
+async function saveMiniappEntry() {
+  if (miniappForm.miniapp_appid && !/^wx[A-Za-z0-9]{8,62}$/.test(miniappForm.miniapp_appid.trim())) {
+    return ElMessage.warning("小程序 AppID 需以 wx 开头，仅包含字母数字");
+  }
+  miniappSaving.value = true;
+  try {
+    const next = await updateStoreBrand(storeId, {
+      miniapp_name: miniappForm.miniapp_name.trim() || "",
+      miniapp_appid: miniappForm.miniapp_appid.trim() || "",
+      miniapp_entry_enabled: miniappForm.miniapp_entry_enabled,
+    });
+    store.value = { ...store.value, profile: next };
+    syncMiniappForm();
+    ElMessage.success("小程序入口已保存");
+  } finally {
+    miniappSaving.value = false;
   }
 }
 
@@ -267,6 +450,25 @@ async function doEnableStaff(row) {
   reloadStaff();
 }
 
+async function copyText(text, message = "已复制") {
+  const value = String(text || "");
+  if (!value) return;
+  try {
+    await navigator.clipboard.writeText(value);
+  } catch {
+    const el = document.createElement("textarea");
+    el.value = value;
+    el.setAttribute("readonly", "");
+    el.style.position = "fixed";
+    el.style.left = "-9999px";
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
+  }
+  ElMessage.success(message);
+}
+
 async function doStatus(status) {
   const off = status === "disabled";
   try {
@@ -283,6 +485,21 @@ async function doStatus(status) {
   store.value = await setStoreStatus(storeId, status);
   ElMessage.success(off ? "门店已停用" : "门店已启用");
 }
+
+watch(qrPayload, async (value) => {
+  if (!slug.value) {
+    qrDataUrl.value = "";
+    return;
+  }
+  qrDataUrl.value = await QRCode.toDataURL(value, {
+    width: 224,
+    margin: 1,
+    errorCorrectionLevel: "M",
+    color: { dark: "#1D2129", light: "#FFFFFF" },
+  });
+}, { immediate: true });
+
+watch(profile, syncMiniappForm, { immediate: true });
 
 load();
 </script>
@@ -330,5 +547,174 @@ load();
   font-size: var(--px-fs-xs);
   color: var(--px-text-3);
   line-height: 1.5;
+}
+.miniapp-empty {
+  padding: var(--px-sp-8) 0;
+}
+.miniapp-grid {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: var(--px-sp-5);
+  align-items: start;
+}
+.entry-config {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--px-sp-4);
+  padding: var(--px-sp-4);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-md);
+  background: linear-gradient(180deg, var(--px-bg-card), var(--px-bg-warm));
+}
+.entry-config__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--px-sp-4);
+}
+.entry-config__head h4 {
+  margin: 0;
+  color: var(--px-text-1);
+  font-size: var(--px-fs-md);
+}
+.entry-config__head p {
+  margin: var(--px-sp-1) 0 0;
+  color: var(--px-text-2);
+  font-size: var(--px-fs-sm);
+  line-height: 1.6;
+}
+.entry-form {
+  max-width: 760px;
+}
+.entry-summary {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr) auto;
+  gap: var(--px-sp-3);
+  align-items: center;
+}
+.entry-summary > div {
+  min-width: 0;
+}
+.entry-summary span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--px-text-3);
+  font-size: var(--px-fs-xs);
+}
+.entry-summary code {
+  display: block;
+  min-width: 0;
+  padding: 3px var(--px-sp-2);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-sm);
+  background: var(--px-primary-softer);
+  color: var(--px-text-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--px-fs-sm);
+  overflow-wrap: anywhere;
+}
+.miniapp-code {
+  padding: var(--px-sp-5);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-lg);
+  background: var(--px-bg-warm);
+  text-align: center;
+}
+.qr-box {
+  display: grid;
+  place-items: center;
+  width: 224px;
+  height: 224px;
+  margin: 0 auto var(--px-sp-4);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-md);
+  background: var(--px-bg-card);
+  color: var(--px-text-3);
+  overflow: hidden;
+}
+.qr-box img {
+  display: block;
+  width: 224px;
+  height: 224px;
+}
+.miniapp-code__title {
+  color: var(--px-text-1);
+  font-size: var(--px-fs-md);
+  font-weight: 600;
+}
+.miniapp-code__meta {
+  margin-top: var(--px-sp-1);
+  color: var(--px-text-2);
+  font-size: var(--px-fs-sm);
+}
+.miniapp-code__btn {
+  margin-top: var(--px-sp-4);
+}
+.entry-panel {
+  display: grid;
+  gap: var(--px-sp-3);
+}
+.entry-item {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: var(--px-sp-3);
+  align-items: center;
+  padding: var(--px-sp-3) var(--px-sp-4);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-md);
+  background: var(--px-bg-card);
+}
+.entry-item code {
+  min-width: 0;
+  padding: 3px var(--px-sp-2);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-sm);
+  background: var(--px-primary-softer);
+  color: var(--px-text-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--px-fs-sm);
+  overflow-wrap: anywhere;
+}
+.entry-item code:only-of-type {
+  grid-column: span 2;
+}
+.entry-label {
+  color: var(--px-text-1);
+  font-weight: 600;
+}
+.entry-note {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: var(--px-sp-3);
+  align-items: flex-start;
+  padding: var(--px-sp-4);
+  border: 1px solid rgba(227, 115, 24, 0.22);
+  border-radius: var(--px-radius-md);
+  background: var(--px-bg-warning);
+  color: var(--px-text-2);
+  line-height: 1.7;
+}
+.entry-note .el-icon {
+  margin-top: 3px;
+  color: var(--px-warning);
+}
+.entry-note strong {
+  display: block;
+  color: var(--px-text-1);
+}
+@media (max-width: 960px) {
+  .miniapp-grid {
+    grid-template-columns: 1fr;
+  }
+  .entry-config__head,
+  .entry-summary {
+    grid-template-columns: 1fr;
+  }
+  .entry-item {
+    grid-template-columns: 1fr;
+  }
+  .entry-item code:only-of-type {
+    grid-column: auto;
+  }
 }
 </style>

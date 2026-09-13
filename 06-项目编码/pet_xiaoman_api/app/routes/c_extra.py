@@ -37,7 +37,9 @@ def c_store_profile(slug: str | None = None, db: Session = Depends(get_db)):
         raise HTTPException(404, "门店不存在")
     return {"store_id": profile.store_id, "slug": profile.slug, "name": profile.name,
             "slogan": profile.slogan, "logo_url": profile.logo_url,
-            "primary_color": profile.primary_color, "theme": profile.theme}
+            "primary_color": profile.primary_color, "theme": profile.theme,
+            "miniapp_name": profile.miniapp_name, "miniapp_appid": profile.miniapp_appid,
+            "miniapp_entry_enabled": profile.miniapp_entry_enabled}
 
 
 @router.get("/service-items", summary="C002/C003 公开价格表（仅在售，全量单项价公开）")

@@ -1,13 +1,15 @@
 // 请求封装：自动带 X-Customer-Token；401 清缓存重新登录（沿用宠宝树 data 解包经验）
 const { baseURL } = require("../config/env");
+const { DEFAULT_STORE_SLUG } = require("../config/store");
 
 function buildHeader() {
   const token = wx.getStorageSync("token");
   const header = {};
   if (token) header["X-Customer-Token"] = token;
   // 多租户门店上下文：扫码/链接进入后 utils/brand.js 会保存 store_slug。
+  // 独立 AppID 搜索进入时没有参数，兜底使用本发布包默认门店 slug。
   // 所有 C 端业务接口都带上它，才能读取对应门店的价格、商品、订单与档案。
-  const slug = wx.getStorageSync("store_slug");
+  const slug = wx.getStorageSync("store_slug") || DEFAULT_STORE_SLUG;
   if (slug) header["X-Store-Slug"] = slug;
   return header;
 }

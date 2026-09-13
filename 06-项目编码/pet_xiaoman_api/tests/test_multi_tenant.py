@@ -40,6 +40,7 @@ def two_stores(client, org):
 def test_onboarding_creates_store_brand_and_manager(client, org):
     resp = client.post("/api/b/platform/stores", json={
         "store_name": "新门店C", "slug": "store-c",
+        "miniapp_appid": "wxstorec1234567890",
         "admin_username": "bossc", "admin_password": "c123456", "admin_name": "C店长",
     }, headers=_H(org["super_token"]))
     assert resp.status_code == 200, resp.text
@@ -47,6 +48,9 @@ def test_onboarding_creates_store_brand_and_manager(client, org):
     assert body["store"]["profile"]["slug"] == "store-c"
     assert body["store"]["profile"]["name"] == "新门店C"
     assert body["store"]["profile"]["primary_color"] == "#5B8C85"  # 默认品牌色
+    assert body["store"]["profile"]["miniapp_name"] == "新门店C"
+    assert body["store"]["profile"]["miniapp_appid"] == "wxstorec1234567890"
+    assert body["store"]["profile"]["miniapp_entry_enabled"] is True
     assert body["manager"]["role"] == "manager"
 
     # 店长能登录，且菜单里没有平台专属的「门店管理」
@@ -64,6 +68,15 @@ def test_onboarding_rejects_duplicate_slug_and_username(client, org):
                        json={**base, "slug": "store-a"}, headers=H).status_code == 409
     assert client.post("/api/b/platform/stores",
                        json={**base, "slug": "fresh-slug", "admin_username": "admin"},
+                       headers=H).status_code == 409
+
+    ok = client.post("/api/b/platform/stores",
+                     json={**base, "slug": "fresh-slug", "miniapp_appid": "wxfresh1234567890"},
+                     headers=H)
+    assert ok.status_code == 200, ok.text
+    assert client.post("/api/b/platform/stores",
+                       json={**base, "slug": "another-slug", "admin_username": "unique2",
+                             "miniapp_appid": "wxfresh1234567890"},
                        headers=H).status_code == 409
 
 
@@ -143,16 +156,23 @@ def test_super_admin_configures_store_brand_and_public_reads_it(client, org):
     upd = client.put(f"/api/b/platform/stores/{org['store_id']}/profile", json={
         "name": "门店A旗舰店", "slogan": "陪你到最后",
         "logo_url": "/uploads/logo-a.png", "primary_color": "#FF0066",
+        "miniapp_name": "门店A旗舰店小程序",
+        "miniapp_appid": "wxstorea1234567890",
+        "miniapp_entry_enabled": True,
     }, headers=H)
     assert upd.status_code == 200
     assert upd.json()["primary_color"] == "#FF0066"
     assert upd.json()["slogan"] == "陪你到最后"
     assert upd.json()["logo_url"].endswith("logo-a.png")
+    assert upd.json()["miniapp_name"] == "门店A旗舰店小程序"
+    assert upd.json()["miniapp_appid"] == "wxstorea1234567890"
+    assert upd.json()["miniapp_entry_enabled"] is True
 
     # 租户读自己门店（前台展示用）
     tenant_view = client.get("/api/b/store/profile", headers=_H(org["manager_token"])).json()
     assert tenant_view["name"] == "门店A旗舰店"
     assert tenant_view["slogan"] == "陪你到最后"
+    assert tenant_view["miniapp_name"] == "门店A旗舰店小程序"
 
     # C 端公开接口（换肤数据源）
     c = client.get("/api/c/store/profile", params={"slug": "store-a"}).json()
@@ -160,6 +180,7 @@ def test_super_admin_configures_store_brand_and_public_reads_it(client, org):
     assert c["name"] == "门店A旗舰店"
     assert c["slogan"] == "陪你到最后"
     assert c["theme"]["primary_color"] == "#FF0066"
+    assert c["miniapp_appid"] == "wxstorea1234567890"
 
 
 def test_tenant_cannot_write_brand(client, org):

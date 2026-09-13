@@ -1,13 +1,14 @@
-// 门店白标（多租户「单小程序运行时换肤」）。
+// 门店白标（多租户「单小程序运行时换肤」+「每店独立 AppID 默认入口」）。
 //
-// 一个已发布的小程序服务多家门店：进入时按门店标识（slug）拉取该店白标，
-// 运行时替换 logo / 主色 / 店名。门店标识来源优先级：
-//   启动 query.slug → 扫码 scene → 本地记忆 → 空（后端返回默认门店）
+// 进入时按门店标识（slug）拉取该店白标，运行时替换 logo / 主色 / 店名。
+// 门店标识来源优先级：
+//   启动 query.slug → 扫码 scene → 包内 DEFAULT_STORE_SLUG → 本地记忆 → 空（后端默认门店）
 //
 // 换肤落点：globalData.theme（页面读它渲染）+ tabBar 选中色（wx.setTabBarStyle）。
 const { getStoreProfile } = require("./request");
 const { absUrl } = require("./url");
 const DEFAULT_THEME = require("../config/theme");
+const STORE_CONFIG = require("../config/store");
 
 const SLUG_KEY = "store_slug";
 let _cached = null;
@@ -15,6 +16,14 @@ let _promise = null;
 
 function normalizeSlug(slug) {
   return typeof slug === "string" ? slug.trim() : "";
+}
+
+function defaultStoreSlug() {
+  return normalizeSlug(STORE_CONFIG.DEFAULT_STORE_SLUG);
+}
+
+function cachedSlug() {
+  try { return wx.getStorageSync(SLUG_KEY) || ""; } catch (e) { return ""; }
 }
 
 function saveSlug(slug) {
@@ -29,7 +38,7 @@ function saveSlug(slug) {
 }
 
 function currentSlug() {
-  try { return wx.getStorageSync(SLUG_KEY) || ""; } catch (e) { return ""; }
+  return cachedSlug() || defaultStoreSlug();
 }
 
 // 从 onLaunch/onShow 的 options 里解析门店标识
@@ -212,6 +221,7 @@ module.exports = {
   ensureBrand,
   saveSlug,
   currentSlug,
+  defaultStoreSlug,
   slugFromOptions,
   resetBrand,
   brandStyle,

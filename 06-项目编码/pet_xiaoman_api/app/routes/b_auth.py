@@ -72,6 +72,7 @@ def setup(payload: SetupInput, db: Session = Depends(get_db)):
     db.add(StoreProfile(
         store_id=store.id, slug=DEFAULT_DEMO_STORE_SLUG, name=payload.store_name,
         slogan=DEFAULT_DEMO_STORE_SLOGAN,
+        miniapp_name=payload.store_name, miniapp_entry_enabled=True,
         primary_color=DEFAULT_PRIMARY_COLOR, theme_json={},
     ))
     mgr = Staff(
@@ -90,12 +91,15 @@ PLATFORM_BRAND = {
     "store_id": None, "slug": None, "name": "平台管理台", "slogan": "多门店统一管理",
     "logo_url": None, "primary_color": DEFAULT_PRIMARY_COLOR,
     "theme": {"primary_color": DEFAULT_PRIMARY_COLOR},
+    "miniapp_name": None, "miniapp_appid": None, "miniapp_entry_enabled": False,
 }
 
 
 def _profile_dict(p: StoreProfile) -> dict:
     return {"store_id": p.store_id, "slug": p.slug, "name": p.name, "slogan": p.slogan,
-            "logo_url": p.logo_url, "primary_color": p.primary_color, "theme": p.theme}
+            "logo_url": p.logo_url, "primary_color": p.primary_color, "theme": p.theme,
+            "miniapp_name": p.miniapp_name, "miniapp_appid": p.miniapp_appid,
+            "miniapp_entry_enabled": p.miniapp_entry_enabled}
 
 
 @router.get("/store/profile", summary="当前门店白标资料（后台按店换肤）")

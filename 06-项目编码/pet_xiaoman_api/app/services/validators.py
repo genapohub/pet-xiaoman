@@ -7,10 +7,13 @@ import re
 
 SLUG_RE = re.compile(r"^[A-Za-z0-9_-]{2,50}$")
 HEX_COLOR_RE = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
+MINIAPP_APPID_RE = re.compile(r"^wx[A-Za-z0-9]{8,62}$")
 
 MAX_NAME = 50
 MAX_SLOGAN = 50
 MAX_LOGO_URL = 255
+MAX_MINIAPP_NAME = 50
+MAX_MINIAPP_APPID = 64
 
 
 def valid_slug(v: str) -> str:
@@ -51,4 +54,26 @@ def valid_slogan(v: str | None) -> str | None:
     v = v.strip()
     if len(v) > MAX_SLOGAN:
         raise ValueError(f"标语过长（≤{MAX_SLOGAN} 字）")
+    return v
+
+
+def valid_miniapp_name(v: str | None) -> str | None:
+    """独立小程序搜索入口名称：空串表示暂未绑定。"""
+    if v is None:
+        return None
+    v = v.strip()
+    if len(v) > MAX_MINIAPP_NAME:
+        raise ValueError(f"小程序名称过长（≤{MAX_MINIAPP_NAME} 字）")
+    return v
+
+
+def valid_miniapp_appid(v: str | None) -> str | None:
+    """微信小程序 AppID：空串表示暂未绑定。"""
+    if v is None:
+        return None
+    v = v.strip()
+    if not v:
+        return ""
+    if len(v) > MAX_MINIAPP_APPID or not MINIAPP_APPID_RE.match(v):
+        raise ValueError("小程序 AppID 需以 wx 开头，仅包含字母数字")
     return v

@@ -29,6 +29,7 @@ SEED_VERSION = "v20260910"
 # 注意别把它当成品牌兜底——品牌兜底在前后端都是中性的（admin stores/user.js、C 端 utils/brand.js），
 # 新门店没配品牌时只会显示店名首字占位，绝不会继承宠小满的标。
 DEV_STORE_SLUG = os.getenv("DEV_STORE_SLUG", "chongxiaoman")  # C 端换肤入口标识
+DEV_MINIAPP_APPID = os.getenv("DEV_MINIAPP_APPID", "")        # 独立小程序 AppID，本地可留空
 DEFAULT_STORE_NAME = "宠小满·示例门店"
 DEFAULT_STORE_SLOGAN = "爱意小满，不留遗憾"
 
@@ -101,14 +102,30 @@ def _seed_org_and_rbac(db) -> Store:
     if not profile:
         db.add(StoreProfile(store_id=store.id, slug=DEV_STORE_SLUG, name=DEFAULT_STORE_NAME,
                             slogan=DEFAULT_STORE_SLOGAN,
+                            miniapp_name=DEFAULT_STORE_NAME,
+                            miniapp_appid=DEV_MINIAPP_APPID or None,
+                            miniapp_entry_enabled=True,
                             primary_color=DEFAULT_PRIMARY_COLOR, theme_json={}))
         db.commit()
-    elif not profile.slogan:
-        # slogan 列是后加的（ALTER TABLE），老库的历史行会是 NULL。
-        # 只在为空时补齐，不覆盖后台已经改过的值 —— 保持种子幂等。
-        profile.slogan = DEFAULT_STORE_SLOGAN
-        db.commit()
-        print(f"已补齐默认示例门店标语：{DEFAULT_STORE_SLOGAN}")
+    else:
+        changed = False
+        if not profile.slogan:
+            # slogan 列是后加的（ALTER TABLE），老库的历史行会是 NULL。
+            # 只在为空时补齐，不覆盖后台已经改过的值 —— 保持种子幂等。
+            profile.slogan = DEFAULT_STORE_SLOGAN
+            changed = True
+            print(f"已补齐默认示例门店标语：{DEFAULT_STORE_SLOGAN}")
+        if not profile.miniapp_name:
+            profile.miniapp_name = profile.name or DEFAULT_STORE_NAME
+            changed = True
+        if profile.miniapp_entry_enabled is None:
+            profile.miniapp_entry_enabled = True
+            changed = True
+        if DEV_MINIAPP_APPID and not profile.miniapp_appid:
+            profile.miniapp_appid = DEV_MINIAPP_APPID
+            changed = True
+        if changed:
+            db.commit()
 
     existing_keys = {m.key for m in db.query(Menu).all()}
     missing = [(k, t, i, s) for (k, t, i, s) in MENUS if k not in existing_keys]
