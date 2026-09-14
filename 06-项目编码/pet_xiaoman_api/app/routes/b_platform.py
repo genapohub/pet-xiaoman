@@ -21,6 +21,7 @@ from app.services.staff_auth_service import hash_password
 from app.services.validators import (
     valid_slug, valid_hex_color, valid_logo_url, valid_slogan,
     valid_miniapp_appid, valid_miniapp_name,
+    valid_contact_address, valid_contact_phone, valid_business_hours,
 )
 
 router = APIRouter()
@@ -44,6 +45,9 @@ class StoreCreateInput(BaseModel):
     slogan: str | None = None
     primary_color: str | None = None
     logo_url: str | None = None
+    contact_phone: str | None = Field(default=None, max_length=20)
+    contact_address: str | None = Field(default=None, max_length=120)
+    business_hours: str | None = Field(default=None, max_length=50)
     miniapp_name: str | None = Field(default=None, max_length=50, description="独立小程序名称，留空默认同对外店名")
     miniapp_appid: str | None = Field(default=None, max_length=64, description="独立小程序 AppID")
     miniapp_entry_enabled: bool = Field(default=True, description="是否启用独立小程序搜索入口")
@@ -54,6 +58,9 @@ class StoreCreateInput(BaseModel):
     _check_slug = field_validator("slug")(valid_slug)
     _check_slogan = field_validator("slogan")(valid_slogan)
     _check_logo = field_validator("logo_url")(valid_logo_url)
+    _check_contact_phone = field_validator("contact_phone")(valid_contact_phone)
+    _check_contact_address = field_validator("contact_address")(valid_contact_address)
+    _check_business_hours = field_validator("business_hours")(valid_business_hours)
     _check_miniapp_name = field_validator("miniapp_name")(valid_miniapp_name)
     _check_miniapp_appid = field_validator("miniapp_appid")(valid_miniapp_appid)
 
@@ -69,12 +76,18 @@ class StoreProfileInput(BaseModel):
     logo_url: str | None = None
     primary_color: str | None = None
     theme_json: dict | None = None
+    contact_phone: str | None = Field(default=None, max_length=20)
+    contact_address: str | None = Field(default=None, max_length=120)
+    business_hours: str | None = Field(default=None, max_length=50)
     miniapp_name: str | None = Field(default=None, max_length=50)
     miniapp_appid: str | None = Field(default=None, max_length=64)
     miniapp_entry_enabled: bool | None = None
 
     _check_slogan = field_validator("slogan")(valid_slogan)
     _check_logo = field_validator("logo_url")(valid_logo_url)
+    _check_contact_phone = field_validator("contact_phone")(valid_contact_phone)
+    _check_contact_address = field_validator("contact_address")(valid_contact_address)
+    _check_business_hours = field_validator("business_hours")(valid_business_hours)
     _check_miniapp_name = field_validator("miniapp_name")(valid_miniapp_name)
     _check_miniapp_appid = field_validator("miniapp_appid")(valid_miniapp_appid)
 
@@ -114,6 +127,8 @@ class StoreStaffUpdate(BaseModel):
 def _profile_dict(p: StoreProfile) -> dict:
     return {"store_id": p.store_id, "slug": p.slug, "name": p.name, "slogan": p.slogan,
             "logo_url": p.logo_url, "primary_color": p.primary_color, "theme": p.theme,
+            "contact_phone": p.contact_phone, "contact_address": p.contact_address,
+            "business_hours": p.business_hours,
             "miniapp_name": p.miniapp_name, "miniapp_appid": p.miniapp_appid,
             "miniapp_entry_enabled": p.miniapp_entry_enabled}
 
@@ -193,6 +208,9 @@ def create_store(payload: StoreCreateInput,
         name=payload.brand_name or payload.store_name, slogan=payload.slogan,
         logo_url=payload.logo_url,
         primary_color=payload.primary_color or DEFAULT_PRIMARY_COLOR, theme_json={},
+        contact_phone=payload.contact_phone,
+        contact_address=payload.contact_address,
+        business_hours=payload.business_hours,
         miniapp_name=payload.miniapp_name or payload.brand_name or payload.store_name,
         miniapp_appid=payload.miniapp_appid,
         miniapp_entry_enabled=payload.miniapp_entry_enabled,
@@ -251,6 +269,12 @@ def update_store_profile(store_id: int, payload: StoreProfileInput,
         prof.primary_color = payload.primary_color
     if payload.theme_json is not None:
         prof.theme_json = payload.theme_json
+    if payload.contact_phone is not None:
+        prof.contact_phone = payload.contact_phone
+    if payload.contact_address is not None:
+        prof.contact_address = payload.contact_address
+    if payload.business_hours is not None:
+        prof.business_hours = payload.business_hours
     if payload.miniapp_name is not None:
         prof.miniapp_name = payload.miniapp_name
     if payload.miniapp_appid is not None:

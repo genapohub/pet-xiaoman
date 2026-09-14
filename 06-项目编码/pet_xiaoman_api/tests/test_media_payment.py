@@ -92,6 +92,68 @@ def test_pay_callback_requires_verify(client, order_input, db):
     assert db.query(PaymentRecord).count() == 0
 
 
+def test_pay_config_reports_missing_when_enabled(monkeypatch):
+    """PAY_ENABLED=true 但商户资料没配齐时，接口给出可理解的缺失项。"""
+    from app import config
+    from app.services import payment
+
+    monkeypatch.setattr(config.settings, "PAY_ENABLED", True)
+    monkeypatch.setattr(config.settings, "WX_APPID", "")
+    status = payment.pay_config_status()
+    assert status["ready"] is False
+    assert "WX_APPID" in status["missing"]
+
+
+def test_jsapi_params_call_wechat_when_configured(monkeypatch):
+    """配置齐全后：后端可完成 v3 JSAPI 下单并返回小程序调起支付参数。"""
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
+    from app import config
+    from app.services import payment
+
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    private_pem = key.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption(),
+    ).decode()
+
+    monkeypatch.setattr(config.settings, "PAY_ENABLED", True)
+    monkeypatch.setattr(config.settings, "WX_APPID", "wx667ddd8e0d8dd8fb")
+    monkeypatch.setattr(config.settings, "WX_MCH_ID", "1900000001")
+    monkeypatch.setattr(config.settings, "WX_PAY_SERIAL_NO", "ABC123SERIAL")
+    monkeypatch.setattr(config.settings, "WX_PAY_NOTIFY_URL", "https://example.com/api/pay/notify/wechat")
+    monkeypatch.setattr(config.settings, "WX_PAY_API_V3_KEY", "a" * 32)
+    monkeypatch.setattr(config.settings, "WX_PAY_PRIVATE_KEY", private_pem)
+    monkeypatch.setattr(config.settings, "WX_PAY_PRIVATE_KEY_PATH", "")
+
+    seen = {}
+
+    class FakeResp:
+        status_code = 200
+
+        @staticmethod
+        def json():
+            return {"prepay_id": "wx-prepay-001"}
+
+    def fake_post(url, content, headers, timeout):
+        seen["url"] = url
+        seen["content"] = content
+        seen["headers"] = headers
+        return FakeResp()
+
+    monkeypatch.setattr(payment.httpx, "post", fake_post)
+    params = payment.create_jsapi_params("PXM202609130001", 12.34, "openid-001")
+
+    assert seen["url"].endswith("/v3/pay/transactions/jsapi")
+    assert '"total":1234' in seen["content"]
+    assert seen["headers"]["Authorization"].startswith("WECHATPAY2-SHA256-RSA2048")
+    assert params["package"] == "prepay_id=wx-prepay-001"
+    assert params["signType"] == "RSA"
+    assert params["paySign"]
+
+
 def test_settle_offline_unlocks_completion(client, order_input, org):
     """到店付结清：标记实收 → pay_type=到店付已结清 → 可流转已完成。"""
     H = {"Authorization": f"Bearer {org['manager_token']}"}

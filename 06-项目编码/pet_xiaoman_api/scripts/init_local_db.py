@@ -32,6 +32,9 @@ DEV_STORE_SLUG = os.getenv("DEV_STORE_SLUG", "chongxiaoman")  # C 端换肤入�
 DEV_MINIAPP_APPID = os.getenv("DEV_MINIAPP_APPID", "")        # 独立小程序 AppID，本地可留空
 DEFAULT_STORE_NAME = "宠小满·示例门店"
 DEFAULT_STORE_SLOGAN = "爱意小满，不留遗憾"
+DEFAULT_CONTACT_PHONE = os.getenv("DEV_STORE_PHONE", "0371-00000000")
+DEFAULT_CONTACT_ADDRESS = os.getenv("DEV_STORE_ADDRESS", "郑州市宠物善终服务中心")
+DEFAULT_BUSINESS_HOURS = os.getenv("DEV_STORE_HOURS", "24 小时可约")
 
 SERVICE_ITEMS = [
     # 套餐：按体重分档（PRD §5.2 透明价格）
@@ -102,6 +105,9 @@ def _seed_org_and_rbac(db) -> Store:
     if not profile:
         db.add(StoreProfile(store_id=store.id, slug=DEV_STORE_SLUG, name=DEFAULT_STORE_NAME,
                             slogan=DEFAULT_STORE_SLOGAN,
+                            contact_phone=DEFAULT_CONTACT_PHONE,
+                            contact_address=DEFAULT_CONTACT_ADDRESS,
+                            business_hours=DEFAULT_BUSINESS_HOURS,
                             miniapp_name=DEFAULT_STORE_NAME,
                             miniapp_appid=DEV_MINIAPP_APPID or None,
                             miniapp_entry_enabled=True,
@@ -120,6 +126,15 @@ def _seed_org_and_rbac(db) -> Store:
             changed = True
         if profile.miniapp_entry_enabled is None:
             profile.miniapp_entry_enabled = True
+            changed = True
+        if not profile.contact_phone:
+            profile.contact_phone = DEFAULT_CONTACT_PHONE
+            changed = True
+        if not profile.contact_address:
+            profile.contact_address = DEFAULT_CONTACT_ADDRESS
+            changed = True
+        if not profile.business_hours:
+            profile.business_hours = DEFAULT_BUSINESS_HOURS
             changed = True
         if DEV_MINIAPP_APPID and not profile.miniapp_appid:
             profile.miniapp_appid = DEV_MINIAPP_APPID

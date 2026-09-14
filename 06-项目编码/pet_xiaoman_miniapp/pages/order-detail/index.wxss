@@ -43,6 +43,42 @@
   font-variant-numeric: tabular-nums;
 }
 
+.action-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2);
+  margin: var(--sp-3) var(--sp-4);
+}
+.action-card__picker {
+  display: block;
+  min-width: 0;
+}
+.action-card__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  height: 76rpx;
+  margin: 0;
+  padding: 0 var(--sp-2);
+  background: var(--c-primary-light);
+  color: var(--c-primary-deep);
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+}
+.action-card__btn::after { border: none; }
+.action-card__btn image {
+  width: 30rpx;
+  height: 30rpx;
+}
+.action-card__btn.danger {
+  background: rgba(213, 73, 65, 0.1);
+  color: var(--c-error);
+}
+.action-card__btn:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
 .label {
   display: flex;
   align-items: center;

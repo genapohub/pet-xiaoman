@@ -1,4 +1,5 @@
 const { fmtMoney } = require("../../utils/format");
+const { get, post } = require("../../utils/request");
 const { brandPage } = require("../../utils/brand");
 
 Page(brandPage({
@@ -23,7 +24,7 @@ Page(brandPage({
         desc: `定金 ¥${fmtMoney(realDeposit)} · 尾款 ¥${fmtMoney(remain)} 到店支付`,
         icon: "/assets/icons/shield-primary.png",
         disabled: true,
-        disabledText: "线上支付暂未开启",
+        disabledText: "线上支付暂未开启，可选择到店付款",
       },
       {
         key: "full",
@@ -31,7 +32,7 @@ Page(brandPage({
         desc: `¥${fmtMoney(amount)} · 服务完成无需再付款`,
         icon: "/assets/icons/check-primary.png",
         disabled: true,
-        disabledText: "线上支付暂未开启",
+        disabledText: "线上支付暂未开启，可选择到店付款",
       },
       {
         key: "offline",
@@ -48,6 +49,26 @@ Page(brandPage({
       methods,
     });
     this.updateActionText("offline");
+    this.loadPayConfig();
+  },
+  loadPayConfig() {
+    get("/api/c/integrations/config", {}, { silentError: true })
+      .then((cfg) => {
+        const payReady = Boolean(cfg && cfg.payment && cfg.payment.ready);
+        const disabledText = cfg?.payment?.enabled
+          ? "支付配置未完成，请选择到店付款"
+          : "线上支付暂未开启，可选择到店付款";
+        const methods = this.data.methods.map((m) => (
+          m.key === "offline" ? m : { ...m, disabled: !payReady, disabledText: payReady ? "" : disabledText }
+        ));
+        this.setData({ payEnabled: payReady, methods });
+      })
+      .catch(() => {
+        const methods = this.data.methods.map((m) => (
+          m.key === "offline" ? m : { ...m, disabled: true, disabledText: "支付配置读取失败，请选择到店付款" }
+        ));
+        this.setData({ payEnabled: false, methods });
+      });
   },
   selectMethod(e) {
     const key = e.currentTarget.dataset.key;
@@ -73,14 +94,34 @@ Page(brandPage({
       wx.showToast({ title: "订单信息缺失", icon: "none" });
       return;
     }
-    if (this.data.selected !== "offline") {
-      wx.showToast({ title: "支付失败，可重试或换到店付", icon: "none" });
-      return;
-    }
+    if (this.data.selected !== "offline") return this.startWxPay();
     this.setData({ submitting: true });
     wx.navigateTo({
       url: `/pages/order-success/index?order_no=${this.data.orderNo}&pay_text=${encodeURIComponent("到店付款")}`,
       complete: () => this.setData({ submitting: false }),
     });
+  },
+  startWxPay() {
+    this.setData({ submitting: true });
+    post("/api/pay/jsapi", { order_no: this.data.orderNo, pay_type: this.data.selected }, { silentError: true })
+      .then((params) => new Promise((resolve, reject) => {
+        wx.requestPayment({
+          timeStamp: params.timeStamp,
+          nonceStr: params.nonceStr,
+          package: params.package,
+          signType: params.signType,
+          paySign: params.paySign,
+          success: resolve,
+          fail: reject,
+        });
+      }))
+      .then(() => wx.navigateTo({
+        url: `/pages/order-success/index?order_no=${this.data.orderNo}&pay_text=${encodeURIComponent(this.data.selected === "deposit" ? "定金已支付" : "全款已支付")}`,
+      }))
+      .catch((err) => {
+        const msg = err?.detail || "线上支付暂未开启，可选择到店付款";
+        wx.showToast({ title: msg, icon: "none" });
+      })
+      .finally(() => this.setData({ submitting: false }));
   },
 }));

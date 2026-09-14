@@ -1,5 +1,18 @@
 <template>
   <div>
+    <div class="store-overview" aria-label="门店开通概览">
+      <section
+        v-for="item in storeOverview"
+        :key="item.label"
+        class="overview-card"
+        :class="item.tone ? `overview-card--${item.tone}` : ''"
+      >
+        <span class="overview-card__label">{{ item.label }}</span>
+        <strong class="overview-card__value">{{ item.value }}</strong>
+        <span class="overview-card__hint">{{ item.hint }}</span>
+      </section>
+    </div>
+
     <px-table-page
       title="门店管理"
       subtitle="平台超管专属：开通门店 / 分配账号 / 统一配置品牌与 UI。门店自己不配品牌，避免各店把 C 端改成五花八门"
@@ -140,6 +153,17 @@
           <el-input v-model="form.logo_url" placeholder="站内路径 /uploads/logo.png 或 http(s) 地址" />
         </el-form-item>
 
+        <div class="group">联系信息（C 端展示）</div>
+        <el-form-item label="联系电话">
+          <el-input v-model="form.contact_phone" maxlength="20" placeholder="如 0371-66668888 或 13800000000" />
+        </el-form-item>
+        <el-form-item label="门店地址">
+          <el-input v-model="form.contact_address" maxlength="120" placeholder="C 端首页展示的门店地址" />
+        </el-form-item>
+        <el-form-item label="营业时间">
+          <el-input v-model="form.business_hours" maxlength="50" placeholder="如 24 小时可约" />
+        </el-form-item>
+
         <div class="group">独立小程序入口（可后补）</div>
         <el-form-item label="小程序名称">
           <el-input v-model="form.miniapp_name" maxlength="50" placeholder="微信侧可搜索的小程序名称，留空同对外店名" />
@@ -168,7 +192,7 @@
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Check, Hide, Plus, Setting, Shop } from "@element-plus/icons-vue";
@@ -183,12 +207,26 @@ import PxTablePage from "../../components/PxTablePage.vue";
 const router = useRouter();
 const { rows, loading, failed, load } = useTable(() => listStores());
 
+const storeOverview = computed(() => {
+  const list = rows.value || [];
+  const active = list.filter((item) => item.status === "active").length;
+  const noManager = list.filter((item) => item.manager_count === 0).length;
+  const miniappReady = list.filter((item) => item.profile?.miniapp_appid).length;
+  return [
+    { label: "门店总数", value: list.length, hint: "平台已开通门店" },
+    { label: "营业中", value: active, hint: "C 端可正常接单", tone: "success" },
+    { label: "独立小程序", value: miniappReady, hint: "已绑定 AppID 的门店", tone: "primary" },
+    { label: "待补店长", value: noManager, hint: noManager ? "需尽快补齐账号" : "账号配置完整", tone: noManager ? "warning" : "success" },
+  ];
+});
+
 const createVisible = ref(false);
 const saving = ref(false);
 
 const blank = () => ({
   store_name: "", slug: "", brand_name: "", slogan: "",
   primary_color: DEFAULT_PRIMARY, logo_url: "",
+  contact_phone: "", contact_address: "", business_hours: "",
   miniapp_name: "", miniapp_appid: "", miniapp_entry_enabled: true,
   admin_name: "店长", admin_username: "", admin_password: "",
 });
@@ -221,6 +259,9 @@ async function save() {
       slogan: form.slogan.trim() || null,
       primary_color: form.primary_color,
       logo_url: form.logo_url.trim() || null,
+      contact_phone: form.contact_phone.trim() || null,
+      contact_address: form.contact_address.trim() || null,
+      business_hours: form.business_hours.trim() || null,
       miniapp_name: form.miniapp_name.trim() || null,
       miniapp_appid: form.miniapp_appid.trim() || null,
       miniapp_entry_enabled: form.miniapp_entry_enabled,
@@ -260,6 +301,48 @@ function goDetail(row) {
 </script>
 
 <style scoped>
+.store-overview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--px-sp-3);
+  margin-bottom: var(--px-sp-4);
+}
+.overview-card {
+  display: grid;
+  gap: var(--px-sp-1);
+  min-height: 112px;
+  padding: var(--px-sp-4);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-lg);
+  background: linear-gradient(180deg, var(--px-bg-card), var(--px-bg-warm));
+  box-shadow: var(--px-shadow-card);
+}
+.overview-card__label {
+  color: var(--px-text-2);
+  font-size: var(--px-fs-xs);
+  font-weight: 600;
+}
+.overview-card__value {
+  color: var(--px-text-1);
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.overview-card__hint {
+  color: var(--px-text-3);
+  font-size: var(--px-fs-xs);
+}
+.overview-card--primary {
+  border-color: rgba(91, 140, 133, 0.22);
+}
+.overview-card--success {
+  border-color: rgba(64, 158, 111, 0.22);
+}
+.overview-card--warning {
+  border-color: rgba(217, 139, 43, 0.26);
+  background: var(--px-bg-warning);
+}
 .cell-main { display: flex; flex-direction: column; line-height: 1.35; }
 .cell-name { font-weight: 600; color: var(--px-text-1); }
 .cell-sub { font-size: var(--px-fs-xs); color: var(--px-text-2); }
@@ -305,5 +388,10 @@ function goDetail(row) {
   font-size: var(--px-fs-xs);
   color: var(--px-text-3);
   line-height: 1.5;
+}
+@media (max-width: 1080px) {
+  .store-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 </style>

@@ -49,6 +49,51 @@ def test_reschedule_free_once_then_rejected(client, seed, org):
     assert "已用完" in second.json()["detail"]
 
 
+def test_b_reschedule_past_time_rejected(client, seed, org):
+    """B 端改期也不能改到过去时间，避免和 C 端规则不一致。"""
+    H = {"Authorization": f"Bearer {org['manager_token']}"}
+    order_no, _ = _seed_and_order(client, seed, org["manager_token"])
+    resp = client.post(f"/api/b/orders/{order_no}/reschedule",
+                       json={"expect_time": (datetime.now() - timedelta(days=1)).isoformat()},
+                       headers=H)
+    assert resp.status_code == 422
+    assert "晚于现在" in resp.json()["detail"]
+
+
+def test_manual_refund_task_can_be_closed(client, seed, db, org):
+    """支付/退款第三方未开启时，后台可用人工退款任务闭环。"""
+    from app.models.order import Order, PayType, RefundStatus
+    from app.models.payment_record import BizType, PayStatus, PaymentRecord
+
+    H = {"Authorization": f"Bearer {org['manager_token']}"}
+    order_no, _ = _seed_and_order(client, seed, org["manager_token"])
+    order = db.query(Order).filter(Order.order_no == order_no).first()
+    order.pay_type = PayType.DEPOSIT_PAID
+    order.paid_amount = 160
+    db.add(PaymentRecord(order_id=order.id, store_id=order.store_id, biz_type=BizType.DEPOSIT,
+                         amount=160, transaction_id="WX-REFUND-001", pay_status=PayStatus.SUCCESS))
+    db.commit()
+
+    cancel = client.post(f"/api/b/orders/{order_no}/transition",
+                         json={"target": "已取消", "reason": "客户取消，需退定金"},
+                         headers=H)
+    assert cancel.status_code == 200
+    detail = client.get(f"/api/b/orders/{order_no}", headers=H).json()
+    assert detail["refund_status"] == "退款中"
+
+    tasks = client.get("/api/b/refunds", headers=H).json()
+    assert any(row["order_no"] == order_no for row in tasks)
+
+    done = client.post(f"/api/b/orders/{order_no}/refund/mark",
+                       json={"status": "已退款", "note": "微信商户后台已退"},
+                       headers=H)
+    assert done.status_code == 200
+    assert done.json()["refund_status"] == "已退款"
+    db.refresh(order)
+    assert order.refund_status == RefundStatus.REFUNDED
+    assert db.query(PaymentRecord).first().pay_status == PayStatus.REFUNDED
+
+
 def test_price_update_creates_version_and_log(client, seed, db, org):
     """改价：新版本生效 + 版本流水落库；下架不删除。"""
     H = {"Authorization": f"Bearer {org['manager_token']}"}

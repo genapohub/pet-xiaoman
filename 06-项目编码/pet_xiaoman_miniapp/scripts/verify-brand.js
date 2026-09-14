@@ -10,7 +10,7 @@
  *  3) 扫码/链接参数解析 + 切店缓存失效：扫 B 店后不能继续展示 A 店
  *  4) 独立 AppID 无启动参数时，使用包内 DEFAULT_STORE_SLUG
  *  5) brandPage：预置 shopInitial + brandStyle，onLoad/onShow 生命周期仍被调用
- *  6) 12 个页面模块全部可加载且已接入换肤
+ *  6) 页面模块全部可加载且已接入换肤
  *  7) 源码中不再有「宠小满 / 爱意小满 / logo-mark」硬编码
  *
  * 用法：
@@ -116,8 +116,9 @@ checkTrue("脏色值回退平台默认主色",
 console.log("\n== 3) 扫码/链接参数与切换门店 ==");
 async function run() {
   check("query.slug 解析", brand.slugFromOptions({ query: { slug: " store-a " } }), "store-a");
-  check("scene=slug%3Dstore-b 解析", brand.slugFromOptions({ scene: "slug%3Dstore-b" }), "store-b");
-  check("scene 直接传 slug 解析", brand.slugFromOptions({ scene: "store-c" }), "store-c");
+  check("query.scene=slug%3Dstore-b 解析", brand.slugFromOptions({ query: { scene: "slug%3Dstore-b" } }), "store-b");
+  check("query.scene 直接传 slug 解析", brand.slugFromOptions({ query: { scene: "store-c" } }), "store-c");
+  check("微信入口 scene=1001 不当作门店 slug", brand.slugFromOptions({ scene: 1001 }), "");
   check("独立 AppID 默认门店 slug", brand.defaultStoreSlug(), "chongxiaoman");
 
   brand.saveSlug("store-a");
@@ -187,12 +188,13 @@ async function run() {
   check("仅有 onShow 的页面也接上换肤", ctx2.data.theme.shopName, "喵星人");
   check("onShow 仍被调用", fallbackShow, 1);
 
-  /* ---------- 6) 12 个页面全部接入 ---------- */
+  /* ---------- 6) 页面全部接入 ---------- */
   console.log("\n== 6) 页面模块加载与换肤接入 ==");
   const PAGES = [
     "pages/index/index", "pages/login/index", "pages/order-create/index",
     "pages/order-list/index", "pages/products/products", "pages/profile/index",
-    "pages/prices/prices", "pages/cashier/index", "pages/order-success/index",
+    "pages/profile-detail/detail", "pages/about-promise/detail",
+    "pages/prices/prices", "pages/service-detail/detail", "pages/cashier/index", "pages/order-success/index",
     "pages/order-detail/index", "pages/boarding-query/query", "pages/pets/pets",
   ];
   const notWrapped = [];

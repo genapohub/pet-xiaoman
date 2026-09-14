@@ -14,6 +14,26 @@
       <view class="row"><text class="k">期望服务</text><text class="v">{{order.expect_text}}</text></view>
       <view class="row"><text class="k">费用合计</text><text class="v amount">¥{{order.amount_text}}</text></view>
       <view class="row"><text class="k">支付状态</text><text class="v">{{order.pay_type}} · 已付 ¥{{order.paid_amount}}</text></view>
+      <view class="row" wx:if="{{order.cancel_reason}}">
+        <text class="k">取消原因</text><text class="v">{{order.cancel_reason}}</text>
+      </view>
+    </view>
+
+    <view class="action-card" wx:if="{{canCustomerEdit}}">
+      <picker class="action-card__picker" mode="date" start="{{rescheduleStartDate}}" bindchange="onRescheduleDate">
+        <view class="action-card__btn">
+          <image src="/assets/icons/clock-primary.png" mode="aspectFit" />
+          <text>免费改期 {{order.reschedule_quota_left}} 次</text>
+        </view>
+      </picker>
+      <button class="action-card__btn danger" bindtap="cancelOrder">
+        <image src="/assets/icons/back-primary.png" mode="aspectFit" />
+        <text>取消预约</text>
+      </button>
+      <button class="action-card__btn" bindtap="subscribeProgress">
+        <image src="/assets/icons/info-primary.png" mode="aspectFit" />
+        <text>订阅进度通知</text>
+      </button>
     </view>
 
     <view class="card">

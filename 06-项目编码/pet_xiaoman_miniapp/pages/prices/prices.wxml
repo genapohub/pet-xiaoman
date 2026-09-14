@@ -18,7 +18,7 @@
   </block>
 
   <block wx:else>
-    <view class="card" wx:for="{{current}}" wx:key="id">
+    <view class="card" wx:for="{{current}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
       <view class="row">
         <view>
           <view class="name">{{item.name}}</view>
@@ -29,7 +29,7 @@
           <text class="price-note">公开价</text>
         </view>
       </view>
-      <button class="pick" size="mini" data-id="{{item.id}}" bindtap="goCreate">选这个</button>
+      <button class="pick" size="mini" data-id="{{item.id}}" catchtap="goCreate">选这个</button>
     </view>
 
     <view wx:if="{{!current.length}}" class="state state--card">

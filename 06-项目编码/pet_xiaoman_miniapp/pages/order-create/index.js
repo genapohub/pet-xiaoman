@@ -2,12 +2,22 @@
 const { get, post } = require("../../utils/request");
 const { takeParams } = require("../../utils/nav");
 const { brandPage } = require("../../utils/brand");
+const storeConfig = require("../../config/store");
+
+function formatDate(date) {
+  const y = date.getFullYear();
+  const m = `${date.getMonth() + 1}`.padStart(2, "0");
+  const d = `${date.getDate()}`.padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
 Page(brandPage({
   data: {
     packages: [], pkgIndex: 0, currentPackage: null,
     form: { pet_name: "", species: "犬", weight: "", address: "" },
-    expectTime: "", submitting: false,
+    expectTime: "", minServiceDate: formatDate(new Date()), submitting: false,
+    mapPickerEnabled: storeConfig.MAP_PICKER_ENABLED !== false,
+    mapProviderLabel: storeConfig.MAP_PROVIDER === "manual" ? "手动填写" : "微信位置选择",
   },
   onLoad(options) {
     this._pendingPkgId = options && options.pkg_id ? +options.pkg_id : 0;
@@ -36,14 +46,37 @@ Page(brandPage({
     this.setData({ pkgIndex, currentPackage: this.data.packages[pkgIndex] || null });
   },
   onInput(e) { this.setData({ [`form.${e.currentTarget.dataset.field}`]: e.detail.value }); },
+  onSpeciesSelect(e) {
+    const species = e.currentTarget.dataset.species;
+    if (species && species !== this.data.form.species) {
+      this.setData({ "form.species": species });
+    }
+  },
   onSpecies(e) { this.setData({ "form.species": this.data.form.species === "犬" ? "猫" : "犬" }); },
   onTime(e) { this.setData({ expectTime: e.detail.value }); },
   onAddress(e) { this.setData({ "form.address": e.detail.value }); },
+  chooseAddress() {
+    if (storeConfig.MAP_PICKER_ENABLED === false || storeConfig.MAP_PROVIDER === "manual") {
+      wx.showToast({ title: "位置选择未开启，请手动填写接送地址", icon: "none" });
+      return;
+    }
+    wx.chooseLocation({
+      success: (res) => {
+        const address = [res.address, res.name].filter(Boolean).join(" ");
+        this.setData({ "form.address": address });
+      },
+      fail: () => wx.showToast({ title: "可手动填写接送地址", icon: "none" }),
+    });
+  },
   submit() {
     const { form, packages, pkgIndex, expectTime, submitting } = this.data;
     if (submitting) return;
+    if (!packages.length || !packages[pkgIndex]) {
+      return wx.showToast({ title: "暂无可预约套餐，请联系门店", icon: "none" });
+    }
     if (!form.pet_name) return wx.showToast({ title: "请填写宠物名字", icon: "none" });
     if (!expectTime) return wx.showToast({ title: "请选择期望服务时间", icon: "none" });
+    const serviceTime = `${expectTime}T10:00:00`;
     const app = getApp();
     this.setData({ submitting: true });
     app.ensureLogin().then(() => post("/api/c/orders", {
@@ -51,7 +84,7 @@ Page(brandPage({
         species: form.species,
         weight: form.weight ? +form.weight : null,
         pkg_id: packages[pkgIndex].id,
-        expect_time: expectTime,
+        expect_time: serviceTime,
         address: form.address || null,
       })).then((data) => {
       wx.showToast({ title: "已提交", icon: "success" });

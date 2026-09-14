@@ -22,12 +22,29 @@
       <image class="label__icon" src="/assets/icons/paw.png" mode="aspectFit" />
       <text>宠物信息</text>
     </view>
-    <input placeholder="宠物名字（必填）" value="{{form.pet_name}}" data-field="pet_name" bindinput="onInput" />
-    <view class="species-row">
-      <text>种类</text>
-      <button size="mini" class="species-btn" bindtap="onSpecies">{{form.species}}</button>
+    <input class="form-input" placeholder="宠物名字（必填）" value="{{form.pet_name}}" data-field="pet_name" bindinput="onInput" />
+    <view class="species-field">
+      <text class="species-field__label">种类</text>
+      <view class="species-segment" aria-label="宠物种类">
+        <view
+          class="species-option {{form.species === '犬' ? 'is-active' : ''}}"
+          data-species="犬"
+          bindtap="onSpeciesSelect"
+        >
+          <text class="species-option__name">犬</text>
+          <text class="species-option__hint">狗狗</text>
+        </view>
+        <view
+          class="species-option {{form.species === '猫' ? 'is-active' : ''}}"
+          data-species="猫"
+          bindtap="onSpeciesSelect"
+        >
+          <text class="species-option__name">猫</text>
+          <text class="species-option__hint">猫咪</text>
+        </view>
+      </view>
     </view>
-    <input type="digit" placeholder="体重 kg（选填，影响火化计价）" value="{{form.weight}}" data-field="weight" bindinput="onInput" />
+    <input class="form-input" type="digit" placeholder="体重 kg（选填，影响火化计价）" value="{{form.weight}}" data-field="weight" bindinput="onInput" />
   </view>
 
   <view class="card">
@@ -35,25 +52,30 @@
       <image class="label__icon" src="/assets/icons/clock.png" mode="aspectFit" />
       <text>服务安排</text>
     </view>
-    <picker mode="date" bindchange="onTime">
+    <picker mode="date" start="{{minServiceDate}}" bindchange="onTime">
       <view class="picker">
         <text class="{{expectTime ? '' : 'is-placeholder'}}">{{expectTime || "选择期望服务日期"}}</text>
         <image class="picker__arrow" src="/assets/icons/chevron.png" mode="aspectFit" />
       </view>
     </picker>
-    <input placeholder="接送地址（到店自送可不填）" value="{{form.address}}" data-field="address" bindinput="onInput" />
-  </view>
-
-  <view class="notice">
-    <image class="notice__icon" src="/assets/icons/shield-primary.png" mode="aspectFit" />
-    <text>明码标价 · 提交后门店 30 分钟内电话确认 · 到店付款</text>
+    <button class="location-btn {{mapPickerEnabled ? '' : 'is-disabled'}}" bindtap="chooseAddress">
+      <image class="location-btn__icon" src="/assets/icons/location-primary.png" mode="aspectFit" />
+      <text>{{mapPickerEnabled ? ("使用" + mapProviderLabel + "接送地址") : "地图能力未开启，手动填写接送地址"}}</text>
+    </button>
+    <input class="form-input" placeholder="接送地址（到店自送可不填）" value="{{form.address}}" data-field="address" bindinput="onInput" />
   </view>
 
   <view class="summary-bar">
-    <view>
-      <view class="summary-bar__label">预计费用</view>
-      <view class="summary-bar__price">¥{{currentPackage ? currentPackage.price : "--"}}</view>
+    <view class="summary-bar__notice">
+      <image class="summary-bar__notice-icon" src="/assets/icons/shield-primary.png" mode="aspectFit" />
+      <text>明码标价 · 提交后门店 30 分钟内电话确认 · 到店付款</text>
     </view>
-    <button class="btn-primary submit" disabled="{{submitting}}" bindtap="submit">{{submitting ? "提交中..." : "提交预约"}}</button>
+    <view class="summary-bar__main">
+      <view>
+        <view class="summary-bar__label">预计费用</view>
+        <view class="summary-bar__price">¥{{currentPackage ? currentPackage.price : "--"}}</view>
+      </view>
+      <button class="btn-primary submit" disabled="{{submitting || !currentPackage}}" bindtap="submit">{{submitting ? "提交中..." : (currentPackage ? "提交预约" : "暂无套餐")}}</button>
+    </view>
   </view>
 </view>

@@ -12,6 +12,8 @@
 
 2026-09-12 反向同步：后台已从单店工作台升级为“平台超管 + 门店租户”双层后台。平台超管只看门店管理；门店店长/店员登录后按本店品牌资料换肤。宠小满是默认示例门店，其品牌 UI 用于样品间和本地演示，不作为所有租户的品牌兜底。
 
+2026-09-13 追加优化：平台管理端门店模块补齐“配置健康度”表达。门店列表新增总数、营业中、独立小程序、待补店长概览卡；门店详情新增品牌白标、门店联系、独立小程序、后台账号四张就绪状态卡；品牌表单预览升级为 C 端首屏式预览，并提示联系信息与小程序入口是否完整。目标是让平台超管不用点进每个 Tab，也能判断门店是否达到可交付状态。
+
 ## 背景/目标
 
 ### 使用场景
@@ -57,6 +59,9 @@
 - `06-项目编码/pet_xiaoman_admin/src/views/order/OrderDetail.vue`
 - `06-项目编码/pet_xiaoman_admin/src/views/customer/CustomerList.vue`
 - `06-项目编码/pet_xiaoman_admin/vite.config.mjs`
+- `06-项目编码/pet_xiaoman_admin/src/views/platform/StoreList.vue`
+- `06-项目编码/pet_xiaoman_admin/src/views/platform/StoreDetail.vue`
+- `06-项目编码/pet_xiaoman_admin/src/components/PxBrandForm.vue`
 
 ## 验收
 

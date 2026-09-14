@@ -16,6 +16,8 @@
 
 2026-09-12 反向同步：C 端已进入多门店白标实现态。宠小满作为默认示例门店（slug=`chongxiaoman`）使用本套品牌 UI；其他门店扫码进入后按 `store_profile` 的店名、标语、logo、主色运行时换肤。业务接口会随请求头 `X-Store-Slug` 进入对应租户数据。
 
+2026-09-13 追加优化：围绕已补齐的登录、个人中心详情、退出登录、关于我们的承诺详情页做二次精致化。登录页增加品牌信任三点；个人中心增加登录状态、服务承诺/进度快捷认知、退出说明；资料详情增加隐私用途提示；承诺页增加“价格/节点/联系”证明条与服务确认流程，让刚补齐的 C010 周边页面从“功能可用”升级到“用户能理解且敢用”。
+
 ## 背景/目标
 
 ### 用户情绪
@@ -65,6 +67,13 @@ C 端用户多处在首次决策、悲伤和不确定状态，设计目标不是
 - `06-项目编码/pet_xiaoman_miniapp/pages/pets/pets.wxss`
 - `06-项目编码/pet_xiaoman_miniapp/pages/profile/index.wxml`
 - `06-项目编码/pet_xiaoman_miniapp/pages/profile/index.wxss`
+- `06-项目编码/pet_xiaoman_miniapp/pages/login/index.wxml`
+- `06-项目编码/pet_xiaoman_miniapp/pages/login/index.wxss`
+- `06-项目编码/pet_xiaoman_miniapp/pages/profile-detail/detail.wxml`
+- `06-项目编码/pet_xiaoman_miniapp/pages/profile-detail/detail.wxss`
+- `06-项目编码/pet_xiaoman_miniapp/pages/about-promise/detail.js`
+- `06-项目编码/pet_xiaoman_miniapp/pages/about-promise/detail.wxml`
+- `06-项目编码/pet_xiaoman_miniapp/pages/about-promise/detail.wxss`
 
 ## 验收
 

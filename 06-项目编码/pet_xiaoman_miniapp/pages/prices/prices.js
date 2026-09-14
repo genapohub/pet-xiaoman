@@ -37,4 +37,7 @@ Page(brandPage({
     // go() 会自动改用 switchTab 并把 pkg_id 暂存，由预约页 onShow 取用
     go(`/pages/order-create/index?pkg_id=${e.currentTarget.dataset.id}`);
   },
+  goDetail(e) {
+    go(`/pages/service-detail/detail?id=${e.currentTarget.dataset.id}`);
+  },
 }));

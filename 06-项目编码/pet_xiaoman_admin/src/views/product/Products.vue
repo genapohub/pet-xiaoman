@@ -59,14 +59,14 @@
       @cancel="editVisible = false"
       @submit="save"
     >
-      <el-form label-width="80px">
-        <el-form-item label="名称"><el-input v-model="form.name" maxlength="50" /></el-form-item>
-        <el-form-item label="价格"><el-input-number v-model="form.price" :min="0.01" :precision="2" class="w-full" /></el-form-item>
-        <el-form-item label="图片URL">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="名称" prop="name"><el-input v-model="form.name" maxlength="50" /></el-form-item>
+        <el-form-item label="价格" prop="price"><el-input-number v-model="form.price" :min="0.01" :precision="2" class="w-full" /></el-form-item>
+        <el-form-item label="图片URL" prop="image">
           <el-input v-model="firstImage" placeholder="首图地址（一期图片URL直填）" />
         </el-form-item>
-        <el-form-item label="描述"><el-input v-model="form.description" type="textarea" :rows="2" maxlength="200" /></el-form-item>
-        <el-form-item label="库存备注"><el-input v-model="form.stock_note" placeholder="如：现货 5 件（不做扣减）" maxlength="100" /></el-form-item>
+        <el-form-item label="描述" prop="description"><el-input v-model="form.description" type="textarea" :rows="2" maxlength="200" /></el-form-item>
+        <el-form-item label="库存备注" prop="stock_note"><el-input v-model="form.stock_note" placeholder="如：现货 5 件（不做扣减）" maxlength="100" /></el-form-item>
       </el-form>
     </px-form-drawer>
   </div>
@@ -91,6 +91,21 @@ const editVisible = ref(false);
 const saving = ref(false);
 const firstImage = ref("");
 const form = ref({ id: null, name: "", price: 1, description: null, stock_note: null });
+const formRef = ref(null);
+const urlPattern = /^$|^https?:\/\/.+|^\/uploads\/.+/i;
+const rules = {
+  name: [{ required: true, message: "请填写纪念品名称", trigger: "blur" }],
+  price: [{ required: true, type: "number", min: 0.01, message: "价格需大于 0", trigger: "change" }],
+  image: [{ validator: validateImage, trigger: "blur" }],
+  description: [{ max: 200, message: "描述最多 200 字", trigger: "blur" }],
+  stock_note: [{ max: 100, message: "库存备注最多 100 字", trigger: "blur" }],
+};
+
+function validateImage(_rule, _value, callback) {
+  const value = firstImage.value.trim();
+  if (!urlPattern.test(value)) return callback(new Error("图片地址需为 http(s) 地址或 /uploads/ 开头；不填也可以"));
+  callback();
+}
 
 function openEdit(row) {
   form.value = row ? { ...row } : { id: null, name: "", price: 1, description: null, stock_note: null };
@@ -99,10 +114,16 @@ function openEdit(row) {
 }
 
 async function save() {
-  if (!form.value.name) return ElMessage.warning("请填写名称");
+  await formRef.value?.validate();
   saving.value = true;
   try {
-    const payload = { ...form.value, images: firstImage.value ? [firstImage.value] : [] };
+    const payload = {
+      ...form.value,
+      name: form.value.name.trim(),
+      description: form.value.description?.trim() || null,
+      stock_note: form.value.stock_note?.trim() || null,
+      images: firstImage.value.trim() ? [firstImage.value.trim()] : [],
+    };
     if (form.value.id) await updateProduct(form.value.id, payload);
     else await createProduct(payload);
     editVisible.value = false;

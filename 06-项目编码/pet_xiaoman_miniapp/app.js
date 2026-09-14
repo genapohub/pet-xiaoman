@@ -53,4 +53,10 @@ App({
     if (getCurrentPages().length > 1) wx.navigateBack();
     else wx.reLaunch({ url: "/pages/index/index" });
   },
+  logout() {
+    wx.removeStorageSync("token");
+    wx.removeStorageSync("customer_id");
+    this._loginWaiters = [];
+    wx.reLaunch({ url: "/pages/login/index" });
+  },
 });

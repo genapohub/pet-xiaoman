@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db
 from app.dependencies import customer_auth, ensure_customer_match, store_context
 from app.models.customer import Customer
@@ -10,11 +11,45 @@ from app.models.order import Order
 from app.models.pet import Pet
 from app.models.service_item import ItemStatus, ServiceItem
 from app.models.store_profile import StoreProfile
+from app.services import payment as payment_service
 from app.services.tenant import (
     default_store_id, resolve_store_id_by_slug, scoped, store_clause, store_is_active,
 )
 
 router = APIRouter()
+
+
+@router.get("/subscribe/config", summary="C 端订阅消息模板配置")
+def c_subscribe_config():
+    """只暴露模板 ID，不在前端写业务密钥；空数组代表当前未开通订阅消息。"""
+    return {
+        "enabled": bool(settings.SUBSCRIBE_TEMPLATE_IDS),
+        "template_ids": settings.SUBSCRIBE_TEMPLATE_IDS,
+    }
+
+
+@router.get("/integrations/config", summary="C 端三方能力配置（支付/订阅/地图均可空转）")
+def c_integrations_config():
+    """给小程序暴露可安全展示的三方接入状态；不返回任何密钥。"""
+    pay = payment_service.pay_config_status()
+    return {
+        "payment": {
+            "enabled": settings.PAY_ENABLED,
+            "ready": pay["ready"],
+            "missing": pay["missing"],
+            "fallback": "到店付",
+        },
+        "subscribe": {
+            "enabled": bool(settings.SUBSCRIBE_TEMPLATE_IDS),
+            "template_count": len(settings.SUBSCRIBE_TEMPLATE_IDS),
+        },
+        "map": {
+            "provider": settings.MAP_PROVIDER,
+            "picker_enabled": settings.MAP_PICKER_ENABLED,
+            "key_configured": bool(settings.MAP_KEY),
+            "fallback": "手动填写接送地址",
+        },
+    }
 
 
 @router.get("/store/profile", summary="C 端门店白标（按 slug 换肤；无 slug 返回默认门店）")
@@ -38,6 +73,8 @@ def c_store_profile(slug: str | None = None, db: Session = Depends(get_db)):
     return {"store_id": profile.store_id, "slug": profile.slug, "name": profile.name,
             "slogan": profile.slogan, "logo_url": profile.logo_url,
             "primary_color": profile.primary_color, "theme": profile.theme,
+            "contact_phone": profile.contact_phone, "contact_address": profile.contact_address,
+            "business_hours": profile.business_hours,
             "miniapp_name": profile.miniapp_name, "miniapp_appid": profile.miniapp_appid,
             "miniapp_entry_enabled": profile.miniapp_entry_enabled}
 

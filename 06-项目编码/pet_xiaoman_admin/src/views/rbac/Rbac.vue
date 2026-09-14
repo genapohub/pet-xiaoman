@@ -29,14 +29,20 @@
         </div>
 
         <div class="rbac__section">
-          <div class="rbac__section-title">菜单权限 <span class="rbac__section-hint">勾选后该角色可见对应菜单</span></div>
+          <div class="rbac__section-title">
+            菜单权限
+            <span class="rbac__section-hint">已选 {{ menusModel[role.key]?.length || 0 }} 项；勾选后该角色可见对应菜单</span>
+          </div>
           <el-checkbox-group v-model="menusModel[role.key]" class="rbac__checks">
             <el-checkbox v-for="m in menus" :key="m.key" :label="m.key" border>{{ m.title }}</el-checkbox>
           </el-checkbox-group>
         </div>
 
         <div class="rbac__section">
-          <div class="rbac__section-title">操作权限 <span class="rbac__section-hint">勾选后该角色可使用对应敏感操作</span></div>
+          <div class="rbac__section-title">
+            操作权限
+            <span class="rbac__section-hint">已选 {{ permsModel[role.key]?.length || 0 }} 项；勾选后该角色可使用对应敏感操作</span>
+          </div>
           <el-checkbox-group v-model="permsModel[role.key]" class="rbac__checks">
             <el-checkbox v-for="p in permissions" :key="p.code" :label="p.code" border>{{ p.label }}</el-checkbox>
           </el-checkbox-group>
@@ -48,7 +54,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { Refresh } from "@element-plus/icons-vue";
 import { listRoles, listMenus, listPermissions, updateRole } from "../../api/rbac";
 import PxPageHeader from "../../components/PxPageHeader.vue";
@@ -78,11 +84,35 @@ async function loadAll() {
 }
 
 async function save(role) {
+  const nextMenus = menusModel[role.key] || [];
+  const nextPerms = permsModel[role.key] || [];
+  if (!nextMenus.length) return ElMessage.warning("至少保留一个可访问菜单，否则该角色登录后无可用页面");
+  if (role.key === "manager" && (!nextMenus.includes("rbac") || !nextPerms.includes("role.manage"))) {
+    try {
+      await ElMessageBox.confirm(
+        "店长角色缺少「角色权限」菜单或权限后，将无法继续调整团队权限。确认这样保存？",
+        "权限风险确认",
+        { type: "warning", confirmButtonText: "确认保存", cancelButtonText: "再检查一下" },
+      );
+    } catch {
+      return;
+    }
+  } else {
+    try {
+      await ElMessageBox.confirm(`确认保存「${role.name}」的菜单与操作权限？`, "保存权限", {
+        type: "info",
+        confirmButtonText: "保存",
+        cancelButtonText: "取消",
+      });
+    } catch {
+      return;
+    }
+  }
   saving[role.key] = true;
   try {
     await updateRole(role.key, {
-      menu_keys: menusModel[role.key],
-      permissions: permsModel[role.key],
+      menu_keys: nextMenus,
+      permissions: nextPerms,
     });
     ElMessage.success(`「${role.name}」权限已保存`);
   } finally {

@@ -15,12 +15,17 @@ Page(brandPage({
   },
   // 运营商授权手机号一键登录（真机 / 体验版）
   onGetPhone(e) {
-    const { code, errMsg } = e.detail;
-    if (errMsg !== "getPhoneNumber:ok" || !code) {
+    const { code: phoneCode, errMsg } = e.detail;
+    if (errMsg !== "getPhoneNumber:ok" || !phoneCode) {
       wx.showToast({ title: "已取消授权", icon: "none" });
       return;
     }
-    this._doLogin({ phone_code: code }, "授权登录失败，请重试");
+    wx.login({
+      success: (res) => {
+        this._doLogin({ phone_code: phoneCode, code: res.code || "" }, "授权登录失败，请重试");
+      },
+      fail: () => this._doLogin({ phone_code: phoneCode }, "授权登录失败，请重试"),
+    });
   },
   // 本地联调兜底：直接传 dev 手机号
   onDevLogin() {

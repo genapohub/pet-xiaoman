@@ -26,13 +26,15 @@ def apply_payment(db: Session, order: Order, result: PayResult) -> dict:
 
 
 def handle_pay_callback(db: Session, payload: bytes, signature: str,
-                        timestamp: str, nonce: str) -> dict:
+                        timestamp: str, nonce: str, serial: str = "") -> dict:
     """微信回调处理：验签 fail-check → 幂等落账。"""
     try:
-        data = pay_framework.verify_callback_signature(payload, signature, timestamp, nonce)
+        data = pay_framework.verify_callback_signature(payload, signature, timestamp, nonce, serial)
     except PaymentVerifyError as e:
         # fail-check：绝不带病处理
         raise PermissionError(f"回调验签失败：{e}")
+    if data.get("trade_state") and data.get("trade_state") != "SUCCESS":
+        raise ValueError(f"支付状态未成功: {data.get('trade_state')}")
     order = db.query(Order).filter(Order.order_no == data["order_no"]).first()
     if not order:
         raise ValueError(f"回调订单不存在: {data['order_no']}")
@@ -57,6 +59,36 @@ def settle_offline(db: Session, order_no: str, amount: float, staff_id: int) -> 
     order.pay_type = PayType.SETTLED_OFFLINE
     order.paid_amount = float(order.paid_amount or 0) + amount
     order.refund_status = RefundStatus.NONE
+    db.commit()
+    db.refresh(order)
+    return order
+
+
+def mark_refund(db: Session, order_no: str, status: str, note: str = "") -> Order:
+    """人工退款闭环：商户号未接入时，由后台记录退款完成/失败。"""
+    order = db.query(Order).filter(Order.order_no == order_no).first()
+    if not order:
+        raise ValueError("订单不存在")
+    if order.refund_status == RefundStatus.NONE:
+        raise ValueError("该订单没有待处理退款")
+    try:
+        next_status = RefundStatus(status)
+    except ValueError as exc:
+        raise ValueError("退款状态只能标记为「已退款」或「退款失败」") from exc
+    if next_status not in (RefundStatus.REFUNDED, RefundStatus.FAILED):
+        raise ValueError("退款状态只能标记为「已退款」或「退款失败」")
+
+    order.refund_status = next_status
+    if next_status == RefundStatus.REFUNDED:
+        records = (db.query(PaymentRecord)
+                   .filter(PaymentRecord.order_id == order.id,
+                           PaymentRecord.pay_status == PayStatus.SUCCESS)
+                   .all())
+        for record in records:
+            record.pay_status = PayStatus.REFUNDED
+    if note:
+        prefix = f"{order.notes}\n" if order.notes else ""
+        order.notes = f"{prefix}[退款处理] {note}"
     db.commit()
     db.refresh(order)
     return order

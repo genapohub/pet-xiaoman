@@ -88,6 +88,65 @@ def test_cancel_in_service_rejected(client, order_input, db, org):
     assert "请联系门店" in resp.json()["detail"]
 
 
+def test_reschedule_once_succeeds_with_quota_left(client, order_input):
+    """C 端免费改期：第一次成功，返回 quota_left=0；订单的 expect_time 更新。"""
+    from datetime import datetime, timedelta
+    new_time = (datetime.now() + timedelta(days=2)).replace(microsecond=0).isoformat()
+    order_no = create(client, order_input).json()["order_no"]
+
+    resp = client.post(f"/api/c/orders/{order_no}/reschedule", json={"expect_time": new_time})
+    assert resp.status_code == 200, resp.text
+    data = resp.json()
+    assert data["reschedule_count"] == 1
+    assert data["reschedule_quota_left"] == 0
+    assert data["expect_time"].startswith(new_time[:16])
+
+    detail = client.get(f"/api/c/orders/{order_no}").json()
+    assert detail["reschedule_count"] == 1
+    assert detail["reschedule_quota_left"] == 0
+
+
+def test_reschedule_twice_rejected(client, order_input):
+    """C 端免费改期：第二次必须被拒（PRD §6.2 免费 1 次），前端引导「请联系店长」。"""
+    from datetime import datetime, timedelta
+    order_no = create(client, order_input).json()["order_no"]
+    for _ in range(2):
+        client.post(f"/api/c/orders/{order_no}/reschedule",
+                    json={"expect_time": (datetime.now() + timedelta(days=2)).isoformat()})
+
+    resp = client.post(f"/api/c/orders/{order_no}/reschedule",
+                       json={"expect_time": (datetime.now() + timedelta(days=3)).isoformat()})
+    assert resp.status_code == 422
+    assert "请联系店长" in resp.json()["detail"]
+
+
+def test_reschedule_in_service_rejected(client, order_input, db, org):
+    """服务中订单不可改期（接宠完成 → 走门店人工通道）。"""
+    from datetime import datetime, timedelta
+    from app.models.order import Order
+    H = {"Authorization": f"Bearer {org['manager_token']}"}
+    order_no = create(client, order_input).json()["order_no"]
+    assert client.post(f"/api/b/orders/{order_no}/confirm", json={}, headers=H).status_code == 200
+    order = db.query(Order).filter(Order.order_no == order_no).first()
+    order.status = "服务中"
+    db.commit()
+
+    resp = client.post(f"/api/c/orders/{order_no}/reschedule",
+                       json={"expect_time": (datetime.now() + timedelta(days=1)).isoformat()})
+    assert resp.status_code == 422
+    assert "请联系门店" in resp.json()["detail"]
+
+
+def test_reschedule_to_past_time_rejected(client, order_input):
+    """改期到过去时间必须被拒（业务校验，不允许把订单改回历史）。"""
+    from datetime import datetime, timedelta
+    order_no = create(client, order_input).json()["order_no"]
+    resp = client.post(f"/api/c/orders/{order_no}/reschedule",
+                       json={"expect_time": (datetime.now() - timedelta(days=1)).isoformat()})
+    assert resp.status_code == 422
+    assert "晚于现在" in resp.json()["detail"]
+
+
 def test_transition_full_path_requires_media_and_settlement(client, order_input, db, org):
     """主链路流转：确认→接宠中→服务中（需影像）→待交付（需影像）→已完成（需结清）。"""
     H = {"Authorization": f"Bearer {org['manager_token']}"}

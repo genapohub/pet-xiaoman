@@ -62,10 +62,10 @@
       @cancel="editVisible = false"
       @submit="save"
     >
-      <el-form label-width="80px">
-        <el-form-item label="名称"><el-input v-model="form.name" maxlength="50" /></el-form-item>
-        <el-form-item label="价格"><el-input-number v-model="form.price" :min="0.01" :precision="2" class="w-full" /></el-form-item>
-        <el-form-item label="体重分档">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="名称" prop="name"><el-input v-model="form.name" maxlength="50" /></el-form-item>
+        <el-form-item label="价格" prop="price"><el-input-number v-model="form.price" :min="0.01" :precision="2" class="w-full" /></el-form-item>
+        <el-form-item label="体重分档" prop="weight_tier">
           <el-select v-model="form.weight_tier" clearable placeholder="仅火化单项需要" class="w-full">
             <el-option v-for="t in ['0-10kg', '10-20kg', '20kg+']" :key="t" :label="t" :value="t" />
           </el-select>
@@ -108,6 +108,11 @@ const versions = ref([]);
 const saving = ref(false);
 const originPrice = ref(0);
 const form = ref({ id: null, type: "套餐", name: "", price: 1, weight_tier: null });
+const formRef = ref(null);
+const rules = {
+  name: [{ required: true, message: "请填写服务名称", trigger: "blur" }],
+  price: [{ required: true, type: "number", min: 0.01, message: "价格需大于 0", trigger: "change" }],
+};
 
 function openEdit(row) {
   form.value = row ? { ...row } : { id: null, type: activeTab.value, name: "", price: 1, weight_tier: null };
@@ -116,11 +121,15 @@ function openEdit(row) {
 }
 
 async function save() {
-  if (!form.value.name) return ElMessage.warning("请填写名称");
+  await formRef.value?.validate();
   saving.value = true;
   try {
-    const payload = { type: form.value.type, name: form.value.name,
-                      price: form.value.price, weight_tier: form.value.weight_tier };
+    const payload = {
+      type: form.value.type,
+      name: form.value.name.trim(),
+      price: form.value.price,
+      weight_tier: form.value.weight_tier || null,
+    };
     if (form.value.id) await updateItem(form.value.id, payload);
     else await createItem(payload);
     editVisible.value = false;

@@ -17,5 +17,9 @@ Page(brandPage({
   // 直接 wx.navigateTo 打开 tabBar 页会静默失败 → 表现为「点立即预约没反应」
   goCreate() { go("/pages/order-create/index"); },
   goPrices() { go("/pages/prices/prices"); },
-  callShop() { wx.makePhoneCall({ phoneNumber: wx.getStorageSync("shop_phone") || "" }); }, // 门店电话待接入
+  callShop() {
+    const phone = this.data.theme && this.data.theme.contactPhone;
+    if (!phone) return wx.showToast({ title: "门店电话暂未配置", icon: "none" });
+    wx.makePhoneCall({ phoneNumber: phone });
+  },
 }));

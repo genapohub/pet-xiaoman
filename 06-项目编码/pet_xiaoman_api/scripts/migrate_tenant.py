@@ -34,6 +34,9 @@ from scripts.backfill_store_scope import SCOPED_MODELS  # noqa: E402
 
 DEFAULT_STORE_NAME = "宠小满·示例门店"
 DEFAULT_STORE_SLOGAN = "爱意小满，不留遗憾"
+DEFAULT_CONTACT_PHONE = os.getenv("DEV_STORE_PHONE", "0371-00000000")
+DEFAULT_CONTACT_ADDRESS = os.getenv("DEV_STORE_ADDRESS", "郑州市宠物善终服务中心")
+DEFAULT_BUSINESS_HOURS = os.getenv("DEV_STORE_HOURS", "24 小时可约")
 DEV_STORE_SLUG = os.getenv("DEV_STORE_SLUG", "chongxiaoman")
 IS_SQLITE = engine.dialect.name == "sqlite"
 
@@ -46,6 +49,9 @@ IS_SQLITE = engine.dialect.name == "sqlite"
 EXTRA_COLUMNS = [
     ("stores", "status", "VARCHAR(8) DEFAULT 'ACTIVE'"),          # 门店启用/停用
     ("store_profiles", "slogan", "VARCHAR(50)"),                  # 对外标语，可空
+    ("store_profiles", "contact_phone", "VARCHAR(20)"),           # C 端咨询电话，可空
+    ("store_profiles", "contact_address", "VARCHAR(120)"),        # C 端门店地址，可空
+    ("store_profiles", "business_hours", "VARCHAR(50)"),          # C 端营业时间，可空
     ("store_profiles", "miniapp_name", "VARCHAR(50)"),            # 独立小程序名称，可空
     ("store_profiles", "miniapp_appid", "VARCHAR(64)"),           # 独立小程序 AppID，可空
     ("store_profiles", "miniapp_entry_enabled", "BOOLEAN DEFAULT 1"),  # 独立搜索入口开关
@@ -270,6 +276,12 @@ def migrate() -> None:
                 profile.miniapp_name = profile.name or DEFAULT_STORE_NAME
             if profile.miniapp_entry_enabled is None:
                 profile.miniapp_entry_enabled = True
+            if not profile.contact_phone:
+                profile.contact_phone = DEFAULT_CONTACT_PHONE
+            if not profile.contact_address:
+                profile.contact_address = DEFAULT_CONTACT_ADDRESS
+            if not profile.business_hours:
+                profile.business_hours = DEFAULT_BUSINESS_HOURS
             db.commit()
             print(f"   白标资料：已存在 slug={profile.slug} 主色={profile.primary_color}")
         else:
@@ -278,6 +290,9 @@ def migrate() -> None:
                 slug = f"{slug}-{store.id}"
             profile = StoreProfile(store_id=store.id, slug=slug, name=store.name,
                                    slogan=DEFAULT_STORE_SLOGAN,
+                                   contact_phone=DEFAULT_CONTACT_PHONE,
+                                   contact_address=DEFAULT_CONTACT_ADDRESS,
+                                   business_hours=DEFAULT_BUSINESS_HOURS,
                                    miniapp_name=store.name, miniapp_entry_enabled=True,
                                    primary_color=DEFAULT_PRIMARY_COLOR, theme_json={})
             db.add(profile)

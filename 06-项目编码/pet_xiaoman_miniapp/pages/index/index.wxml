@@ -1,7 +1,7 @@
 <view class="page" style="{{brandStyle}}">
   <!-- hero：门店主色底 + 反白标；门店有自定义 logo 用图，没有则用店名首字占位 -->
   <view class="hero">
-    <view class="hero__eyebrow">本地宠物善终服务</view>
+    <view class="hero__eyebrow">门店专属服务</view>
     <image wx:if="{{theme.logoUrl}}" class="hero__logo" src="{{theme.logoUrl}}" mode="aspectFit" />
     <view wx:else class="hero__logo hero__mark brandmark">{{shopInitial}}</view>
     <view class="hero__name">{{theme.shopName}}</view>
@@ -23,8 +23,22 @@
 
   <view class="contact row-link" bindtap="callShop">
     <image class="icon-md" src="/assets/icons/phone.png" mode="aspectFit" />
-    <view class="row-link__label">24 小时电话咨询</view>
+    <view class="row-link__label">
+      <view>24 小时电话咨询</view>
+      <view class="row-link__meta" wx:if="{{theme.contactPhone}}">{{theme.contactPhone}}</view>
+    </view>
     <image class="icon-sm" src="/assets/icons/chevron.png" mode="aspectFit" />
+  </view>
+
+  <view class="store-info" wx:if="{{theme.contactAddress || theme.businessHours}}">
+    <view class="store-info__line" wx:if="{{theme.contactAddress}}">
+      <image class="icon-sm" src="/assets/icons/location.png" mode="aspectFit" />
+      <text>{{theme.contactAddress}}</text>
+    </view>
+    <view class="store-info__line" wx:if="{{theme.businessHours}}">
+      <image class="icon-sm" src="/assets/icons/clock.png" mode="aspectFit" />
+      <text>{{theme.businessHours}}</text>
+    </view>
   </view>
 
   <view class="trust-strip">明码标价 · 单独火化 · 下单后不加价</view>

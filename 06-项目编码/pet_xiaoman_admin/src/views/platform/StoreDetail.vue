@@ -22,6 +22,24 @@
     <PxErrorState v-if="failed" text="门店信息加载失败" :loading="loading" @retry="load" />
 
     <template v-else>
+      <div v-if="store" class="store-summary" aria-label="门店配置概览">
+        <section
+          v-for="item in storeSummary"
+          :key="item.label"
+          class="summary-card"
+          :class="item.done ? 'summary-card--done' : 'summary-card--todo'"
+        >
+          <div class="summary-card__top">
+            <span>{{ item.label }}</span>
+            <el-tag size="small" :type="item.done ? 'success' : 'warning'" effect="light">
+              {{ item.done ? "已就绪" : "待完善" }}
+            </el-tag>
+          </div>
+          <strong>{{ item.value }}</strong>
+          <p>{{ item.hint }}</p>
+        </section>
+      </div>
+
       <el-tabs v-model="tab" class="tabs">
         <el-tab-pane label="品牌与 UI" name="brand">
           <div class="panel">
@@ -71,11 +89,11 @@
                   </el-button>
                 </div>
 
-                <el-form class="entry-form" label-width="112px">
-                  <el-form-item label="小程序名称">
+                <el-form ref="miniappFormRef" :model="miniappForm" :rules="miniappRules" class="entry-form" label-width="112px">
+                  <el-form-item label="小程序名称" prop="miniapp_name">
                     <el-input v-model="miniappForm.miniapp_name" maxlength="50" placeholder="如：宠小满·示例门店" />
                   </el-form-item>
-                  <el-form-item label="小程序 AppID">
+                  <el-form-item label="小程序 AppID" prop="miniapp_appid">
                     <el-input v-model="miniappForm.miniapp_appid" maxlength="64" placeholder="如 wx667ddd8e0d8dd8fb，暂未申请可留空" />
                   </el-form-item>
                   <el-form-item label="默认入口">
@@ -105,9 +123,15 @@
                 </div>
                 <div class="miniapp-code__title">{{ profileName }}</div>
                 <div class="miniapp-code__meta">门店标识：{{ slug }}</div>
-                <el-button class="miniapp-code__btn" type="primary" plain @click="copyText(qrPayload, '二维码内容已复制')">
-                  <el-icon><CopyDocument /></el-icon> 复制二维码内容
-                </el-button>
+                <div class="miniapp-code__actions">
+                  <el-button type="primary" plain @click="downloadQr">
+                    <el-icon><Download /></el-icon> 下载参数码
+                  </el-button>
+                  <el-button plain @click="copyText(qrPayload, '二维码内容已复制')">
+                    <el-icon><CopyDocument /></el-icon> 复制内容
+                  </el-button>
+                </div>
+                <p class="miniapp-code__hint">用于门店物料草稿和本地验收；正式微信小程序码请用右侧参数到微信平台生成。</p>
               </section>
 
               <section class="entry-panel">
@@ -234,8 +258,8 @@
       @cancel="createVisible = false"
       @submit="save"
     >
-      <el-form label-width="84px">
-        <el-form-item label="角色">
+      <el-form ref="createFormRef" :model="form" :rules="createRules" label-width="84px">
+        <el-form-item label="角色" prop="role">
           <el-radio-group v-model="form.role">
             <el-radio-button value="manager">店长</el-radio-button>
             <el-radio-button value="employee">店员</el-radio-button>
@@ -244,16 +268,16 @@
             店长可管理本店服务项目、纪念品、团队成员与角色权限；店员只能做订单与客户。
           </span>
         </el-form-item>
-        <el-form-item label="姓名">
+        <el-form-item label="姓名" prop="name">
           <el-input v-model="form.name" maxlength="50" placeholder="如：小李" />
         </el-form-item>
-        <el-form-item label="登录账号">
+        <el-form-item label="登录账号" prop="username">
           <el-input v-model="form.username" maxlength="32" placeholder="全平台唯一" />
         </el-form-item>
-        <el-form-item label="初始密码">
+        <el-form-item label="初始密码" prop="password">
           <el-input v-model="form.password" maxlength="32" placeholder="至少 6 位" />
         </el-form-item>
-        <el-form-item label="手机号">
+        <el-form-item label="手机号" prop="phone">
           <el-input v-model="form.phone" maxlength="20" placeholder="选填" />
         </el-form-item>
       </el-form>
@@ -266,7 +290,7 @@ import { computed, reactive, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import QRCode from "qrcode";
-import { Check, CopyDocument, Hide, Key, Link, Plus, Tickets, UserFilled } from "@element-plus/icons-vue";
+import { Check, CopyDocument, Download, Hide, Key, Link, Plus, Tickets, UserFilled } from "@element-plus/icons-vue";
 import {
   createStoreStaff, disableStoreStaff, getStore, listStoreStaff, setStoreStatus,
   updateStoreBrand, updateStoreStaff,
@@ -300,11 +324,42 @@ const miniappEntryEnabled = computed(() => profile.value?.miniapp_entry_enabled 
 const miniappScene = computed(() => slug.value ? `scene=slug=${slug.value}` : "scene=—");
 const launchPath = computed(() => slug.value ? `${miniappPage}?slug=${slug.value}` : miniappPage);
 const storeProfileApi = computed(() => slug.value ? `/api/c/store/profile?slug=${slug.value}` : "/api/c/store/profile");
+const brandReady = computed(() => Boolean(profile.value?.name && profile.value?.primary_color));
+const contactReady = computed(() => Boolean(profile.value?.contact_phone && profile.value?.contact_address));
+const miniappReady = computed(() => Boolean(profile.value?.miniapp_appid && miniappEntryEnabled.value));
+const accountReady = computed(() => (store.value?.manager_count || 0) > 0);
+const storeSummary = computed(() => [
+  {
+    label: "品牌白标",
+    value: profileName.value,
+    hint: brandReady.value ? "C 端与后台已使用该店品牌样式" : "需补齐对外店名与主色",
+    done: brandReady.value,
+  },
+  {
+    label: "门店联系",
+    value: profile.value?.contact_phone || "未配置电话",
+    hint: contactReady.value ? "顾客可在 C 端拨号和查看地址" : "建议补齐电话、地址与营业时间",
+    done: contactReady.value,
+  },
+  {
+    label: "独立小程序",
+    value: miniappAppid.value || "未绑定 AppID",
+    hint: miniappReady.value ? "可用于微信搜索入口发布" : "先配置 AppID，再按门店发布",
+    done: miniappReady.value,
+  },
+  {
+    label: "后台账号",
+    value: `${store.value?.manager_count || 0} 名店长 · ${store.value?.staff_count || 0} 个账号`,
+    hint: accountReady.value ? "门店可登录后台处理订单" : "至少需要 1 名店长账号",
+    done: accountReady.value,
+  },
+]);
 const officialMiniappPayload = computed(() => `page=${miniappPage}\nscene=slug=${slug.value}`);
 const publishCommand = computed(() => [
   `STORE_SLUG=${slug.value}`,
   `MINIAPP_APPID=${miniappAppid.value || "wx请替换为该店AppID"}`,
   `MINIAPP_NAME="${miniappName.value}"`,
+  `SUBSCRIBE_TEMPLATE_IDS="填入订单进度模板ID,填入服务完成模板ID"`,
   `PROJECT_NAME=pet_xiaoman_${slug.value}`,
   "node scripts/build-store-config.js",
 ].join(" "));
@@ -320,6 +375,18 @@ const miniappForm = reactive({
   miniapp_appid: "",
   miniapp_entry_enabled: true,
 });
+const miniappFormRef = ref(null);
+const appidPattern = /^$|^wx[A-Za-z0-9]{8,62}$/;
+const phonePattern = /^$|^1\d{10}$|^0\d{2,3}-?\d{7,8}$/;
+const usernamePattern = /^[A-Za-z0-9_]{3,32}$/;
+const miniappRules = {
+  miniapp_name: [
+    { max: 50, message: "小程序名称最多 50 字", trigger: "blur" },
+  ],
+  miniapp_appid: [
+    { pattern: appidPattern, message: "AppID 需以 wx 开头，仅包含字母数字；暂未申请可留空", trigger: "blur" },
+  ],
+};
 
 const subtitle = computed(() => {
   if (!store.value) return "";
@@ -363,6 +430,20 @@ const createVisible = ref(false);
 const saving = ref(false);
 const blank = () => ({ role: "manager", name: "", username: "", password: "", phone: "" });
 const form = reactive(blank());
+const createFormRef = ref(null);
+const createRules = {
+  role: [{ required: true, message: "请选择账号角色", trigger: "change" }],
+  name: [{ required: true, message: "请填写姓名", trigger: "blur" }],
+  username: [
+    { required: true, message: "请填写登录账号", trigger: "blur" },
+    { pattern: usernamePattern, message: "账号需为 3-32 位字母、数字或下划线", trigger: "blur" },
+  ],
+  password: [
+    { required: true, message: "请填写初始密码", trigger: "blur" },
+    { min: 6, message: "初始密码至少 6 位", trigger: "blur" },
+  ],
+  phone: [{ pattern: phonePattern, message: "手机号或座机格式不正确；不填也可以", trigger: "blur" }],
+};
 
 function openCreate() {
   Object.assign(form, blank());
@@ -370,8 +451,7 @@ function openCreate() {
 }
 
 async function save() {
-  if (!form.name.trim() || !form.username.trim()) return ElMessage.warning("请填写姓名与账号");
-  if ((form.password || "").length < 6) return ElMessage.warning("初始密码至少 6 位");
+  await createFormRef.value?.validate();
   saving.value = true;
   try {
     await createStoreStaff(storeId, {
@@ -390,9 +470,7 @@ async function save() {
 }
 
 async function saveMiniappEntry() {
-  if (miniappForm.miniapp_appid && !/^wx[A-Za-z0-9]{8,62}$/.test(miniappForm.miniapp_appid.trim())) {
-    return ElMessage.warning("小程序 AppID 需以 wx 开头，仅包含字母数字");
-  }
+  await miniappFormRef.value?.validate();
   miniappSaving.value = true;
   try {
     const next = await updateStoreBrand(storeId, {
@@ -469,6 +547,17 @@ async function copyText(text, message = "已复制") {
   ElMessage.success(message);
 }
 
+function downloadQr() {
+  if (!qrDataUrl.value) return ElMessage.warning("二维码还在生成中，请稍后再试");
+  const a = document.createElement("a");
+  a.href = qrDataUrl.value;
+  a.download = `pet-xiaoman-${slug.value || "store"}-entry.png`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  ElMessage.success("参数码已下载");
+}
+
 async function doStatus(status) {
   const off = status === "disabled";
   try {
@@ -505,7 +594,53 @@ load();
 </script>
 
 <style scoped>
-.tabs { margin-top: calc(-1 * var(--px-sp-2)); }
+.tabs { margin-top: var(--px-sp-1); }
+
+.store-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--px-sp-3);
+  margin-bottom: var(--px-sp-4);
+}
+.summary-card {
+  min-width: 0;
+  padding: var(--px-sp-4);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-lg);
+  background: linear-gradient(180deg, var(--px-bg-card), var(--px-bg-warm));
+  box-shadow: var(--px-shadow-card);
+}
+.summary-card--done {
+  border-color: rgba(91, 140, 133, 0.20);
+}
+.summary-card--todo {
+  border-color: rgba(217, 139, 43, 0.26);
+  background: var(--px-bg-warning);
+}
+.summary-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--px-sp-2);
+  color: var(--px-text-2);
+  font-size: var(--px-fs-xs);
+  font-weight: 600;
+}
+.summary-card strong {
+  display: block;
+  margin-top: var(--px-sp-2);
+  color: var(--px-text-1);
+  font-size: var(--px-fs-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.summary-card p {
+  margin: var(--px-sp-1) 0 0;
+  color: var(--px-text-3);
+  font-size: var(--px-fs-xs);
+  line-height: 1.5;
+}
 
 .panel {
   margin-top: var(--px-sp-3);
@@ -647,8 +782,21 @@ load();
   color: var(--px-text-2);
   font-size: var(--px-fs-sm);
 }
-.miniapp-code__btn {
+.miniapp-code__actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--px-sp-2);
   margin-top: var(--px-sp-4);
+}
+.miniapp-code__actions :deep(.el-button) {
+  margin-left: 0;
+}
+.miniapp-code__hint {
+  margin: var(--px-sp-2) auto 0;
+  max-width: 230px;
+  color: var(--px-text-3);
+  font-size: var(--px-fs-xs);
+  line-height: 1.5;
 }
 .entry-panel {
   display: grid;
@@ -703,6 +851,9 @@ load();
   color: var(--px-text-1);
 }
 @media (max-width: 960px) {
+  .store-summary {
+    grid-template-columns: 1fr 1fr;
+  }
   .miniapp-grid {
     grid-template-columns: 1fr;
   }
@@ -715,6 +866,11 @@ load();
   }
   .entry-item code:only-of-type {
     grid-column: auto;
+  }
+}
+@media (max-width: 680px) {
+  .store-summary {
+    grid-template-columns: 1fr;
   }
 }
 </style>

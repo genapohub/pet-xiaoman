@@ -56,6 +56,8 @@ export default defineConfig({
     },
   },
   build: {
+    // Element Plus 被独立拆成 vendor chunk，体积稳定且可长期缓存；把警戒值调到后台系统实际基线，避免正常构建被噪音淹没。
+    chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
         // 把 element-plus / vue 拆出去，业务代码改动时长期命中 CDN/浏览器缓存

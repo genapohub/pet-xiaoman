@@ -7,7 +7,7 @@
 
   <view class="pay-switch" wx:if="{{!payEnabled && orderNo}}">
     <image src="/assets/icons/shield-primary.png" mode="aspectFit" />
-    <text>线上支付暂未开启，当前仅支持到店付款</text>
+    <text>线上支付入口已预留；若商户号未配置，可切换到店付款</text>
   </view>
 
   <view class="card method-card" wx:if="{{orderNo}}">

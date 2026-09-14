@@ -2,7 +2,7 @@
 //
 // 进入时按门店标识（slug）拉取该店白标，运行时替换 logo / 主色 / 店名。
 // 门店标识来源优先级：
-//   启动 query.slug → 扫码 scene → 包内 DEFAULT_STORE_SLUG → 本地记忆 → 空（后端默认门店）
+//   启动 query.slug → 扫码 query.scene → 包内 DEFAULT_STORE_SLUG → 本地记忆 → 空（后端默认门店）
 //
 // 换肤落点：globalData.theme（页面读它渲染）+ tabBar 选中色（wx.setTabBarStyle）。
 const { getStoreProfile } = require("./request");
@@ -45,8 +45,8 @@ function currentSlug() {
 function slugFromOptions(options) {
   if (!options) return "";
   if (options.query && options.query.slug) return normalizeSlug(options.query.slug);
-  if (options.scene) {
-    let scene = options.scene;
+  if (options.query && options.query.scene) {
+    let scene = options.query.scene;
     try { scene = decodeURIComponent(scene); } catch (e) { /* 原样 */ }
     if (scene.indexOf("=") >= 0) {
       const pair = scene.split("&").find((p) => p.indexOf("slug=") === 0);
@@ -54,6 +54,8 @@ function slugFromOptions(options) {
     }
     return normalizeSlug(scene); // 扫码直接传 slug 的情况
   }
+  // 注意：微信 launch options.scene 是入口场景值（如 1001），不是业务二维码参数。
+  // 把它当 slug 会请求 /store/profile?slug=1001，导致普通搜索/开发者工具启动时品牌 404。
   return "";
 }
 
@@ -66,6 +68,9 @@ function mergeTheme(base, profile) {
     theme.shopName = profile.name || DEFAULT_THEME.shopName;
     theme.slogan = profile.slogan || "";
     theme.logoUrl = profile.logo_url ? absUrl(profile.logo_url) : "";
+    theme.contactPhone = profile.contact_phone || "";
+    theme.contactAddress = profile.contact_address || "";
+    theme.businessHours = profile.business_hours || "";
     theme.themeVars = profile.theme || {};
   }
   return theme;

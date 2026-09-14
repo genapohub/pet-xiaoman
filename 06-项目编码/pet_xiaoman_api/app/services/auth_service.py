@@ -118,7 +118,8 @@ def get_phone_number(phone_code: str) -> str:
     return data["phone_info"]["pure_phone_number"]
 
 
-def phone_login(db: Session, phone_code: str | None = None, dev_phone: str | None = None,
+def phone_login(db: Session, phone_code: str | None = None, code: str | None = None,
+                dev_phone: str | None = None,
                 store_id: int | None = None) -> dict:
     """手机号一键登录：运营商授权手机号（prod）或 dev 手机号（本地）。按手机号找/建客户。
 
@@ -129,20 +130,28 @@ def phone_login(db: Session, phone_code: str | None = None, dev_phone: str | Non
         if not phone_code:
             raise AuthError("缺少手机号授权 code")
         phone = get_phone_number(phone_code)
+        openid = code_to_session(code) if code else None
     else:
         if not dev_phone:
             raise AuthError("微信登录未开启：请提供 dev_phone（本地联调）或开启 WX_LOGIN_ENABLED")
         phone = dev_phone
-    query = db.query(Customer).filter(Customer.phone == phone)
-    if store_id is not None:
-        query = query.filter(Customer.store_id == store_id)
-    customer = query.first()
+        openid = None
+    customer = db.query(Customer).filter(Customer.openid == openid).first() if openid else None
     if not customer:
-        customer = Customer(nickname="微信用户", phone=phone, store_id=store_id)
+        query = db.query(Customer).filter(Customer.phone == phone)
+        if store_id is not None:
+            query = query.filter(Customer.store_id == store_id)
+        customer = query.first()
+    if not customer:
+        customer = Customer(nickname="微信用户", phone=phone, openid=openid, store_id=store_id)
         db.add(customer)
         db.commit()
         db.refresh(customer)
     else:
+        if openid and not customer.openid:
+            customer.openid = openid
+        if store_id is not None and customer.store_id is None:
+            customer.store_id = store_id
         customer.updated_at = datetime.now()
         db.commit()
     return {"token": create_token(customer.id), "customer_id": customer.id, "nickname": customer.nickname}

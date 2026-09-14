@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import require_perm, staff_auth
-from app.models.order import Order, OrderStatus
+from app.models.order import Order, OrderStatus, PayType, RefundStatus
 from app.models.staff import Staff, StaffRole
 from app.services import media_service, order_service, payment_service
 from app.services.order_service import BusinessError
@@ -48,6 +48,9 @@ def list_orders(status: str | None = None,
             "order_no": o.order_no,
             "status": o.status.value,
             "total_amount": float(o.total_amount),
+            "pay_type": o.pay_type.value,
+            "paid_amount": float(o.paid_amount),
+            "refund_status": o.refund_status.value,
             "is_night": bool(o.is_night),
             "expect_time": o.expect_time.isoformat(),
             "created_at": o.created_at.isoformat(),
@@ -83,6 +86,13 @@ def _transition(order_no: str, payload: dict, db: Session, staff: Staff) -> dict
         order = order_service.transition(db, order_no, target, ctx)
     except BusinessError as e:
         raise HTTPException(422, str(e))
+    if target == OrderStatus.CANCELLED.value:
+        reason = (payload.get("reason") or "").strip()
+        order.cancel_reason = reason or "后台取消"
+        if order.pay_type != PayType.UNPAID:
+            order.refund_status = RefundStatus.REFUNDING
+        db.commit()
+        db.refresh(order)
     return {"order_no": order.order_no, "status": order.status.value,
             "message": f"已流转至「{order.status.value}」"}
 
@@ -137,11 +147,56 @@ def reschedule(order_no: str, payload: dict, staff: Staff = Depends(staff_auth),
     new_time = payload.get("expect_time")
     if not new_time:
         raise HTTPException(422, "缺少 expect_time")
-    order.expect_time = datetime.fromisoformat(new_time)
+    if order.status not in (OrderStatus.PENDING_CONFIRM, OrderStatus.BOOKED):
+        raise HTTPException(422, "当前状态不可改期，请联系店长")
+    next_time = datetime.fromisoformat(new_time)
+    if next_time <= datetime.now():
+        raise HTTPException(422, "改期时间必须晚于现在")
+    order.expect_time = next_time
     order.reschedule_count += 1
     db.commit()
     return {"order_no": order.order_no, "expect_time": order.expect_time.isoformat(),
             "reschedule_count": order.reschedule_count}
+
+
+@router.get("/refunds", summary="退款任务列表（V1.5：未接支付时人工闭环）")
+def refund_tasks(status: str | None = "退款中",
+                 staff: Staff = Depends(require_perm("order.refund")),
+                 db: Session = Depends(get_db)):
+    query = db.query(Order)
+    clause = store_clause(Order, staff.store_id)
+    if clause is not None:
+        query = query.filter(clause)
+    if status:
+        query = query.filter(Order.refund_status == RefundStatus(status))
+    else:
+        query = query.filter(Order.refund_status != RefundStatus.NONE)
+    rows = query.order_by(Order.updated_at.desc()).all()
+    return [{
+        "order_no": o.order_no,
+        "status": o.status.value,
+        "refund_status": o.refund_status.value,
+        "pay_type": o.pay_type.value,
+        "paid_amount": float(o.paid_amount),
+        "total_amount": float(o.total_amount),
+        "cancel_reason": o.cancel_reason,
+        "updated_at": o.updated_at.isoformat(),
+    } for o in rows]
+
+
+@router.post("/orders/{order_no}/refund/mark", summary="标记退款完成/失败（人工退款任务闭环）")
+def mark_refund(order_no: str, payload: dict,
+                staff: Staff = Depends(require_perm("order.refund")),
+                db: Session = Depends(get_db)):
+    order = db.query(Order).filter(Order.order_no == order_no).first()
+    if not belongs(order, staff.store_id):
+        raise HTTPException(404, "订单不存在")
+    try:
+        order = payment_service.mark_refund(db, order_no, payload.get("status", ""), payload.get("note", ""))
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+    return {"order_no": order.order_no, "refund_status": order.refund_status.value,
+            "notes": order.notes}
 
 
 @router.post("/orders/{order_no}/media", summary="上传节点影像（强制流转证据，同步 C 端时间线）")

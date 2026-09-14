@@ -8,12 +8,47 @@
     <view class="brand__id">客户编号 {{customerId || "未注册"}}</view>
   </view>
 
+  <view class="profile-card card">
+    <view class="profile-card__main">
+      <view class="profile-card__avatar brandmark">{{shopInitial}}</view>
+      <view class="profile-card__text">
+        <view class="profile-card__name">{{me.nickname || "微信用户"}}</view>
+        <view class="profile-card__meta">{{me.phone_masked || "手机号未同步"}}</view>
+      </view>
+      <view class="profile-card__tag">{{customerId ? "已登录" : "待登录"}}</view>
+    </view>
+    <view class="profile-card__store">{{me.store_name || theme.shopName}}</view>
+  </view>
+
+  <view class="quick-grid">
+    <view class="quick-card">
+      <image src="/assets/icons/shield-primary.png" mode="aspectFit" />
+      <view>
+        <view class="quick-card__title">服务承诺</view>
+        <view class="quick-card__text">透明、可确认</view>
+      </view>
+    </view>
+    <view class="quick-card">
+      <image src="/assets/icons/clock-primary.png" mode="aspectFit" />
+      <view>
+        <view class="quick-card__title">订单进度</view>
+        <view class="quick-card__text">节点可追踪</view>
+      </view>
+    </view>
+  </view>
+
   <view class="menu">
+    <view class="menu__title">我的服务</view>
     <view class="row-link" wx:for="{{menus}}" wx:key="label"
       data-url="{{item.url}}" bindtap="go">
       <image class="icon-md" src="{{item.icon}}" mode="aspectFit" />
       <view class="row-link__label">{{item.label}}</view>
       <image class="icon-sm" src="/assets/icons/chevron.png" mode="aspectFit" />
     </view>
+  </view>
+
+  <view class="logout-wrap">
+    <button class="logout" bindtap="logout">退出登录</button>
+    <view class="logout-wrap__hint">退出仅清除本机登录态，不影响已提交订单</view>
   </view>
 </view>

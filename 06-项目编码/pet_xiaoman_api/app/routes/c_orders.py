@@ -88,6 +88,8 @@ def get_order(order_no: str, db: Session = Depends(get_db),
         "price_version": order.price_version,
         "addons": order.addons or [],
         "cancel_reason": order.cancel_reason,
+        "reschedule_count": order.reschedule_count,
+        "reschedule_quota_left": max(0, 1 - order.reschedule_count),
     }
 
 
@@ -108,6 +110,36 @@ def cancel_order(order_no: str, payload: dict, db: Session = Depends(get_db),
         "refund_status": order.refund_status.value,
         "message": "已取消" + ("，已付金额将原路退回（1-3 个工作日）" if refunded else ""),
     }
+
+
+@router.post("/orders/{order_no}/reschedule", summary="客户免费改期一次（PRD §6.2，仅对本店订单生效）")
+def reschedule(order_no: str, payload: dict, db: Session = Depends(get_db),
+               store_id: int | None = Depends(store_context)):
+    """C 端改期：免费 1 次，与 B 端 `/api/b/orders/{no}/reschedule` 共享配额 `reschedule_count`。
+
+    安全：
+      - 走 store 隔离（belongs 校验），跨店改期直接 404
+      - 超过 1 次返 422（前端友好提示「请联系店长」）
+      - 不允许改到过去时间（业务校验在 order_service.reschedule_by_customer）
+    """
+    existing = db.query(Order).filter(Order.order_no == order_no).first()
+    if not belongs(existing, store_id):
+        raise HTTPException(404, "订单不存在")
+    new_time = payload.get("expect_time")
+    if not new_time:
+        raise HTTPException(422, "缺少 expect_time")
+    try:
+        dt = datetime.fromisoformat(str(new_time).replace("Z", "+00:00"))
+        if dt.tzinfo is not None:
+            dt = dt.replace(tzinfo=None)
+        order = order_service.reschedule_by_customer(db, order_no, dt)
+    except BusinessError as e:
+        raise HTTPException(422, str(e))
+    except ValueError:
+        raise HTTPException(422, "改期时间格式不正确")
+    return {"order_no": order.order_no, "expect_time": order.expect_time.isoformat(),
+            "reschedule_count": order.reschedule_count,
+            "reschedule_quota_left": max(0, 1 - order.reschedule_count)}
 
 
 @router.get("/orders/{order_no}/media", summary="订单影像（C006 时间线数据源，不含已撤回）")

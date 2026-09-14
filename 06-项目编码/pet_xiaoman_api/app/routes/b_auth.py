@@ -91,6 +91,7 @@ PLATFORM_BRAND = {
     "store_id": None, "slug": None, "name": "平台管理台", "slogan": "多门店统一管理",
     "logo_url": None, "primary_color": DEFAULT_PRIMARY_COLOR,
     "theme": {"primary_color": DEFAULT_PRIMARY_COLOR},
+    "contact_phone": None, "contact_address": None, "business_hours": None,
     "miniapp_name": None, "miniapp_appid": None, "miniapp_entry_enabled": False,
 }
 
@@ -98,6 +99,8 @@ PLATFORM_BRAND = {
 def _profile_dict(p: StoreProfile) -> dict:
     return {"store_id": p.store_id, "slug": p.slug, "name": p.name, "slogan": p.slogan,
             "logo_url": p.logo_url, "primary_color": p.primary_color, "theme": p.theme,
+            "contact_phone": p.contact_phone, "contact_address": p.contact_address,
+            "business_hours": p.business_hours,
             "miniapp_name": p.miniapp_name, "miniapp_appid": p.miniapp_appid,
             "miniapp_entry_enabled": p.miniapp_entry_enabled}
 

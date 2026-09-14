@@ -14,4 +14,7 @@ module.exports = {
   colorError: "#D54941",
   shopName: "宠物善终服务",      // 中性兜底：拉到门店资料后必被覆盖
   slogan: "",                    // 空 = 不展示（由门店资料提供，不硬编码）
+  contactPhone: "",
+  contactAddress: "",
+  businessHours: "",
 };

@@ -24,6 +24,9 @@ class StoreProfile(BaseModel):
     logo_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     primary_color: Mapped[str] = mapped_column(String(20), default=DEFAULT_PRIMARY_COLOR)
     theme_json: Mapped[dict] = mapped_column(JSON, default=dict)            # 预留其他 UI token
+    contact_phone: Mapped[str | None] = mapped_column(String(20), nullable=True)    # C 端咨询电话
+    contact_address: Mapped[str | None] = mapped_column(String(120), nullable=True) # C 端门店地址
+    business_hours: Mapped[str | None] = mapped_column(String(50), nullable=True)   # C 端营业时间
     miniapp_name: Mapped[str | None] = mapped_column(String(50), nullable=True)     # 独立小程序名称
     miniapp_appid: Mapped[str | None] = mapped_column(String(64), nullable=True)    # 独立小程序 AppID
     miniapp_entry_enabled: Mapped[bool] = mapped_column(Boolean, default=True)      # 搜索入口是否启用

@@ -67,11 +67,11 @@
       @cancel="createVisible = false"
       @submit="save"
     >
-      <el-form label-width="72px">
-        <el-form-item label="姓名"><el-input v-model="form.name" maxlength="50" placeholder="如：小李" /></el-form-item>
-        <el-form-item label="账号"><el-input v-model="form.username" maxlength="32" placeholder="登录账号，唯一" /></el-form-item>
-        <el-form-item label="初始密码"><el-input v-model="form.password" maxlength="32" placeholder="至少 6 位" /></el-form-item>
-        <el-form-item label="手机号"><el-input v-model="form.phone" maxlength="20" placeholder="选填" /></el-form-item>
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="72px">
+        <el-form-item label="姓名" prop="name"><el-input v-model="form.name" maxlength="50" placeholder="如：小李" /></el-form-item>
+        <el-form-item label="账号" prop="username"><el-input v-model="form.username" maxlength="32" placeholder="3-32 位字母、数字或下划线" /></el-form-item>
+        <el-form-item label="初始密码" prop="password"><el-input v-model="form.password" maxlength="32" placeholder="至少 6 位" /></el-form-item>
+        <el-form-item label="手机号" prop="phone"><el-input v-model="form.phone" maxlength="20" placeholder="选填" /></el-form-item>
       </el-form>
     </px-form-drawer>
   </div>
@@ -93,6 +93,21 @@ const managerName = computed(() => rows.value.find((r) => r.role === "manager")?
 const createVisible = ref(false);
 const saving = ref(false);
 const form = ref({ name: "", username: "", password: "", phone: "" });
+const formRef = ref(null);
+const usernamePattern = /^[A-Za-z0-9_]{3,32}$/;
+const phonePattern = /^$|^1\d{10}$|^0\d{2,3}-?\d{7,8}$/;
+const rules = {
+  name: [{ required: true, message: "请填写姓名", trigger: "blur" }],
+  username: [
+    { required: true, message: "请填写登录账号", trigger: "blur" },
+    { pattern: usernamePattern, message: "账号需为 3-32 位字母、数字或下划线", trigger: "blur" },
+  ],
+  password: [
+    { required: true, message: "请填写初始密码", trigger: "blur" },
+    { min: 6, message: "初始密码至少 6 位", trigger: "blur" },
+  ],
+  phone: [{ pattern: phonePattern, message: "手机号或座机格式不正确；不填也可以", trigger: "blur" }],
+};
 
 function openCreate() {
   form.value = { name: "", username: "", password: "", phone: "" };
@@ -100,12 +115,15 @@ function openCreate() {
 }
 
 async function save() {
-  if (!form.value.name || !form.value.username || !form.value.password) {
-    return ElMessage.warning("请填写姓名、账号与初始密码");
-  }
+  await formRef.value?.validate();
   saving.value = true;
   try {
-    await createStaff({ ...form.value });
+    await createStaff({
+      name: form.value.name.trim(),
+      username: form.value.username.trim(),
+      password: form.value.password,
+      phone: form.value.phone.trim() || null,
+    });
     createVisible.value = false;
     ElMessage.success("成员已创建，归属本店");
     load();

@@ -14,6 +14,9 @@ MAX_SLOGAN = 50
 MAX_LOGO_URL = 255
 MAX_MINIAPP_NAME = 50
 MAX_MINIAPP_APPID = 64
+MAX_CONTACT_PHONE = 20
+MAX_CONTACT_ADDRESS = 120
+MAX_BUSINESS_HOURS = 50
 
 
 def valid_slug(v: str) -> str:
@@ -76,4 +79,33 @@ def valid_miniapp_appid(v: str | None) -> str | None:
         return ""
     if len(v) > MAX_MINIAPP_APPID or not MINIAPP_APPID_RE.match(v):
         raise ValueError("小程序 AppID 需以 wx 开头，仅包含字母数字")
+    return v
+
+
+def valid_contact_phone(v: str | None) -> str | None:
+    if v is None:
+        return None
+    v = v.strip()
+    if not v:
+        return ""
+    if len(v) > MAX_CONTACT_PHONE or not re.match(r"^[0-9+\-\s()]{5,20}$", v):
+        raise ValueError("联系电话格式不正确")
+    return v
+
+
+def valid_contact_address(v: str | None) -> str | None:
+    if v is None:
+        return None
+    v = v.strip()
+    if len(v) > MAX_CONTACT_ADDRESS:
+        raise ValueError(f"门店地址过长（≤{MAX_CONTACT_ADDRESS} 字）")
+    return v
+
+
+def valid_business_hours(v: str | None) -> str | None:
+    if v is None:
+        return None
+    v = v.strip()
+    if len(v) > MAX_BUSINESS_HOURS:
+        raise ValueError(f"营业时间过长（≤{MAX_BUSINESS_HOURS} 字）")
     return v

@@ -14,3 +14,6 @@ export const saveNotes = (orderNo, notes) => http.put(`/orders/${orderNo}/notes`
 export const reschedule = (orderNo, expectTime) => http.post(`/orders/${orderNo}/reschedule`, { expect_time: expectTime });
 export const settleOrder = (orderNo, amount) => http.post(`/orders/${orderNo}/settle`, { amount });
 export const revokeMedia = (mediaId, reason) => http.post(`/media/${mediaId}/revoke`, { reason });
+export const listRefundTasks = (status = "退款中") => http.get("/refunds", { params: { status } });
+export const markRefund = (orderNo, status, note = "") =>
+  http.post(`/orders/${orderNo}/refund/mark`, { status, note });

@@ -33,8 +33,23 @@ class Settings:
     # 微信（商户号开通后填入；支付模块有功能开关，PRD §10.1）
     WX_APPID = os.getenv("WX_APPID", "")
     WX_MCH_ID = os.getenv("WX_MCH_ID", "")
-    WX_PAY_KEY = os.getenv("WX_PAY_KEY", "")  # APIv3 密钥走密钥管理，禁止入库
+    WX_PAY_SERIAL_NO = os.getenv("WX_PAY_SERIAL_NO", "")
+    WX_PAY_NOTIFY_URL = os.getenv("WX_PAY_NOTIFY_URL", "")
+    WX_PAY_PRIVATE_KEY = os.getenv("WX_PAY_PRIVATE_KEY", "")
+    WX_PAY_PRIVATE_KEY_PATH = os.getenv("WX_PAY_PRIVATE_KEY_PATH", "")
+    WX_PAY_PLATFORM_CERT_PATH = os.getenv("WX_PAY_PLATFORM_CERT_PATH", "")
+    WX_PAY_API_BASE = os.getenv("WX_PAY_API_BASE", "https://api.mch.weixin.qq.com")
+    # 兼容旧变量 WX_PAY_KEY；正式环境推荐使用 WX_PAY_API_V3_KEY。
+    WX_PAY_API_V3_KEY = os.getenv("WX_PAY_API_V3_KEY", os.getenv("WX_PAY_KEY", ""))
+    WX_PAY_KEY = WX_PAY_API_V3_KEY
     PAY_ENABLED = os.getenv("PAY_ENABLED", "false").lower() == "true"  # 支付功能开关
+    SUBSCRIBE_TEMPLATE_IDS = [
+        i.strip() for i in os.getenv("SUBSCRIBE_TEMPLATE_IDS", "").split(",") if i.strip()
+    ]
+    # 地图/定位能力先做配置位：V1.0/V1.5 不强接第三方，后续可替换为腾讯地图等 provider。
+    MAP_PROVIDER = os.getenv("MAP_PROVIDER", "wechat")
+    MAP_PICKER_ENABLED = os.getenv("MAP_PICKER_ENABLED", "true").lower() == "true"
+    MAP_KEY = os.getenv("MAP_KEY", "")
 
     # 微信登录（开关关闭时 C 端走轻量 customer_id 模式，存量接口不强制 token）
     WX_SECRET = os.getenv("WX_SECRET", "")

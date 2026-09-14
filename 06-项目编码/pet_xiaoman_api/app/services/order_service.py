@@ -56,6 +56,9 @@ def _get_or_create_pet(db: Session, user_id: int, name: str, species: str, weigh
 
 def create_order(db: Session, data, store_id: int | None = None) -> Order:
     """提交预约：校验 → 重复单拦截 → 锁价快照 → 落库（PRD §5.2.1）。"""
+    if data.expect_time <= datetime.now():
+        raise BusinessError("期望服务时间必须晚于现在")
+
     # ① 重复单拦截：同客户存在进行中订单
     active = (db.query(Order)
               .filter(Order.user_id == data.user_id, Order.status.in_(ACTIVE_STATUSES))
@@ -117,6 +120,30 @@ def cancel_by_customer(db: Session, order_no: str, reason: str) -> Order:
         order.refund_status = RefundStatus.REFUNDING
     order.status = OrderStatus.CANCELLED
     order.cancel_reason = reason or "客户取消"
+    db.commit()
+    db.refresh(order)
+    return order
+
+
+def reschedule_by_customer(db: Session, order_no: str, new_time: datetime) -> Order:
+    """客户改期（PRD §6.2）：免费 1 次，与 B 端 `/api/b/orders/{no}/reschedule` 共享配额。
+
+    校验：
+      - 仅待确认/已预约可改期（接宠之后改期要走门店人工通道）
+      - 1 次免费配额已用完 → 抛 BusinessError，前端引导「请联系店长」
+      - 改到过去时间 → 抛 BusinessError
+    """
+    order = db.query(Order).filter(Order.order_no == order_no).first()
+    if not order:
+        raise BusinessError("订单不存在")
+    if order.status not in (OrderStatus.PENDING_CONFIRM, OrderStatus.BOOKED):
+        raise BusinessError("当前状态不可改期，请联系门店处理")
+    if order.reschedule_count >= 1:
+        raise BusinessError("免费改期次数已用完，请联系店长")
+    if new_time <= datetime.now():
+        raise BusinessError("改期时间必须晚于现在")
+    order.expect_time = new_time
+    order.reschedule_count += 1
     db.commit()
     db.refresh(order)
     return order

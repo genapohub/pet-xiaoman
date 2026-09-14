@@ -21,7 +21,10 @@ def test_dev_login_issues_token(client, seeded_customer):
     token = resp.json()["token"]
     assert token.count(".") == 2
     me = client.get("/api/c/auth/me", headers={"X-Customer-Token": token}).json()
-    assert me == {"logged_in": True, "customer_id": seeded_customer["customer_id"]}
+    assert me["logged_in"] is True
+    assert me["customer_id"] == seeded_customer["customer_id"]
+    assert me["nickname"] == "登录测试"
+    assert me["phone_masked"] == "138****9999"
 
 
 def test_invalid_token_rejected(client):

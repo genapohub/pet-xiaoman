@@ -1,12 +1,19 @@
 <view class="login" style="{{brandStyle}}">
-  <view class="login__brand">
-    <image wx:if="{{theme.logoUrl}}" class="login__lockup" src="{{theme.logoUrl}}" mode="aspectFit" />
-    <view wx:else class="login__mark brandmark">{{shopInitial}}</view>
-    <text class="login__shop">{{theme.shopName}}</text>
-    <text class="login__slogan" wx:if="{{theme.slogan}}">{{theme.slogan}}</text>
+  <view class="login__hero">
+    <view class="login__brand">
+      <image wx:if="{{theme.logoUrl}}" class="login__lockup" src="{{theme.logoUrl}}" mode="aspectFit" />
+      <view wx:else class="login__mark brandmark">{{shopInitial}}</view>
+      <text class="login__shop">{{theme.shopName}}</text>
+      <text class="login__slogan" wx:if="{{theme.slogan}}">{{theme.slogan}}</text>
+    </view>
   </view>
 
   <view class="login__card">
+    <view class="login__card-head">
+      <text class="login__title">登录后继续预约</text>
+      <text class="login__subtitle">手机号仅用于订单确认与服务通知</text>
+    </view>
+
     <button
       class="login__phone"
       open-type="getPhoneNumber"
@@ -18,6 +25,24 @@
       开发模式直接登录
     </button>
 
-    <text class="login__hint">登录即表示授权获取微信绑定手机号，用于订单与回访通知</text>
+    <view class="login__promise">
+      <view class="login__promise-item">
+        <image src="/assets/icons/price-primary.png" mode="aspectFit" />
+        <text>明码标价</text>
+      </view>
+      <view class="login__promise-item">
+        <image src="/assets/icons/shield-primary.png" mode="aspectFit" />
+        <text>专属服务</text>
+      </view>
+      <view class="login__promise-item">
+        <image src="/assets/icons/clock-primary.png" mode="aspectFit" />
+        <text>进度可查</text>
+      </view>
+    </view>
+
+    <view class="login__hint">
+      <image src="/assets/icons/shield-primary.png" mode="aspectFit" />
+      <text>登录即表示授权获取微信绑定手机号，用于订单与回访通知</text>
+    </view>
   </view>
 </view>

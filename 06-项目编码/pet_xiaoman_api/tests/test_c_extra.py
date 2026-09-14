@@ -41,6 +41,35 @@ def test_customer_register_returns_id(client):
     assert "customer_id" in resp.json()
 
 
+def test_subscribe_config_from_env(client, monkeypatch):
+    from app import config
+
+    monkeypatch.setattr(config.settings, "SUBSCRIBE_TEMPLATE_IDS", ["tmpl-order", "tmpl-done"])
+    resp = client.get("/api/c/subscribe/config")
+    assert resp.status_code == 200
+    assert resp.json() == {"enabled": True, "template_ids": ["tmpl-order", "tmpl-done"]}
+
+
+def test_integrations_config_is_configurable_without_secrets(client, monkeypatch):
+    """支付/订阅/地图都先按配置位暴露状态，不把密钥下发到 C 端。"""
+    from app import config
+
+    monkeypatch.setattr(config.settings, "PAY_ENABLED", False)
+    monkeypatch.setattr(config.settings, "SUBSCRIBE_TEMPLATE_IDS", ["tmpl-order"])
+    monkeypatch.setattr(config.settings, "MAP_PROVIDER", "tencent")
+    monkeypatch.setattr(config.settings, "MAP_PICKER_ENABLED", False)
+    monkeypatch.setattr(config.settings, "MAP_KEY", "secret-map-key")
+
+    data = client.get("/api/c/integrations/config").json()
+    assert data["payment"]["enabled"] is False
+    assert data["payment"]["fallback"] == "到店付"
+    assert data["subscribe"]["template_count"] == 1
+    assert data["map"]["provider"] == "tencent"
+    assert data["map"]["picker_enabled"] is False
+    assert data["map"]["key_configured"] is True
+    assert "secret-map-key" not in str(data)
+
+
 def test_pets_with_order_history(client, seeded):
     resp = client.get("/api/c/pets", params={"user_id": seeded["customer_id"]})
     assert resp.status_code == 200

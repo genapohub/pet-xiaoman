@@ -188,7 +188,9 @@ def test_phone_login_dev_issues_token(client):
     assert r1.status_code == 200
     t1, cid1 = r1.json()["token"], r1.json()["customer_id"]
     me = client.get("/api/c/auth/me", headers={"X-Customer-Token": t1}).json()
-    assert me == {"logged_in": True, "customer_id": cid1}
+    assert me["logged_in"] is True
+    assert me["customer_id"] == cid1
+    assert me["phone_masked"] == "138****0000"
 
     r2 = client.post("/api/c/auth/phone-login", json={"dev_phone": "13800000000"})
     assert r2.json()["customer_id"] == cid1  # 幂等：不重复建客户
@@ -201,6 +203,23 @@ def test_phone_login_requires_code_when_enabled(client, monkeypatch):
     resp = client.post("/api/c/auth/phone-login", json={})
     assert resp.status_code == 422
     assert "手机号授权" in resp.json()["detail"]
+
+
+def test_phone_login_binds_openid_when_enabled(client, db, monkeypatch):
+    """正式微信登录：手机号授权 + wx.login code 同步绑定 openid，供 JSAPI 支付使用。"""
+    from app import config
+    from app.models.customer import Customer
+    from app.services import auth_service
+
+    monkeypatch.setattr(config.settings, "WX_LOGIN_ENABLED", True)
+    monkeypatch.setattr(auth_service, "get_phone_number", lambda phone_code: "13800002222")
+    monkeypatch.setattr(auth_service, "code_to_session", lambda code: "openid-jsapi-001")
+
+    resp = client.post("/api/c/auth/phone-login", json={"phone_code": "phone-code", "code": "login-code"})
+    assert resp.status_code == 200
+    customer = db.get(Customer, resp.json()["customer_id"])
+    assert customer.phone == "13800002222"
+    assert customer.openid == "openid-jsapi-001"
 
 
 def test_phone_login_legacy_requires_dev_phone(client):
