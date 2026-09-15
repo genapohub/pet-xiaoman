@@ -4,6 +4,7 @@
 """
 from datetime import datetime
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.models.customer import Customer
@@ -37,9 +38,12 @@ def gen_order_no(db: Session) -> str:
 def _get_or_create_pet(db: Session, user_id: int, name: str, species: str, weight,
                        store_id: int | None = None) -> Pet:
     """宠物档案复用：同名未删除档案直接复用，否则新建（PRD C009）。"""
-    pet = (db.query(Pet)
-           .filter(Pet.owner_id == user_id, Pet.name == name, Pet.deleted.is_(False))
-           .first())
+    query = db.query(Pet).filter(Pet.owner_id == user_id, Pet.name == name, Pet.deleted.is_(False))
+    if store_id is not None:
+        # 多门店租户隔离：同一客户在不同门店可能都有同名宠物，不能跨店复用宠物档案。
+        # store_id=None 是历史单店数据，命中后会顺手归属到当前门店。
+        query = query.filter(or_(Pet.store_id == store_id, Pet.store_id.is_(None)))
+    pet = query.first()
     if pet:
         if store_id is not None and pet.store_id is None:
             pet.store_id = store_id  # 顺手打标历史档案
@@ -60,9 +64,10 @@ def create_order(db: Session, data, store_id: int | None = None) -> Order:
         raise BusinessError("期望服务时间必须晚于现在")
 
     # ① 重复单拦截：同客户存在进行中订单
-    active = (db.query(Order)
-              .filter(Order.user_id == data.user_id, Order.status.in_(ACTIVE_STATUSES))
-              .first())
+    active_query = db.query(Order).filter(Order.user_id == data.user_id, Order.status.in_(ACTIVE_STATUSES))
+    if store_id is not None:
+        active_query = active_query.filter(or_(Order.store_id == store_id, Order.store_id.is_(None)))
+    active = active_query.first()
     if active:
         raise BusinessError("您有进行中的订单，请联系门店处理")
 

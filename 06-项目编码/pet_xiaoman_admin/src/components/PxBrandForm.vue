@@ -205,9 +205,7 @@ watch(() => props.storeId, load, { immediate: true });
   padding: var(--px-sp-3) var(--px-sp-4);
   border: 1px solid var(--px-border);
   border-radius: var(--px-radius-md);
-  background:
-    radial-gradient(circle at 90% 10%, rgba(217, 164, 104, 0.16) 0, rgba(217, 164, 104, 0) 120px),
-    var(--px-bg-warm);
+  background: var(--px-bg-warm);
 }
 .preview__device {
   display: flex;
@@ -222,7 +220,7 @@ watch(() => props.storeId, load, { immediate: true });
   height: 36px;
   flex-shrink: 0;
   border-radius: var(--px-radius-sm);
-  background: linear-gradient(180deg, var(--px-primary), var(--px-primary-pressed));
+  background: var(--px-primary);
   color: var(--px-text-inverse);
   font-size: var(--px-fs-md);
   font-weight: 600;

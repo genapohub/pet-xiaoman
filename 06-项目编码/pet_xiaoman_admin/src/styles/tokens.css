@@ -25,9 +25,7 @@ body {
   font-size: var(--px-fs-base);
   line-height: var(--px-lh-body);
   color: var(--px-text-1);
-  background:
-    radial-gradient(circle at 8% 0%, rgba(217, 164, 104, 0.08), transparent 28%),
-    linear-gradient(180deg, var(--px-bg-paper) 0%, var(--px-bg-page) 38%);
+  background: var(--px-bg-page);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -66,6 +64,7 @@ body {
   --px-bg-page: #f7f8fa;
   --px-bg-paper: #FAF9F6;
   --px-bg-card: #ffffff;
+  --px-bg-elevated: #ffffff;
   --px-bg-hover: #f2f3f5;
   --px-bg-selected: #EAF1EF;
   --px-bg-warm: #FFFBF5;
@@ -173,7 +172,7 @@ body {
 /* 表格：行高 48px + 表头弱化 */
 .el-table {
   --el-table-border-color: var(--px-border);
-  --el-table-header-bg-color: var(--px-primary-softer);
+  --el-table-header-bg-color: var(--px-bg-paper);
   --el-table-header-text-color: var(--px-text-2);
   --el-table-text-color: var(--px-text-2);
   --el-table-row-hover-bg-color: var(--px-primary-softer);
@@ -301,13 +300,14 @@ body {
 }
 
 .el-card {
+  background: var(--px-bg-elevated);
   border-color: rgba(201, 205, 212, 0.70);
   border-radius: var(--px-radius-lg);
   box-shadow: var(--px-shadow-card);
 }
 .el-card__header {
   border-bottom-color: var(--px-border);
-  background: linear-gradient(180deg, #fff, var(--px-primary-softer));
+  background: var(--px-bg-card);
 }
 .el-alert {
   border-radius: var(--px-radius-lg);
@@ -331,7 +331,7 @@ body {
 }
 .el-drawer__body {
   padding: var(--px-sp-6);
-  background: linear-gradient(180deg, var(--px-bg-card), var(--px-bg-paper));
+  background: var(--px-bg-page);
 }
 .el-drawer__footer {
   padding: var(--px-sp-4) var(--px-sp-6);

@@ -13,6 +13,7 @@ page {
   --c-primary-deep: #3D5C57;   /* 文字 / 线条 / logo */
   --c-primary-light: #EEF4F3;  /* 背景块 */
   --c-primary-pale: #F5F9F8;   /* 更浅的选中底 */
+  --c-primary-ghost: #F8FBFA;  /* 极浅操作区 */
 
   /* ===== 辅色：暖陶土（情绪刺点 ≤10%）===== */
   --c-clay: #D9A468;
@@ -46,7 +47,7 @@ page {
   /* ===== 圆角 ===== */
   --r-sm: 8rpx;
   --r-md: 16rpx;
-  --r-lg: 24rpx;
+  --r-lg: 20rpx;
   --r-pill: 999rpx;
 
   /* ===== 字号 / 行高 ===== */
@@ -80,8 +81,7 @@ page {
 .page {
   min-height: 100vh;
   padding-bottom: var(--sp-6);
-  background:
-    linear-gradient(180deg, var(--c-paper) 0%, var(--c-paper-deep) 100%);
+  background: var(--c-paper);
   box-sizing: border-box;
 }
 
@@ -91,8 +91,8 @@ page {
   align-items: center;
   justify-content: center;
   height: var(--h-touch);
-  border-radius: var(--r-pill);
-  background: linear-gradient(180deg, var(--c-primary) 0%, var(--c-primary-press) 100%);
+  border-radius: var(--r-md);
+  background: var(--c-primary);
   color: #fff;
   font-size: var(--fs-md);
   font-weight: 600;
@@ -116,7 +116,7 @@ page {
   align-items: center;
   justify-content: center;
   height: var(--h-touch);
-  border-radius: var(--r-pill);
+  border-radius: var(--r-md);
   background: var(--c-card);
   color: var(--c-primary);
   border: 1rpx solid var(--c-primary);
@@ -133,7 +133,7 @@ page {
   background: var(--c-card-warm);
   border-radius: var(--r-lg);
   padding: var(--sp-4);
-  box-shadow: var(--sd-card);
+  box-shadow: 0 2rpx 10rpx rgba(61, 92, 87, 0.045);
   border: 1rpx solid rgba(61, 92, 87, 0.06);
   /* 小程序默认 content-box：一旦给 .card 设了百分比宽度，
      内边距就会额外撑宽导致换行（两列网格踩过此坑）。统一改为 border-box。 */
@@ -172,7 +172,7 @@ page {
   margin: var(--sp-4);
   background: var(--c-card-warm);
   border-radius: var(--r-lg);
-  border: 1rpx solid rgba(61, 92, 87, 0.06);
+  border: 1rpx solid var(--c-border);
 }
 .state__icon { width: 80rpx; height: 80rpx; opacity: 0.6; }
 .state__text { font-size: var(--fs-base); color: var(--c-gray); }
@@ -198,6 +198,7 @@ page {
   min-height: var(--h-touch);
   padding: var(--sp-3) var(--sp-4);
   background: var(--c-card);
+  border: 1rpx solid var(--c-border);
 }
 .row-link__label { flex: 1; font-size: var(--fs-base); color: var(--c-ink); }
 

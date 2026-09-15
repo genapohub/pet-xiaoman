@@ -26,20 +26,11 @@ defineProps({
   position: relative;
   overflow: hidden;
   padding: var(--px-sp-4);
-  background: linear-gradient(180deg, var(--px-bg-card), var(--px-bg-warm));
+  background: var(--px-bg-card);
   border: 1px solid var(--px-border);
+  border-top: 3px solid var(--px-primary);
   border-radius: var(--px-radius-lg);
   box-shadow: var(--px-shadow-card);
-}
-.px-stat::after {
-  content: "";
-  position: absolute;
-  right: -18px;
-  top: -18px;
-  width: 64px;
-  height: 64px;
-  border-radius: 999px;
-  background: rgba(91, 140, 133, 0.08);
 }
 .px-stat__top {
   display: flex;

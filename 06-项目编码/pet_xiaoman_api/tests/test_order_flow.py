@@ -36,6 +36,15 @@ def test_create_order_rejects_offsale_addon(client, order_input, seed):
     assert "不可用" in resp.json()["detail"]
 
 
+def test_create_order_rejects_past_expect_time(client, order_input):
+    """预约时间不能是过去时间，避免试运营时生成无法履约的历史单。"""
+    from datetime import datetime, timedelta
+    resp = create(client, order_input,
+                  expect_time=(datetime.now() - timedelta(minutes=5)).isoformat())
+    assert resp.status_code == 422
+    assert "晚于现在" in resp.json()["detail"]
+
+
 def test_duplicate_active_order_rejected(client, order_input):
     """AC3：同客户存在进行中订单时重复下单被拦截（网络重试场景由幂等拦截兜底）。"""
     assert create(client, order_input).status_code == 200

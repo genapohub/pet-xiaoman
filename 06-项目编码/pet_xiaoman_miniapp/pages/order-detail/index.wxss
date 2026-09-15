@@ -1,8 +1,6 @@
 .status-head {
   padding: var(--sp-6) var(--sp-4) 72rpx;
-  background:
-    radial-gradient(circle at 82% 12%, rgba(217, 164, 104, 0.18) 0, rgba(217, 164, 104, 0) 180rpx),
-    linear-gradient(180deg, var(--c-primary) 0%, var(--c-primary-press) 100%);
+  background: var(--c-primary);
   color: #fff;
   border-bottom-left-radius: 36rpx;
   border-bottom-right-radius: 36rpx;
@@ -25,6 +23,7 @@
 .card {
   margin: var(--sp-3) var(--sp-4);
   padding: var(--sp-4);
+  border: 1rpx solid var(--c-border);
 }
 .status-head + .card {
   margin-top: -36rpx;

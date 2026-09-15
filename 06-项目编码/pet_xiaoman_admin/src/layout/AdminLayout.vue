@@ -131,9 +131,7 @@ onUnmounted(() => window.removeEventListener("resize", syncViewport));
 
 .sider {
   width: var(--px-w-sider);
-  background:
-    linear-gradient(180deg, rgba(234, 241, 239, 0.92), rgba(255, 251, 245, 0.96)),
-    var(--px-bg-card);
+  background: var(--px-bg-paper);
   border-right: 1px solid var(--px-border);
   transition: width var(--px-motion-normal) var(--px-ease-out);
   overflow-x: hidden;
@@ -157,11 +155,11 @@ onUnmounted(() => window.removeEventListener("resize", syncViewport));
   height: 28px;
   flex-shrink: 0;
   border-radius: var(--px-radius-sm);
-  background: linear-gradient(180deg, var(--px-primary), var(--px-primary-pressed));
+  background: var(--px-primary);
   color: var(--px-text-inverse);
   font-size: var(--px-fs-base);
   font-weight: 600;
-  box-shadow: 0 8px 18px rgba(91, 140, 133, 0.18);
+  box-shadow: var(--px-shadow-card);
 }
 .brand__logo {
   width: 18px;
@@ -190,8 +188,7 @@ onUnmounted(() => window.removeEventListener("resize", syncViewport));
   gap: var(--px-sp-3);
   height: var(--px-h-navbar);
   padding: 0 var(--px-sp-6);
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(10px);
+  background: var(--px-bg-card);
   border-bottom: 1px solid var(--px-border);
 }
 .navbar__icon {

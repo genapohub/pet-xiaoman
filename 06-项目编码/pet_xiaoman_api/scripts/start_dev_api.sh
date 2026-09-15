@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 
 PORT="${PORT:-8010}"
 API_HOST="${API_HOST:-127.0.0.1}"
-PYTHON_BIN=".venv/bin/python"
+PYTHON_BIN="${PYTHON_BIN:-.venv/bin/python}"
 
 echo "========== 宠小满 API 启动检查 =========="
 echo "目录：$(pwd)"
@@ -17,6 +17,14 @@ if [ ! -x "$PYTHON_BIN" ]; then
   echo "启动失败：找不到 API 项目的 Python 解释器。"
   echo "期望位置：$(pwd)/${PYTHON_BIN}"
   echo "处理方式：在 pet_xiaoman_api 目录重新创建虚拟环境，或在 PyCharm 配置里选择正确解释器。"
+  exit 1
+fi
+
+if ! "$PYTHON_BIN" --version >/dev/null 2>&1; then
+  echo "启动失败：当前 Python 解释器链接已失效，无法执行。"
+  echo "当前配置：$(pwd)/${PYTHON_BIN}"
+  echo "处理方式：在 pet_xiaoman_api 目录执行：uv venv --python 3.14 --clear .venv"
+  echo "然后执行：uv pip install --python .venv/bin/python -r requirements.txt"
   exit 1
 fi
 

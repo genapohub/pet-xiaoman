@@ -71,7 +71,7 @@ defineEmits(["retry", "page-change", "size-change", "row-click"]);
 .px-tp__filters {
   padding: var(--px-sp-3);
   margin-bottom: var(--px-sp-4);
-  background: linear-gradient(180deg, var(--px-bg-card), var(--px-bg-warm));
+  background: var(--px-bg-card);
   border: 1px solid var(--px-border);
   border-radius: var(--px-radius-lg);
   box-shadow: var(--px-shadow-card);

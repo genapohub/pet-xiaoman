@@ -126,7 +126,14 @@ onUnmounted(() => clearInterval(timer));
   align-items: center;
   justify-content: space-between;
   padding: var(--px-sp-3) var(--px-sp-4);
+  background: var(--px-bg-card);
 }
+.lane {
+  border-top: 3px solid var(--px-primary);
+}
+.lane:nth-child(2) { border-top-color: var(--px-chart-2); }
+.lane:nth-child(3) { border-top-color: var(--px-chart-3); }
+.lane:nth-child(4) { border-top-color: var(--px-chart-1); }
 .lane__name { font-weight: 600; color: var(--px-text-1); }
 .lane__count {
   min-width: 20px;
@@ -151,6 +158,7 @@ onUnmounted(() => clearInterval(timer));
   border-color: var(--px-primary);
   background: var(--px-bg-hover);
 }
+.order:active { background: var(--px-primary-weak); }
 .order:focus-visible {
   outline: 2px solid var(--px-primary);
   outline-offset: 1px;

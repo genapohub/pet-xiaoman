@@ -39,7 +39,7 @@ const icon = computed(() => ICONS[props.variant] || Box);
   height: 64px;
   border: 1px solid var(--px-border);
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--px-bg-card), var(--px-primary-softer));
+  background: var(--px-primary-softer);
   font-size: 40px;
   color: var(--px-primary);
 }

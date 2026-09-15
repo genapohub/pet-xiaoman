@@ -109,6 +109,18 @@ def test_c_order_detail_scoped_by_slug(client, order_input, two_stores):
     assert client.get(f"/api/c/orders/{order_no}", headers=_S("store-b")).status_code == 404
 
 
+def test_same_customer_can_order_in_different_stores(client, order_input, two_stores):
+    """同一客户跨店下单不互相拦截，且同名宠物档案不跨店复用。"""
+    a = client.post("/api/c/orders", json=order_input, headers=_S("store-a"))
+    assert a.status_code == 200, a.text
+    b = client.post("/api/c/orders", json=order_input, headers=_S("store-b"))
+    assert b.status_code == 200, b.text
+
+    a_detail = client.get(f"/api/c/orders/{a.json()['order_no']}", headers=_S("store-a")).json()
+    b_detail = client.get(f"/api/c/orders/{b.json()['order_no']}", headers=_S("store-b")).json()
+    assert a_detail["pet_id"] != b_detail["pet_id"]
+
+
 def test_unknown_store_slug_rejected(client, order_input):
     """带不存在的门店标识 → 404，避免静默串店。"""
     assert client.post("/api/c/orders", json=order_input,

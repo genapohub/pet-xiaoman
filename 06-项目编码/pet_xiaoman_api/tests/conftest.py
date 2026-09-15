@@ -63,14 +63,14 @@ def seed(db):
 @pytest.fixture
 def order_input(seed):
     """合法下单入参模板。"""
-    from datetime import datetime
+    from datetime import datetime, timedelta
     return {
         "user_id": 1,
         "pet_name": "豆豆",
         "species": "犬",
         "pkg_id": seed["pkg_id"],
         "addon_ids": [],
-        "expect_time": datetime.now().isoformat(),
+        "expect_time": (datetime.now() + timedelta(days=1)).replace(hour=10, minute=0, second=0, microsecond=0).isoformat(),
         "address": "郑州市金水区XX路1号",
     }
 

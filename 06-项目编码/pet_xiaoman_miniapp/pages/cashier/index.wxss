@@ -6,7 +6,7 @@
 .amount-card {
   padding: var(--sp-5) var(--sp-4);
   border-radius: var(--r-lg);
-  background: linear-gradient(180deg, var(--c-primary-light) 0%, var(--c-card-warm) 100%);
+  background: var(--c-primary-light);
   text-align: center;
   border: 1rpx solid rgba(61, 92, 87, 0.08);
 }

@@ -5,7 +5,7 @@
 .orders-head {
   padding: var(--sp-6) var(--sp-4) 72rpx;
   color: #fff;
-  background: linear-gradient(180deg, var(--c-primary) 0%, var(--c-primary-press) 100%);
+  background: var(--c-primary);
   border-bottom-left-radius: 36rpx;
   border-bottom-right-radius: 36rpx;
 }
@@ -56,6 +56,7 @@
 .card {
   margin: var(--sp-3) var(--sp-4);
   padding: var(--sp-4);
+  border: 1rpx solid var(--c-border);
 }
 .row {
   display: flex;
@@ -92,4 +93,5 @@
   bottom: var(--sp-4);
   left: var(--sp-4);
   right: var(--sp-4);
+  border-radius: var(--r-md);
 }

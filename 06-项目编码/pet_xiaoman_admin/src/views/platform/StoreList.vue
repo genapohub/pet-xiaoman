@@ -314,7 +314,7 @@ function goDetail(row) {
   padding: var(--px-sp-4);
   border: 1px solid var(--px-border);
   border-radius: var(--px-radius-lg);
-  background: linear-gradient(180deg, var(--px-bg-card), var(--px-bg-warm));
+  background: var(--px-bg-card);
   box-shadow: var(--px-shadow-card);
 }
 .overview-card__label {
