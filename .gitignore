@@ -22,3 +22,7 @@ uploads/
 
 # WeChat developer local settings
 project.private.config.json
+
+# V1.0 local release simulation secrets
+06-项目编码/pet_xiaoman_api/.env.v1.local
+06-项目编码/.v1-local.previous.*
