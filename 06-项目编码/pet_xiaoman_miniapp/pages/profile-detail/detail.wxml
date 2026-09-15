@@ -1,0 +1,64 @@
+<view class="page" style="{{brandStyle}}">
+  <view wx:if="{{loading}}" class="state state--card">
+    <view class="state__text">加载中…</view>
+  </view>
+
+  <block wx:elif="{{me && me.logged_in}}">
+    <view class="profile-head">
+      <view class="profile-head__avatar brandmark">{{shopInitial}}</view>
+      <view class="profile-head__name">{{me.nickname || "微信用户"}}</view>
+      <view class="profile-head__sub">客户编号 {{me.customer_id}}</view>
+      <view class="profile-head__chips">
+        <text>{{me.has_openid ? "微信已绑定" : "待正式授权"}}</text>
+        <text>{{me.phone ? "手机号已同步" : "手机号待同步"}}</text>
+      </view>
+    </view>
+
+    <view class="safe-note">
+      <image src="/assets/icons/shield-primary.png" mode="aspectFit" />
+      <view>
+        <view class="safe-note__title">资料仅用于服务确认</view>
+        <view class="safe-note__text">手机号、门店信息用于订单确认、进度通知和售后回访，不会展示给无关人员。</view>
+      </view>
+    </view>
+
+    <view class="card info-card">
+      <view class="section-title">登录资料</view>
+      <view class="info-row">
+        <text class="info-row__key">手机号</text>
+        <text class="info-row__value">{{me.phone || "未同步"}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-row__key">微信身份</text>
+        <text class="info-row__value">{{me.has_openid ? "已绑定" : "待正式授权"}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-row__key">当前门店</text>
+        <text class="info-row__value">{{me.store_name || theme.shopName}}</text>
+      </view>
+    </view>
+
+    <view class="card info-card">
+      <view class="section-title">门店联系</view>
+      <view class="info-row">
+        <text class="info-row__key">电话</text>
+        <text class="info-row__value">{{theme.contactPhone || "暂未配置"}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-row__key">地址</text>
+        <text class="info-row__value">{{theme.contactAddress || "暂未配置"}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-row__key">营业时间</text>
+        <text class="info-row__value">{{theme.businessHours || "暂未配置"}}</text>
+      </view>
+      <button class="btn-plain contact-btn" bindtap="callShop">联系门店</button>
+    </view>
+  </block>
+
+  <view wx:else class="state state--card">
+    <image class="state__icon" src="/assets/icons/tab-user.png" mode="aspectFit" />
+    <view class="state__text">登录信息不可用</view>
+    <view class="state__hint">请回到登录页重新授权</view>
+  </view>
+</view>

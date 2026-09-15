@@ -7,7 +7,10 @@
 - 租户侧接口（`/api/b/store/profile`、`/api/b/staff`）保持"只能操作自己那家店"，
   品牌配置已收归超管，租户不可改。
 """
-from fastapi import APIRouter, Depends, HTTPException
+from pathlib import Path
+from uuid import uuid4
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
@@ -25,6 +28,15 @@ from app.services.validators import (
 )
 
 router = APIRouter()
+
+UPLOAD_ROOT = Path("uploads")
+BRAND_UPLOAD_DIR = UPLOAD_ROOT / "brand"
+MAX_LOGO_BYTES = 2 * 1024 * 1024
+ALLOWED_LOGO_TYPES = {
+    "image/png": ("png", b"\x89PNG\r\n\x1a\n"),
+    "image/jpeg": ("jpg", b"\xff\xd8\xff"),
+    "image/webp": ("webp", b"RIFF"),
+}
 
 
 def _platform_perm(code: str):
@@ -131,6 +143,41 @@ def _profile_dict(p: StoreProfile) -> dict:
             "business_hours": p.business_hours,
             "miniapp_name": p.miniapp_name, "miniapp_appid": p.miniapp_appid,
             "miniapp_entry_enabled": p.miniapp_entry_enabled}
+
+
+async def _read_logo(file: UploadFile) -> tuple[bytes, str]:
+    """读取并校验 Logo，避免把任意文件写进公开静态目录。"""
+    meta = ALLOWED_LOGO_TYPES.get(file.content_type or "")
+    if meta is None:
+        raise HTTPException(415, "Logo 仅支持 PNG、JPG 或 WEBP 图片")
+
+    content = await file.read(MAX_LOGO_BYTES + 1)
+    if not content:
+        raise HTTPException(422, "Logo 文件为空，请重新选择图片")
+    if len(content) > MAX_LOGO_BYTES:
+        raise HTTPException(413, "Logo 文件不能超过 2MB")
+
+    extension, signature = meta
+    if not content.startswith(signature):
+        raise HTTPException(422, "Logo 文件内容与图片类型不匹配，请重新导出后上传")
+    if file.content_type == "image/webp" and content[8:12] != b"WEBP":
+        raise HTTPException(422, "WEBP 文件内容校验失败，请重新导出后上传")
+    return content, extension
+
+
+@router.post("/stores/{store_id}/logo", summary="上传门店 Logo（平台超管）")
+async def upload_store_logo(store_id: int,
+                            file: UploadFile = File(...),
+                            staff: Staff = Depends(_platform_perm("store.brand")),
+                            db: Session = Depends(get_db)):
+    """上传 Logo 到站内媒体目录，并返回可直接保存到品牌资料的路径。"""
+    _get_store(db, store_id)
+    content, extension = await _read_logo(file)
+    BRAND_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    filename = f"store-{store_id}-{uuid4().hex}.{extension}"
+    destination = BRAND_UPLOAD_DIR / filename
+    destination.write_bytes(content)
+    return {"logo_url": f"/uploads/brand/{filename}", "filename": filename}
 
 
 def _staff_dict(s: Staff) -> dict:

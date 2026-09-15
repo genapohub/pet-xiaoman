@@ -1,0 +1,47 @@
+<view class="page" style="{{brandStyle}}">
+  <view wx:if="{{loading}}" class="state state--card">
+    <view class="state__text">加载中…</view>
+  </view>
+
+  <block wx:elif="{{item}}">
+    <view class="detail-head">
+      <view class="detail-head__type">{{item.type}}</view>
+      <view class="detail-head__name">{{item.name}}</view>
+      <view class="detail-head__price">¥{{item.price}}</view>
+      <view class="detail-head__meta" wx:if="{{item.weight_tier}}">适用体重：{{item.weight_tier}}</view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">服务流程</view>
+      <view class="step" wx:for="{{steps}}" wx:key="*this">
+        <view class="step__no">{{index + 1}}</view>
+        <view class="step__name">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">你可能关心</view>
+      <view class="faq" wx:for="{{faq}}" wx:key="q">
+        <view class="faq__q">{{item.q}}</view>
+        <view class="faq__a">{{item.a}}</view>
+      </view>
+    </view>
+
+    <view class="notice">
+      <image class="notice__icon" src="/assets/icons/shield-primary.png" mode="aspectFit" />
+      <text>当前价格会在提交预约时锁定，后续服务流程以订单时间线为准。</text>
+    </view>
+
+    <view class="detail-actions">
+      <button class="btn-plain" bindtap="goPrices">返回价格表</button>
+      <button class="btn-primary" bindtap="goCreate">预约此服务</button>
+    </view>
+  </block>
+
+  <view wx:else class="state state--card">
+    <image class="state__icon" src="/assets/icons/info.png" mode="aspectFit" />
+    <view class="state__text">服务项目不可用</view>
+    <view class="state__hint">可能已下架或网络异常，可返回价格表重新选择</view>
+    <button class="btn-primary state__btn" bindtap="goPrices">返回价格表</button>
+  </view>
+</view>

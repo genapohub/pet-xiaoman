@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.sqlite
+*.sqlite.bak-*
+uploads/
+.env*
+tests/
+README.md

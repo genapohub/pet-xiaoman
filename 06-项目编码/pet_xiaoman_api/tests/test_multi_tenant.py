@@ -252,3 +252,49 @@ def test_white_label_logo_url_validated_and_clearable(client, org):
     cleared = client.put(url, json={"logo_url": ""}, headers=H)
     assert cleared.status_code == 200
     assert cleared.json()["logo_url"] == ""
+
+
+def test_super_admin_can_upload_logo_and_tenant_cannot(client, org):
+    """Logo 必须由平台超管上传，并返回可保存的站内地址。"""
+    H = _H(org["super_token"])
+    png = b"\x89PNG\r\n\x1a\n" + b"brand-logo"
+
+    uploaded = client.post(
+        f"/api/b/platform/stores/{org['store_id']}/logo",
+        files={"file": ("brand.png", png, "image/png")},
+        headers=H,
+    )
+    assert uploaded.status_code == 200, uploaded.text
+    logo_url = uploaded.json()["logo_url"]
+    assert logo_url.startswith("/uploads/brand/store-")
+    assert logo_url.endswith(".png")
+
+    saved = client.put(
+        f"/api/b/platform/stores/{org['store_id']}/profile",
+        json={"logo_url": logo_url}, headers=H,
+    )
+    assert saved.status_code == 200
+    assert saved.json()["logo_url"] == logo_url
+
+    denied = client.post(
+        f"/api/b/platform/stores/{org['store_id']}/logo",
+        files={"file": ("brand.png", png, "image/png")},
+        headers=_H(org["manager_token"]),
+    )
+    assert denied.status_code == 403
+
+
+def test_logo_upload_rejects_unsupported_type_and_oversize(client, org):
+    H = _H(org["super_token"])
+    bad_type = client.post(
+        f"/api/b/platform/stores/{org['store_id']}/logo",
+        files={"file": ("brand.gif", b"GIF89a", "image/gif")}, headers=H,
+    )
+    assert bad_type.status_code == 415
+
+    too_large = b"\x89PNG\r\n\x1a\n" + b"x" * (2 * 1024 * 1024)
+    oversized = client.post(
+        f"/api/b/platform/stores/{org['store_id']}/logo",
+        files={"file": ("brand.png", too_large, "image/png")}, headers=H,
+    )
+    assert oversized.status_code == 413

@@ -14,6 +14,14 @@ export const setStoreStatus = (storeId, status) =>
 export const getStoreBrand = (storeId) => http.get(`${BASE}/stores/${storeId}/profile`);
 export const updateStoreBrand = (storeId, payload) =>
   http.put(`${BASE}/stores/${storeId}/profile`, payload);
+export const uploadStoreLogo = (storeId, file) => {
+  const form = new FormData();
+  form.append("file", file);
+  return http.post(`${BASE}/stores/${storeId}/logo`, form, {
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 30000,
+  });
+};
 
 // 门店账号
 export const listStoreStaff = (storeId) => http.get(`${BASE}/stores/${storeId}/staff`);

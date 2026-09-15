@@ -8,8 +8,36 @@
       <el-form-item label="标语" prop="slogan">
         <el-input v-model="form.slogan" maxlength="50" placeholder="如：给ta最后的体面（留空则不展示）" />
       </el-form-item>
-      <el-form-item label="Logo 地址" prop="logo_url">
-        <el-input v-model="form.logo_url" placeholder="站内路径如 /uploads/logo.png 或 http(s) 地址（留空用中性占位标）" />
+      <el-form-item label="Logo" prop="logo_url">
+        <div class="logo-field">
+          <div class="logo-picker-row">
+            <el-upload
+              class="logo-upload"
+              action="#"
+              :auto-upload="false"
+              :show-file-list="false"
+              accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+              :on-change="onLogoChange"
+            >
+              <el-button :loading="logoUploading">
+                <el-icon><Upload /></el-icon>
+                {{ form.logo_url ? "更换 Logo" : "从本地选择" }}
+              </el-button>
+            </el-upload>
+            <el-button v-if="form.logo_url" text type="danger" @click="clearLogo">
+              <el-icon><Delete /></el-icon> 移除
+            </el-button>
+            <span class="hint logo-hint">PNG / JPG / WEBP，单个不超过 2MB</span>
+          </div>
+          <div v-if="form.logo_url" class="logo-preview">
+            <img :src="mediaUrl(form.logo_url)" alt="当前 Logo" @error="broken = true" />
+            <div>
+              <strong>已上传并回显</strong>
+              <code>{{ form.logo_url }}</code>
+            </div>
+          </div>
+          <span v-else class="logo-empty">未设置 Logo，将使用门店名称首字作为占位</span>
+        </div>
       </el-form-item>
       <el-form-item label="主色" prop="primary_color">
         <el-color-picker v-model="form.primary_color" />
@@ -20,7 +48,7 @@
         <div class="preview">
           <div class="preview__device">
             <span class="preview__mark" :style="{ background: markBackground }">
-              <img v-if="form.logo_url && !broken" :src="form.logo_url" alt="logo" @error="broken = true" />
+              <img v-if="form.logo_url && !broken" :src="mediaUrl(form.logo_url)" alt="logo" @error="broken = true" />
               <template v-else>{{ initial }}</template>
             </span>
             <span class="preview__copy">
@@ -73,8 +101,10 @@
 <script setup>
 import { computed, reactive, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
-import { getStoreBrand, updateStoreBrand } from "../api/platform";
+import { Delete, Upload } from "@element-plus/icons-vue";
+import { getStoreBrand, updateStoreBrand, uploadStoreLogo } from "../api/platform";
 import { isValidHex, mix } from "../utils/theme";
+import { mediaUrl } from "../utils/url";
 
 const props = defineProps({ storeId: { type: Number, required: true } });
 const emit = defineEmits(["saved"]);
@@ -84,6 +114,7 @@ const saving = ref(false);
 const broken = ref(false);
 const savedAt = ref("");
 const formRef = ref(null);
+const logoUploading = ref(false);
 // 联系方式与小程序发布信息——C 端按门店「真实电话/地址/营业时间」展示，超管集中维护。
 // miniapp_entry_enabled 后端默认 true；空表单里也要给个 fallback，否则 switch 显示为关闭态。
 const form = reactive({
@@ -176,6 +207,35 @@ async function onSave() {
   }
 }
 
+async function onLogoChange(uploadFile) {
+  const file = uploadFile?.raw;
+  if (!file) return;
+  const allowed = ["image/png", "image/jpeg", "image/webp"];
+  if (!allowed.includes(file.type)) {
+    ElMessage.warning("Logo 仅支持 PNG、JPG 或 WEBP 图片");
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    ElMessage.warning("Logo 文件不能超过 2MB");
+    return;
+  }
+  logoUploading.value = true;
+  broken.value = false;
+  try {
+    const result = await uploadStoreLogo(props.storeId, file);
+    form.logo_url = result.logo_url;
+    ElMessage.success("Logo 上传成功，已回显；点击保存品牌后正式生效");
+  } finally {
+    logoUploading.value = false;
+  }
+}
+
+function clearLogo() {
+  form.logo_url = "";
+  broken.value = false;
+  ElMessage.info("Logo 已移除，点击保存品牌后生效");
+}
+
 watch(() => props.storeId, load, { immediate: true });
 </script>
 
@@ -197,6 +257,44 @@ watch(() => props.storeId, load, { immediate: true });
   font-variant-numeric: tabular-nums;
 }
 .hint { margin-left: var(--px-sp-2); font-size: var(--px-fs-xs); color: var(--px-text-3); }
+
+.logo-field { display: grid; gap: var(--px-sp-2); width: 100%; }
+.logo-picker-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--px-sp-2);
+}
+.logo-upload { display: inline-flex; }
+.logo-hint { margin-left: 0; }
+.logo-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--px-sp-3);
+  min-height: 72px;
+  padding: var(--px-sp-2) var(--px-sp-3);
+  border: 1px solid var(--px-border);
+  border-radius: var(--px-radius-md);
+  background: var(--px-bg-warm);
+}
+.logo-preview img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: var(--px-radius-sm);
+  background: #fff;
+}
+.logo-preview strong,
+.logo-preview code { display: block; }
+.logo-preview strong { color: var(--px-text-1); font-size: var(--px-fs-sm); }
+.logo-preview code {
+  max-width: 560px;
+  margin-top: 2px;
+  color: var(--px-text-3);
+  font-size: var(--px-fs-xs);
+  overflow-wrap: anywhere;
+}
+.logo-empty { color: var(--px-text-3); font-size: var(--px-fs-xs); }
 
 .preview {
   display: grid;
