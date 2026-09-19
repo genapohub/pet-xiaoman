@@ -1,3 +1,6 @@
+<!-- B-工作台 Dashboard（对齐画布 2:647）
+     版式：B 端标准骨架，左侧 220px 侧栏 + 64px 顶栏 + 内容区 24px padding。
+     主体：页头 → SLA 告警 → 统计卡横排 → 流转订单列表；强调待确认订单与 30 分钟 SLA。 -->
 <template>
   <div>
     <PxPageHeader title="今日工作台" :subtitle="`${today} · 共 ${rows.length} 单在流转`">

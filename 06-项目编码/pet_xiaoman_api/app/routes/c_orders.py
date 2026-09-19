@@ -12,6 +12,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import customer_auth, ensure_customer_match, store_context
 from app.models.order import Order
+from app.models.pet import Pet
+from app.models.service_item import ServiceItem
 from app.services import media_service, order_service
 from app.services.order_service import BusinessError
 from app.services.tenant import belongs, store_clause
@@ -30,12 +32,37 @@ class OrderCreateInput(BaseModel):
     address: str | None = Field(default=None, max_length=200, description="接送地址（自送可空）")
 
 
-def _order_brief(o: Order) -> dict:
+def _lookups(db: Session, orders: list[Order]) -> tuple[dict, dict]:
+    """批量取套餐名 / 宠物名，避免列表页 N+1 查询。
+
+    为什么必须补这两个字段：订单表只存 pkg_id / pet_id，而 C 端订单卡要展示
+    「单独火化 · 中型」、时间线标题要展示宠物名。缺了它们前端只能显示裸 id，
+    或被迫在客户端二次拼装（多一次请求 + 可能跨店）。
+    """
+    pkg_ids = {o.pkg_id for o in orders if o.pkg_id}
+    pet_ids = {o.pet_id for o in orders if o.pet_id}
+    pkg_names: dict = {}
+    pet_names: dict = {}
+    if pkg_ids:
+        pkg_names = {r[0]: r[1] for r in db.query(ServiceItem.id, ServiceItem.name)
+                     .filter(ServiceItem.id.in_(pkg_ids)).all()}
+    if pet_ids:
+        pet_names = {r[0]: r[1] for r in db.query(Pet.id, Pet.name)
+                     .filter(Pet.id.in_(pet_ids)).all()}
+    return pkg_names, pet_names
+
+
+def _order_brief(o: Order, pkg_names: dict | None = None,
+                 pet_names: dict | None = None) -> dict:
+    pk = pkg_names or {}
+    pt = pet_names or {}
     return {
         "order_no": o.order_no,
         "status": o.status.value if hasattr(o.status, "value") else o.status,
         "pet_id": o.pet_id,
+        "pet_name": pt.get(o.pet_id, ""),
         "pkg_id": o.pkg_id,
+        "pkg_name": pk.get(o.pkg_id, ""),
         "total_amount": float(o.total_amount),
         "pay_type": o.pay_type.value if hasattr(o.pay_type, "value") else o.pay_type,
         "paid_amount": float(o.paid_amount),
@@ -74,7 +101,8 @@ def list_orders(user_id: int, db: Session = Depends(get_db),
     if clause is not None:
         query = query.filter(clause)
     orders = query.order_by(Order.created_at.desc()).all()
-    return [_order_brief(o) for o in orders]
+    pkg_names, pet_names = _lookups(db, orders)
+    return [_order_brief(o, pkg_names, pet_names) for o in orders]
 
 
 @router.get("/orders/{order_no}", summary="订单详情（C006 进度时间线数据源）")
@@ -83,8 +111,9 @@ def get_order(order_no: str, db: Session = Depends(get_db),
     order = db.query(Order).filter(Order.order_no == order_no).first()
     if not belongs(order, store_id):
         raise HTTPException(404, "订单不存在")
+    pkg_names, pet_names = _lookups(db, [order])
     return {
-        **_order_brief(order),
+        **_order_brief(order, pkg_names, pet_names),
         "price_version": order.price_version,
         "addons": order.addons or [],
         "cancel_reason": order.cancel_reason,

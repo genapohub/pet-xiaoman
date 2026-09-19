@@ -1,74 +1,117 @@
-.query-head {
-  padding: var(--sp-6) var(--sp-4) 72rpx;
-  color: #fff;
-  background: var(--c-primary);
-  border-bottom-left-radius: 36rpx;
-  border-bottom-right-radius: 36rpx;
-}
-.query-head__title {
-  font-size: var(--fs-xl);
-  font-weight: 600;
-  line-height: var(--lh-title);
-}
-.query-head__desc {
-  margin-top: var(--sp-2);
-  color: rgba(255, 255, 255, 0.72);
-  font-size: var(--fs-sm);
-  line-height: 1.7;
-}
+/* C008 骨灰寄存查询（对齐画布 2:512）· 1 画布 px = 2rpx */
 
-.card {
-  margin: var(--sp-3) var(--sp-4);
-  padding: var(--sp-4);
-  border: 1rpx solid var(--c-border);
-}
-.query-head + .card {
-  margin-top: -36rpx;
-}
-
-.label {
+.sbody {
   display: flex;
-  align-items: center;
-  gap: var(--sp-1);
-  margin-bottom: var(--sp-3);
-  font-size: var(--fs-sm);
-  color: var(--c-gray);
-}
-.label__icon {
-  width: 32rpx;
-  height: 32rpx;
+  flex-direction: column;
+  gap: 32rpx;                           /* 16px */
+  padding: 0 40rpx var(--sp-6);
+  box-sizing: border-box;
 }
 
-input {
-  height: var(--h-touch);
-  padding: 0;
-  background: transparent;
-  border-bottom: 1rpx solid var(--c-divider);
-  border-radius: 0;
-  font-size: var(--fs-md);
-  letter-spacing: 8rpx;
+/* ===== 查询卡 ===== */
+.qcard {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;                           /* 12px */
+}
+.qcard__t {
+  font-size: 28rpx;                     /* 14px */
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--c-ink-strong);
+}
+/* 输入框：纸感底 + 12rpx 圆角（画布 input）
+   注意小程序 input 默认不继承 box-sizing，必须显式 border-box 否则左右撑破卡片 */
+.qcard__input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 88rpx;                        /* 44px 触控下限 */
+  padding: 0 28rpx;
+  border-radius: 24rpx;                 /* 12px */
+  background: var(--c-paper);
+  font-size: 28rpx;
   color: var(--c-ink);
 }
-
-.query {
-  margin-top: var(--sp-4);
-}
-
-.row {
+.qcard__ph { color: var(--c-gray-light); }
+.qcard__btn {
   display: flex;
-  justify-content: space-between;
-  padding: 8rpx 0;
-  font-size: var(--fs-base);
-}
-.k { color: var(--c-gray); }
-.v { color: var(--c-ink); }
-
-.status-pill {
-  display: inline-flex;
-  margin-top: var(--sp-3);
-  padding: 8rpx 18rpx;
-  color: #A9762F;
-  font-size: var(--fs-sm);
-  background: var(--c-clay-light);
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
   border-radius: var(--r-pill);
+  background: var(--c-primary);
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 500;
+  line-height: 1;
+}
+.qcard__btn--hover { background: var(--c-primary-press); }
+.qcard__btn--busy { background: var(--c-primary-disabled); }
+
+/* ===== 结果卡 ===== */
+.rcard {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;                           /* 14px */
+}
+.rcard__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+.rcard__pet {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-serif);
+  font-size: 32rpx;                     /* 16px */
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--c-ink-strong);
+}
+.rcard__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+.rcard__l {
+  flex: none;
+  font-size: 26rpx;
+  color: var(--c-gray-mid);
+}
+.rcard__v {
+  flex: 1;
+  min-width: 0;
+  font-size: 28rpx;
+  line-height: 1.4;
+  color: var(--c-ink);
+  text-align: right;
+}
+.rcard__note {
+  font-size: 24rpx;                     /* 12px */
+  line-height: 1.5;
+  color: var(--c-gray-mid);
+}
+/* 续期 = 次要动作 → 描边 ghost；整行宽（与画布一致，卡片内唯一动作） */
+.rcard__renew {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 84rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-card);
+  border: 1rpx solid var(--c-primary);
+  color: var(--c-primary);
+  font-size: 28rpx;
+  font-weight: 500;
+  line-height: 1;
+}
+.rcard__renew--hover { background: var(--c-primary-light); }
+
+.scard-tip {
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: var(--c-gray-light);
+  text-align: center;
 }

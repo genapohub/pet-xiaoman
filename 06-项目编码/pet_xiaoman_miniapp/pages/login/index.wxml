@@ -1,48 +1,50 @@
+<!-- C000 登录（对齐画布 2:60）
+     版式（画布实测，勿凭印象改）：
+       纸感底 → Status Bar → Wrap（fill，padding 32，gap 24，**顶对齐**）
+       → 品牌行（横向 gap 12：sage 圆盘标 48×48 + 店名 22px 衬线）
+       → 标题「欢迎回来」26px 衬线 → 副题「温柔守护每一次告别」14px 灰
+       → Spacer 120px（把按钮压到中下部）
+       → 主按钮「微信授权登录」h56 sage 实色胶囊（内含 22×22 微信图标 + 16px SemiBold 白字）
+       → 次按钮「手机号登录」h52 白底胶囊 + 15px Medium 松绿字
+       → 协议说明 11px 灰居中
+     注意：**这是纸感浅色页，不是深色渐变 hero**（首版做错成渐变居中，已按画布纠正）。 -->
 <view class="login" style="{{brandStyle}}">
-  <view class="login__hero">
-    <view class="login__brand">
-      <image wx:if="{{theme.logoUrl}}" class="login__lockup" src="{{theme.logoUrl}}" mode="aspectFit" />
-      <view wx:else class="login__mark brandmark">{{shopInitial}}</view>
-      <text class="login__shop">{{theme.shopName}}</text>
-      <text class="login__slogan" wx:if="{{theme.slogan}}">{{theme.slogan}}</text>
+
+  <view class="login__status" style="height:{{nav.navTop}}px"></view>
+
+  <view class="login__wrap">
+
+    <!-- 品牌行：小圆盘标 + 店名（左对齐，非居中大 logo） -->
+    <view class="login__brandrow">
+      <view class="login__emblem">
+        <image wx:if="{{theme.logoUrl}}" class="login__logo" src="{{theme.logoUrl}}" mode="aspectFit" />
+        <view wx:else class="login__mark">{{shopInitial}}</view>
+      </view>
+      <view class="login__brandname">{{theme.shopName}}</view>
     </view>
-  </view>
 
-  <view class="login__card">
-    <view class="login__card-head">
-      <text class="login__title">登录后继续预约</text>
-      <text class="login__subtitle">手机号仅用于订单确认与服务通知</text>
-    </view>
+    <view class="login__title">欢迎回来</view>
+    <view class="login__sub">温柔守护每一次告别</view>
 
-    <button
-      class="login__phone"
-      open-type="getPhoneNumber"
-      bindgetphonenumber="onGetPhone"
-      loading="{{loading}}"
-    >微信手机号一键登录</button>
+    <view class="login__spacer"></view>
 
-    <button wx:if="{{dev}}" class="login__dev" bindtap="onDevLogin" loading="{{loading}}">
-      开发模式直接登录
+    <!-- 主：微信授权登录（open-type=getPhoneNumber 即微信侧一键授权） -->
+    <button class="login__wx btn-block {{loading ? 'login__wx--busy' : ''}}"
+      open-type="getPhoneNumber" bindgetphonenumber="onGetPhone" disabled="{{loading}}">
+      <!-- 微信图标：**不能用 WXML 内联 <svg>**（实测 0×0，根本不渲染）。
+           本图由画布 2:78 节点导出矢量 → evenodd 栅格化为 48×48 PNG，
+           与画布渲染逐像素比对 IoU=0.998。 -->
+      <image class="login__wxicon" src="/assets/icons/wx-white.png" mode="aspectFit" />
+      <text class="login__wxt">{{loading ? '登录中…' : '微信授权登录'}}</text>
     </button>
 
-    <view class="login__promise">
-      <view class="login__promise-item">
-        <image src="/assets/icons/price-primary.png" mode="aspectFit" />
-        <text>明码标价</text>
-      </view>
-      <view class="login__promise-item">
-        <image src="/assets/icons/shield-primary.png" mode="aspectFit" />
-        <text>专属服务</text>
-      </view>
-      <view class="login__promise-item">
-        <image src="/assets/icons/clock-primary.png" mode="aspectFit" />
-        <text>进度可查</text>
-      </view>
-    </view>
+    <!-- 次：手机号登录。一期只实现了「微信侧一键授权 + 开发环境兜底」，
+         没有独立短信验证码通道，故该按钮仅在开发环境出现（生产隐藏）。
+         这是与画布的一处**有意偏差**，原因见上。 -->
+    <button wx:if="{{dev}}" class="login__phone btn-block" bindtap="onDevLogin" disabled="{{loading}}">
+      手机号登录（开发环境）
+    </button>
 
-    <view class="login__hint">
-      <image src="/assets/icons/shield-primary.png" mode="aspectFit" />
-      <text>登录即表示授权获取微信绑定手机号，用于订单与回访通知</text>
-    </view>
+    <view class="login__agree">登录即代表同意《用户协议》与《隐私政策》</view>
   </view>
 </view>

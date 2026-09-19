@@ -889,18 +889,23 @@ flowchart TD
 |---|---|:--:|---|:--:|
 | C001 | 品牌首页 | `pages/index/index` | — | ✅ |
 | C002 | 服务价格表 | `pages/prices/prices` | `GET /api/c/service-items` | ✅ |
-| C003 | 服务详情+科普 | — | — | ❌ 未实现 |
+| C003 | 服务详情+科普 | `pages/service-detail/detail` | `GET /api/c/service-items` | ✅ 09-19 实现 |
 | C004 | 预约下单 | `pages/order-create/index` | `POST /api/c/orders` | ✅ |
 | C005 | 我的订单 | `pages/order-list/index` | `GET /api/c/orders` | ✅ |
 | C006 | 订单进度时间线 | `pages/order-detail/index` | `GET /api/c/orders/{no}`<br/>`GET /api/c/orders/{no}/media` | ✅ |
-| C007 | 纪念品展示 | `pages/products/products` | `GET /api/c/products`<br/>`POST /api/c/products/{id}/buy` | ✅ |
+| C007 | 纪念品展示 | `pages/products/products` | `GET /api/c/products`<br/>`POST /api/c/cart`（加入清单） | ✅ |
+| — | 纪念品详情 | `pages/product-detail/detail` | `GET /api/c/products/{id}`<br/>`POST /api/c/cart` | ✅ 09-19 新增 |
+| — | 纪念清单（购物车） | `pages/cart/index` | `GET /api/c/cart`<br/>`PUT/DELETE /api/c/cart/{id}` | ✅ 09-19 新增 |
+| — | 纪念品确认订单 | `pages/product-confirm/index` | `POST /api/c/cart/checkout` | ✅ 09-19 新增；按履约拆「到店自取 / 顺丰邮寄」两组 |
+| — | 我的纪念品订单 | `pages/product-orders/index` | `GET /api/c/product-orders` | ✅ 09-19 新增；入口在「我的 → 纪念品订单」 |
 | C008 | 骨灰寄存查询 | `pages/boarding-query/query` | `GET /api/c/boardings/query` | ✅ |
 | C009 | 宠物档案 | `pages/pets/pets` | `GET /api/c/pets` | ✅ |
 | C010 | 个人中心 | `pages/profile/index` | — | ✅ |
 | C011 | 预约成功结果页 | `pages/order-success/index` | C012 到店付款确认后携带 `order_no` 跳转 | ✅ |
 | C012 | 收银台 | `pages/cashier/index` | C004 提交成功后携带 `order_no`/金额跳转；`PAY_ENABLED=false` 时仅到店付可选 | ✅ 一期已实现 |
 
-**其余 C 端接口**：`POST /api/c/customers`（轻量注册）、`POST /api/c/auth/login`、`GET /api/c/auth/me`、`POST /api/c/notify/wechat`（支付回调）
+**其余 C 端接口**：`GET /api/c/service-items`（公开价格表，C002/C003 共用）、`POST /api/c/customers`（轻量注册）、`POST /api/c/auth/login`、`POST /api/c/auth/phone-login`、`GET /api/c/auth/me`、**`PUT /api/c/auth/me`（09-19 新增，改昵称/手机号）**、**`/api/c/cart` 全组（09-19 新增：GET/POST/PUT/DELETE/`checkout`，纪念清单与纪念品下单）**、`GET /api/c/integrations/config`（支付/订阅/地图开关）、`GET /api/c/subscribe/config`、`POST /api/c/notify/wechat`（支付回调）
+> 纪念品交易口径：**纪念清单（购物车）下单 + 混合履约**（`Product.ship_enabled`/`lead_days`）；旧的 `POST /api/c/products/{id}/buy` 保留给 B 端代客与「随单交付」，C 端不再使用。
 
 ### 6.2 B 端管理后台
 
@@ -973,7 +978,7 @@ flowchart TD
 | 3 | **无影像流转例外通道** | 「影像上传持续失败：允许店长权限『无影像流转』，标记例外并记录原因」 | `validate_transition` 中**无例外参数**，`TransitionContext.is_owner` 字段已定义但未被使用 | 网络/设备故障时业务卡死，无兜底 | 补 `is_owner=true` 时跳过影像校验，但强制写审计日志 |
 | 4 | **收银台 C012** | v1.3 新增 C012 收银台，三选一（定金/全款/到店付） | 页面已实现；`PAY_ENABLED=false` 时定金/全款置灰，仅到店付可选；微信支付回调仍为商户号开通后的二期能力 | C 端线上支付不可用，但支付选择页闭环已补齐 | 商户号开通后接入 JSAPI 拉起与支付结果回写 |
 | 5 | **预约成功页 C011** | 独立页面承载提交反馈 | 已实现 `pages/order-success/index`，C012 到店付款确认后跳转并支持订单号复制/查看订单/返回首页 | 已收口 | 无 |
-| 6 | **服务详情页 C003** | 独立页面（P0） | 未实现 | 客户无法看科普内容，信任转化链路缺一环 | 排期补 |
+| 6 | **服务详情页 C003** | 独立页面（P0） | **已实现（09-19）** `pages/service-detail/detail`：价格锚点 + 这一档包含（5 节点）+ 常见问题 + 底部「联系门店 / 预约这一档」；另新增服务枢纽页 `pages/service/service` 作为「服务」Tab 落地页 | 已收口，信任转化链路补齐 | 无 |
 | 7 | **改期接口状态约束** | 「客户改期：免费改期 1 次」（语境在服务前） | `reschedule` 接口**不限状态**，`已完成` 订单也能改 `expect_time`，且消耗改期次数 | 口径漏洞，已交付订单被改时间会造成数据失真 | 补状态白名单：仅 `已预约/接宠中` 可改期 |
 | 8 | **客户取消 vs 店员取消** | 两者分列，店员取消需必填原因 | C 端 `cancel` 接口已实现；**B 端无独立取消接口**，只能走 `transition` + `target=已取消` | 店员取消未强制校验原因（`cancel_reason` 不会被写入） | 补 B 端取消接口或让 `transition` 支持写入 `cancel_reason` |
 | 9 | **权限校验** | 三角色权限矩阵（店长/店员/宠物主） | 已接入后台员工 token、RBAC 菜单/操作权限，影像撤回等高危操作改为服务端从 token 判断 | 高危操作已不再信任前端 role；后续新增接口仍需默认走 token/RBAC | 新增接口必须补权限测试 |

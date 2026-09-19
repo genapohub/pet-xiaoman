@@ -1,3 +1,6 @@
+<!-- B-平台门店详情 StoreDetail（对齐画布 2:1176 / 58:43 / 58:268；品牌配置归并 2:1060，账号管理归并 5:79）
+     版式：页头返回 + 门店摘要 + 三 Tab（品牌与 UI / 小程序入口 / 门店账号）。
+     平台超管维护白标品牌、独立小程序入口和账号；门店端不可自行修改品牌。 -->
 <template>
   <div class="store-detail">
     <PxPageHeader
@@ -584,7 +587,7 @@ watch(qrPayload, async (value) => {
     width: 224,
     margin: 1,
     errorCorrectionLevel: "M",
-    color: { dark: "#1D2129", light: "#FFFFFF" },
+    color: { dark: "rgb(29,33,41)", light: "rgb(255,255,255)" },
   });
 }, { immediate: true });
 

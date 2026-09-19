@@ -1,3 +1,6 @@
+<!-- B-订单列表 Orders（对齐画布 2:730）
+     版式：B 端标准骨架；页头/筛选/表格/分页走 PxTablePage。
+     表格列按画布：订单号（含宠物名副行）/ 服务项目 / 金额 / 状态 / 期望服务时间 / 下单时间 / 操作。 -->
 <template>
   <px-table-page
     title="订单管理"
@@ -30,7 +33,16 @@
         @input="debouncedLoad" />
     </template>
 
-    <el-table-column prop="order_no" label="订单号" width="170" />
+    <!-- 订单号 + 宠物名（宠物名放进同一格做副行：门店靠宠物认单，但设计稿只给了 6 列） -->
+    <el-table-column label="订单号" width="170">
+      <template #default="{ row }">
+        <div class="ono">{{ row.order_no }}</div>
+        <div v-if="row.pet_name" class="pet">{{ row.pet_name }}</div>
+      </template>
+    </el-table-column>
+    <el-table-column label="服务项目" min-width="150">
+      <template #default="{ row }">{{ row.pkg_name || "—" }}</template>
+    </el-table-column>
     <el-table-column label="金额" width="120" align="right">
       <template #default="{ row }"><span class="num">¥{{ fmtMoney(row.total_amount) }}</span></template>
     </el-table-column>
@@ -90,6 +102,8 @@ function goDetail(row) { router.push(`/orders/${row.order_no}`); }
 <style scoped>
 .num { font-variant-numeric: tabular-nums; }
 .gap-left { margin-left: var(--px-sp-1); }
+.ono { font-variant-numeric: tabular-nums; }
+.pet { margin-top: 2px; color: var(--px-text-3); font-size: var(--px-fs-xs); }
 .w140 { width: 140px; }
 .w160 { width: 160px; }
 .w180 { width: 180px; }

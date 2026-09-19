@@ -210,8 +210,14 @@ function ensureBrand() {
       return theme;
     })
     .catch(() => {
-      _cached = Object.assign({}, base);
-      return _cached;
+      // ⚠️ 失败**绝不能永久缓存**（2026-09-19 自测发现）：
+      // 原实现把兜底品牌写进 _cached 且不清 _promise，导致首启一次网络抖动
+      // （或后端刚好没起来）后，**整个小程序生命周期**都停在平台默认品牌
+      // 「宠物善终服务」——顾客看到的是平台名而不是门店名，正是 config/theme.js
+      // 注释里极力要避免的情况，而且没有任何自愈路径。
+      // 现在：只把兜底用于本帧渲染，并清掉 _promise，让下一次 ensureBrand() 重新拉取。
+      _promise = null;
+      return Object.assign({}, base);
     });
   return _promise;
 }

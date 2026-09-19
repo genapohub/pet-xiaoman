@@ -2,7 +2,7 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -20,6 +20,17 @@ class ItemInput(BaseModel):
     name: str = Field(max_length=50)
     price: float = Field(gt=0)
     weight_tier: str | None = None
+    duration_text: str | None = Field(default=None, max_length=20,
+                                      description="服务时长文案，如「约 2 小时」「按里程」")
+
+    @field_validator("weight_tier", "duration_text", mode="before")
+    @classmethod
+    def blank_to_none(cls, v):
+        """空白串归一成 None（接口是对外契约，不能只靠前端 trim）。"""
+        if isinstance(v, str):
+            v = v.strip()
+            return v or None
+        return v
 
 
 def _version_stamp() -> str:
@@ -38,7 +49,8 @@ def list_items(type: str | None = None, staff: Staff = Depends(staff_auth),
         query = query.filter(ServiceItem.type == ItemType(type))
     rows = query.order_by(ServiceItem.id).all()
     return [{"id": i.id, "type": i.type.value, "name": i.name, "price": float(i.price),
-             "weight_tier": i.weight_tier, "status": i.status.value, "version": i.version}
+             "weight_tier": i.weight_tier, "duration_text": i.duration_text,
+             "status": i.status.value, "version": i.version}
             for i in rows]
 
 
@@ -48,6 +60,7 @@ def create_item(payload: ItemInput, staff: Staff = Depends(staff_auth),
     item = ServiceItem(type=ItemType(payload["type"] if isinstance(payload, dict) else payload.type),
                        name=payload.name, price=payload.price,
                        weight_tier=payload.weight_tier,
+                       duration_text=payload.duration_text,
                        status=ItemStatus.ON_SALE, version=_version_stamp(),
                        store_id=staff.store_id)
     db.add(item)
@@ -67,6 +80,8 @@ def update_item(item_id: int, payload: ItemInput, staff: Staff = Depends(staff_a
     item.name = payload.name
     item.price = payload.price
     item.weight_tier = payload.weight_tier
+    # 时长只是说明文案，不参与锁价：改了不影响历史订单金额，故不触发新版本号
+    item.duration_text = payload.duration_text
     if price_changed:
         item.version = _version_stamp()
         _log_version(db, item)

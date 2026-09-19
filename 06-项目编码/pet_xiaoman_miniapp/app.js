@@ -18,10 +18,15 @@ App({
     repairDebugBaseURL();
     applyBrandFromLaunchOptions(options);
 
+    // 启动页会自己按登录态分流（等品牌加载完再 reLaunch），这里不要同时 reLaunch，
+    // 否则两个跳转会互相顶掉，出现「闪一下启动页又回登录页」。
+    const entry = options && options.path;
+    if (entry === "pages/splash/index") return;
+
     const token = wx.getStorageSync("token");
     const customerId = wx.getStorageSync("customer_id");
     if (!(token && customerId)) {
-      // 未登录：进入手机号一键登录页（登录成功由 finishLogin 回首页）
+      // 非启动页入口（如扫码/分享直达某页）时仍兜底进登录页
       wx.reLaunch({ url: "/pages/login/index" });
     }
   },

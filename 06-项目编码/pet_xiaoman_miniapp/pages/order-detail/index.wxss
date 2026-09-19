@@ -1,171 +1,175 @@
-.status-head {
-  padding: var(--sp-6) var(--sp-4) 72rpx;
-  background: var(--c-primary);
+/* C006 订单进度时间线（对齐画布 2:312）· 1 画布 px = 2rpx */
+
+.page { padding-bottom: 0; }
+
+.tbody {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+  padding: 0 40rpx;
+  box-sizing: border-box;
+}
+
+/* ===== Hero ===== */
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;                           /* 8px */
+  padding: 40rpx;                       /* 20px */
+  border-radius: 40rpx;                 /* 20px */
+  background: linear-gradient(180deg, var(--c-primary), #78A89E);
+  box-sizing: border-box;
+}
+.hero__t {
+  font-family: var(--font-serif);
+  font-size: 38rpx;                     /* 19px */
+  font-weight: 600;
+  line-height: 1.35;
   color: #fff;
-  border-bottom-left-radius: 36rpx;
-  border-bottom-right-radius: 36rpx;
 }
-.status-head__label {
-  color: rgba(255, 255, 255, 0.68);
-  font-size: var(--fs-sm);
-}
-.status {
-  margin-top: var(--sp-2);
-  font-size: var(--fs-xl);
-  font-weight: 600;
-}
-.sub {
-  margin-top: var(--sp-1);
-  font-size: var(--fs-sm);
-  opacity: 0.85;
+.hero__s {
+  font-size: 26rpx;                     /* 13px */
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.card {
-  margin: var(--sp-3) var(--sp-4);
-  padding: var(--sp-4);
-  border: 1rpx solid var(--c-border);
-}
-.status-head + .card {
-  margin-top: -36rpx;
-}
-.row {
+/* ===== 时间线 =====
+   用 padding-left 让轨道整体内缩（画布 Timeline left 28px），
+   轨道列固定 36rpx(=18px) 且 counterAxis 居中 → 圆点与连线共用同一轴线。 */
+.tline {
   display: flex;
-  justify-content: space-between;
-  padding: 8rpx 0;
-  font-size: var(--fs-base);
+  flex-direction: column;
+  padding-left: 16rpx;
 }
-.k { color: var(--c-gray); }
-.v { color: var(--c-ink); }
-.amount {
-  color: var(--c-primary);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.action-card {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--sp-2);
-  margin: var(--sp-3) var(--sp-4);
-}
-.action-card__picker {
-  display: block;
-  min-width: 0;
-}
-.action-card__btn {
+.step {
   display: flex;
+  align-items: stretch;
+  gap: 32rpx;                           /* 16px */
+}
+.step__rail {
+  flex: none;
+  width: 36rpx;                         /* 18px */
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--sp-1);
-  height: 76rpx;
-  margin: 0;
-  padding: 0 var(--sp-2);
-  background: var(--c-primary-light);
-  color: var(--c-primary-deep);
-  border-radius: var(--r-md);
-  font-size: var(--fs-sm);
 }
-.action-card__btn::after { border: none; }
-.action-card__btn image {
-  width: 30rpx;
-  height: 30rpx;
-}
-.action-card__btn.danger {
-  background: rgba(213, 73, 65, 0.1);
-  color: var(--c-error);
-}
-.action-card__btn:nth-child(3) {
-  grid-column: 1 / -1;
-}
-
-.label {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-1);
-  margin-bottom: var(--sp-3);
-  font-size: var(--fs-base);
-  font-weight: 600;
-  color: var(--c-ink);
-}
-.label__icon {
-  width: 32rpx;
-  height: 32rpx;
-}
-
-.timeline {
-  position: relative;
-  padding-left: 2rpx;
-}
-.timeline::before {
-  content: "";
-  position: absolute;
-  left: 10rpx;
-  top: 18rpx;
-  bottom: 18rpx;
-  width: 4rpx;
-  border-radius: var(--r-pill);
-  background: var(--c-divider);
-}
-.node {
-  position: relative;
-  display: flex;
-  padding: var(--sp-3) 0;
-}
-.dot {
-  position: relative;
-  z-index: 1;
+.step__dot {
+  flex: none;
   width: 20rpx;
   height: 20rpx;
-  margin: 10rpx var(--sp-3) 0 0;
-  border-radius: 50%;
-  background: var(--c-gray-light);
+  margin-top: 10rpx;                    /* 与首行文字基线对齐 */
+  border-radius: var(--r-pill);
+  background: var(--c-primary);
 }
-/* 善终场景：完成态用品牌松绿，不用亮绿（避免「庆祝感」） */
-.node.done .dot { background: var(--c-primary); }
-.node.current .dot {
-  background: var(--c-clay);
-  box-shadow: 0 0 0 10rpx rgba(217, 164, 104, 0.16);
-  animation: breath 2s infinite;
+/* 当前节点：稍大 + 呼吸（规范：呼吸仅用于时间线当前节点）*/
+.step__dot--now {
+  width: 24rpx;
+  height: 24rpx;
+  animation: breath 2s ease-in-out infinite;
 }
-@keyframes breath {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
+.step__line {
+  flex: 1;
+  width: 4rpx;
+  margin-top: 8rpx;
+  background: var(--c-primary);
+  opacity: 0.35;
 }
-.node-name {
-  font-size: var(--fs-base);
-  color: var(--c-ink);
-  font-weight: 600;
-}
-.node.current .node-name {
-  color: var(--c-primary-deep);
-}
-
-.thumbs {
+.step__body {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-2);
-  margin-top: var(--sp-2);
+  flex-direction: column;
+  gap: 8rpx;
+  padding-bottom: 44rpx;                /* 22px */
 }
-.thumb {
-  width: 128rpx;
-  height: 128rpx;
-  border-radius: var(--r-sm);
-  background: var(--c-primary-light);
-  border: 1rpx solid rgba(61, 92, 87, 0.08);
-}
-.video {
-  width: 256rpx;
-  height: 144rpx;
-}
-
-.call {
+.step__body--now { padding-bottom: 36rpx; }
+.step__head {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--sp-1);
-  margin: var(--sp-5) var(--sp-4) var(--sp-6);
+  gap: 12rpx;
 }
-.call__icon {
-  width: 32rpx;
-  height: 32rpx;
+.step__name {
+  font-size: 30rpx;                     /* 15px */
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--c-ink-strong);
 }
+.step__tag {
+  padding: 6rpx 16rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-primary-light);
+  color: var(--c-primary);
+  font-size: 20rpx;
+  line-height: 1.2;
+}
+.step__time {
+  font-size: 24rpx;                     /* 12px */
+  line-height: 1.45;
+  color: var(--c-gray);
+}
+
+/* 节点影像网格：3 列方图，点击 previewImage */
+.media {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 8rpx;
+}
+.media__item {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 16rpx;
+  background: var(--c-paper-deep);
+}
+
+/* ===== 订单信息卡 ===== */
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.info__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 28rpx 36rpx;
+  border-bottom: 1rpx solid var(--c-divider);
+}
+.info__row--last { border-bottom: none; }
+.info__l {
+  flex: none;
+  font-size: 26rpx;
+  color: var(--c-gray-mid);
+}
+.info__v {
+  flex: 1;
+  min-width: 0;
+  font-size: 28rpx;
+  line-height: 1.4;
+  color: var(--c-ink);
+  text-align: right;
+}
+/* 取消：低频危险操作 → 卡片底部的纯文字行，不做按钮 */
+.info__cancel {
+  padding: 30rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: var(--c-error);
+  border-top: 1rpx solid var(--c-divider);
+}
+
+/* 给固定底栏让位 */
+.tspacer { height: 220rpx; }
+
+/* 加载骨架 */
+.tstate {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  padding: 0 40rpx;
+}
+.sk-hero { height: 160rpx; border-radius: 40rpx; }
+.sk-step { height: 120rpx; border-radius: 24rpx; }

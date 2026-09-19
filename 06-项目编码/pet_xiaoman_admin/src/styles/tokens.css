@@ -37,6 +37,7 @@ body {
   --px-primary-pressed: #4A756E;
   --px-primary-disabled: #C2D6D1;
   --px-primary-weak: #EAF1EF; /* 选中态浅底、引导区背景 */
+  --px-primary-light: #EEF4F3; /* 与 C 端 `--c-primary-light` 同值；画布登录页渐变末端用的就是它（2026-09-19 对齐） */
   --px-primary-softer: #F4F8F7; /* 纸感绿，用于后台工作区层次 */
 
   /* ===== 功能色 ===== */
@@ -74,6 +75,9 @@ body {
 
   /* ===== 字体 ===== */
   --px-font: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  /* 衬线：品牌标题 / 登录页主标题（画布 B/C 端均用）。不引 web font，走系统自带。
+     原先 B 端只有无衬线栈，导致画布上的衬线标题无处引用，只能各页写死字体名。 */
+  --px-font-serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "Noto Serif CJK SC", serif;
   --px-font-num: "DIN Alternate", "Helvetica Neue", var(--px-font); /* 金额/数字对齐用 */
   --px-fs-xs: 12px;
   --px-fs-sm: 13px;
@@ -118,7 +122,7 @@ body {
   --px-h-row: 48px; /* 表格数据行高 */
   --px-w-sider: 220px;
   --px-w-sider-collapsed: 64px;
-  --px-h-navbar: 60px;
+  --px-h-navbar: 64px;
   --px-w-content: 1366px; /* 响应式断点：< 此值 Sider 收窄 */
 }
 

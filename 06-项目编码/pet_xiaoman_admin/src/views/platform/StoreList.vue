@@ -1,3 +1,6 @@
+<!-- B-平台门店列表 StoreList（对齐画布 2:1118；开通门店抽屉对齐 5:5）
+     版式：平台超管标准列表页；顶部经营概览卡 + 门店表格。
+     表格列覆盖门店、C 端入口标识、独立小程序、主色、账号、状态、操作。 -->
 <template>
   <div>
     <div class="store-overview" aria-label="门店开通概览">
@@ -351,7 +354,7 @@ function goDetail(row) {
 .warn {
   margin-left: var(--px-sp-1);
   font-size: var(--px-fs-xs);
-  color: var(--px-warning, #d98b2b);
+  color: var(--px-warning);
 }
 .slug {
   padding: 1px var(--px-sp-1);

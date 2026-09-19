@@ -1,141 +1,172 @@
-.promise-page {
-  padding-bottom: 168rpx;
+/* C-关于与承诺（对齐画布 58:520）· 1 画布 px = 2rpx */
+
+.abody {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;                           /* 16px */
+  padding: 0 40rpx var(--sp-6);
+  box-sizing: border-box;
 }
-.promise-head {
-  padding: var(--sp-6) var(--sp-4) 88rpx;
-  color: #fff;
-  background: var(--c-primary);
-  border-bottom-left-radius: 42rpx;
-  border-bottom-right-radius: 42rpx;
+
+/* ===== 品牌 Intro（品牌色渐变，随门店换肤）===== */
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;                           /* 8px */
+  padding: 36rpx;                       /* 18px */
+  border-radius: 36rpx;                 /* 18px */
+  background: linear-gradient(180deg, var(--c-primary), var(--c-primary-press));
 }
-.promise-head__eyebrow {
-  color: rgba(255, 255, 255, 0.68);
-  font-size: var(--fs-xs);
-  letter-spacing: 0;
-}
-.promise-head__title {
-  margin-top: var(--sp-2);
-  font-size: var(--fs-xl);
+.intro__brand {
+  font-family: var(--font-serif);
+  font-size: 40rpx;                     /* 20px */
   font-weight: 600;
-  line-height: var(--lh-title);
+  line-height: 1.3;
+  color: #fff;
 }
-.promise-head__slogan {
-  margin-top: var(--sp-1);
-  color: rgba(255, 255, 255, 0.76);
-  font-size: var(--fs-sm);
+.intro__tag {
+  font-size: 24rpx;                     /* 12px */
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.92);
 }
-.proof-strip {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rpx;
-  margin: -44rpx var(--sp-4) var(--sp-3);
-  position: relative;
-  z-index: 1;
-  overflow: hidden;
-  border: 1rpx solid rgba(61, 92, 87, 0.08);
-  border-radius: var(--r-lg);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: var(--sd-card);
+.intro__proof {
+  margin-top: 4rpx;
+  font-size: 22rpx;                     /* 11px */
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.72);
 }
-.proof-strip__item {
-  min-height: 116rpx;
+
+/* ===== 三承诺速览 ===== */
+.proofs {
+  display: flex;
+  gap: 24rpx;                           /* 12px */
+}
+.proof {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  background: rgba(255, 253, 248, 0.86);
+  gap: 8rpx;
+  padding: 26rpx 12rpx;
+  background: var(--c-card);
+  border: 1rpx solid var(--c-stroke);
+  border-radius: 36rpx;
+  box-sizing: border-box;
 }
-.proof-strip__value {
-  color: var(--c-primary-deep);
-  font-size: var(--fs-base);
+.proof__v {
+  font-family: var(--font-serif);
+  font-size: 32rpx;                     /* 16px */
   font-weight: 600;
+  line-height: 1.2;
+  color: var(--c-primary);
 }
-.proof-strip__label {
-  margin-top: 4rpx;
-  color: var(--c-gray);
-  font-size: var(--fs-xs);
+.proof__l {
+  font-size: 22rpx;                     /* 11px */
+  line-height: 1.4;
+  color: var(--c-gray-mid);
+  text-align: center;
 }
-.promise-card {
+
+/* ===== 承诺 / 流程 / 理念 三张卡 ===== */
+.comm,
+.flow,
+.belief {
   display: flex;
-  gap: var(--sp-3);
-  margin: var(--sp-3) var(--sp-4);
+  flex-direction: column;
+  gap: 28rpx;                           /* 14px */
+  padding: 36rpx;                       /* 18px —— 覆盖 .card 的 40rpx(20px)，对齐画布 58:534/58:539 的 18px 内边距 */
 }
-.promise-card__icon {
-  width: 48rpx;
-  height: 48rpx;
-  flex-shrink: 0;
-  margin-top: 4rpx;
-}
-.promise-card__body {
-  flex: 1;
-  min-width: 0;
-}
-.promise-card__title,
-.section-title {
-  color: var(--c-ink);
-  font-size: var(--fs-base);
-  font-weight: 600;
-}
-.promise-card__text,
-.statement__text {
-  margin-top: var(--sp-1);
-  color: var(--c-gray);
-  font-size: var(--fs-sm);
-  line-height: var(--lh-body);
-}
-.statement {
-  margin: var(--sp-3) var(--sp-4);
-}
-.flow-card {
-  margin: var(--sp-3) var(--sp-4);
-}
-.flow-row {
+
+.comm__item,
+.flow__item {
   display: flex;
-  gap: var(--sp-3);
-  padding: var(--sp-3) 0;
-  border-top: 1rpx solid var(--c-divider);
+  align-items: flex-start;
+  gap: 20rpx;
 }
-.flow-row:nth-of-type(2) {
-  border-top: none;
+.comm__ic { flex: none; width: 40rpx; height: 40rpx; }
+.comm__body { flex: 1; min-width: 0; }
+.comm__t {
+  font-size: 28rpx;                     /* 14px */
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--c-ink-strong);
 }
-.flow-row__step {
-  width: 54rpx;
-  height: 54rpx;
-  flex-shrink: 0;
+.comm__d {
+  margin-top: 6rpx;
+  font-size: 24rpx;                     /* 12px */
+  line-height: 1.6;
+  color: var(--c-gray-mid);
+}
+
+/* 流程步骤号：等宽数字 + 松绿浅底圆角块 */
+.flow__step {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--r-pill);
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 16rpx;
   background: var(--c-primary-light);
-  color: var(--c-primary-deep);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-}
-.flow-row__title {
-  color: var(--c-ink);
-  font-size: var(--fs-sm);
+  color: var(--c-primary);
+  font-size: 24rpx;
   font-weight: 600;
 }
-.flow-row__text {
-  margin-top: 4rpx;
-  color: var(--c-gray);
-  font-size: var(--fs-sm);
-  line-height: var(--lh-body);
+.flow__body { flex: 1; min-width: 0; }
+.flow__t {
+  font-size: 28rpx;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--c-ink-strong);
 }
-.statement__btn {
-  margin-top: var(--sp-3);
+.flow__d {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--c-gray-mid);
 }
-.promise-actions {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 20;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom));
-  background: rgba(255, 253, 248, 0.98);
-  border-top: 1rpx solid rgba(61, 92, 87, 0.08);
-  box-shadow: 0 -8rpx 28rpx rgba(61, 92, 87, 0.08);
+
+.belief__para {
+  font-family: var(--font-serif);
+  font-size: 28rpx;
+  line-height: 1.7;
+  color: var(--c-ink);
 }
+.belief__li {
+  position: relative;
+  padding-left: 28rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--c-gray-mid);
+}
+.belief__li::before {
+  content: "";
+  position: absolute;
+  left: 6rpx;
+  top: 16rpx;
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: var(--c-primary);
+  opacity: 0.6;
+}
+
+/* ===== 文末轻 CTA（ghost 描边，不抢内容）===== */
+.act {
+  display: flex;
+  gap: 24rpx;
+}
+.act__ghost {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;                        /* 44px 触控下限 */
+  border-radius: var(--r-pill);
+  background: var(--c-card);
+  border: 1rpx solid var(--c-primary);
+  color: var(--c-primary);
+  font-size: 28rpx;
+  line-height: 1;
+}
+.act__ghost--hover { background: var(--c-primary-light); }

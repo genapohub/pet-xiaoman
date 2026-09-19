@@ -1,53 +1,73 @@
-<view class="page promise-page" style="{{brandStyle}}">
-  <view class="promise-head">
-    <view class="promise-head__eyebrow">SERVICE PROMISE</view>
-    <view class="promise-head__title">{{theme.shopName}} 的服务承诺</view>
-    <view class="promise-head__slogan" wx:if="{{theme.slogan}}">{{theme.slogan}}</view>
-  </view>
+<!-- C-关于与承诺（对齐画布 58:520，我的 · 二级页）
+     结构：返回+衬线页头 → 品牌 Intro（品牌色渐变卡）→ 三承诺速览 → 我们的承诺（3 卡）
+           → 服务流程（3 步）→ 理念与资质 → 底部轻 CTA。
+     二级页无 tabBar；底部不放固定条，改用文末轻 CTA，避免与内容抢注意力。 -->
+<view class="page" style="{{brandStyle}}">
 
-  <view class="proof-strip">
-    <view class="proof-strip__item" wx:for="{{proofs}}" wx:key="value">
-      <view class="proof-strip__value">{{item.value}}</view>
-      <view class="proof-strip__label">{{item.label}}</view>
-    </view>
-  </view>
-
-  <view class="promise-card card" wx:for="{{promises}}" wx:key="title">
-    <image class="promise-card__icon" src="{{item.icon}}" mode="aspectFit" />
-    <view class="promise-card__body">
-      <view class="promise-card__title">{{item.title}}</view>
-      <view class="promise-card__text">{{item.text}}</view>
-    </view>
-  </view>
-
-  <view class="card flow-card">
-    <view class="section-title">服务确认流程</view>
-    <view class="flow-row" wx:for="{{flows}}" wx:key="step">
-      <view class="flow-row__step">{{item.step}}</view>
-      <view class="flow-row__body">
-        <view class="flow-row__title">{{item.title}}</view>
-        <view class="flow-row__text">{{item.text}}</view>
+  <view class="nav nav--sub" style="padding-top:{{nav.navTop}}px">
+    <view class="nav__head" style="min-height:{{nav.headerH}}px">
+      <view class="nav__back" bindtap="goBack" hover-class="nav__back--hover">
+        <view class="nav__back-ic"></view>
+      </view>
+      <view class="nav__titles">
+        <view class="nav__title">关于与承诺</view>
       </view>
     </view>
   </view>
 
-  <view class="card statement">
-    <view class="section-title">价格透明声明</view>
-    <view class="statement__text">
-      小程序价格表展示的是当前门店公开服务价。预约提交后，订单会记录下单时的价格版本；如需额外服务，门店应先说明内容和费用，再由家属确认。
-    </view>
-  </view>
+  <view class="abody">
 
-  <view class="card statement">
-    <view class="section-title">联系与确认</view>
-    <view class="statement__text">
-      提交预约后，门店会根据订单信息联系你确认时间、地址和服务细节。若你对流程有任何不放心，可以先联系门店再预约。
+    <!-- 品牌卡：品牌色渐变 + 母题，第一眼定调 -->
+    <view class="intro">
+      <view class="intro__brand">{{theme.shopName}}</view>
+      <view class="intro__tag">一场温柔的告别 · 宠物善终服务品牌</view>
+      <view class="intro__proof">价格公开 · 过程可见 · 24 小时可约</view>
     </view>
-    <button class="btn-plain statement__btn" bindtap="callShop">联系门店</button>
-  </view>
 
-  <view class="promise-actions">
-    <button class="btn-plain" bindtap="goPrices">查看价格</button>
-    <button class="btn-primary" bindtap="goCreate">立即预约</button>
+    <!-- 三承诺速览 -->
+    <view class="proofs">
+      <view class="proof" wx:for="{{proofs}}" wx:key="label">
+        <view class="proof__v">{{item.value}}</view>
+        <view class="proof__l">{{item.label}}</view>
+      </view>
+    </view>
+
+    <!-- 我们的承诺 -->
+    <view class="card comm">
+      <view class="sect-title">我们的承诺</view>
+      <view class="comm__item" wx:for="{{promises}}" wx:key="title">
+        <image class="comm__ic" src="{{item.icon}}" mode="aspectFit" />
+        <view class="comm__body">
+          <view class="comm__t">{{item.title}}</view>
+          <view class="comm__d">{{item.text}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 服务流程 -->
+    <view class="card flow">
+      <view class="sect-title">服务流程</view>
+      <view class="flow__item" wx:for="{{flows}}" wx:key="step">
+        <view class="flow__step num">{{item.step}}</view>
+        <view class="flow__body">
+          <view class="flow__t">{{item.title}}</view>
+          <view class="flow__d">{{item.text}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 服务理念与资质保障 -->
+    <view class="card belief">
+      <view class="sect-title">服务理念与资质保障</view>
+      <view class="belief__para">我们相信，告别不是终点，而是以另一种方式延续陪伴。{{theme.shopName}}以温柔、专业与克制，陪伴每一个家庭走完这段路程。</view>
+      <view class="belief__li">正规经营资质，服务流程全程可追溯</view>
+      <view class="belief__li">专业善终团队，交付影像纪念档案</view>
+    </view>
+
+    <!-- 文末轻 CTA：先给价格（透明），再给电话（不确定时的人工出口） -->
+    <view class="act">
+      <view class="act__ghost" bindtap="goPrices" hover-class="act__ghost--hover">看看服务价格</view>
+      <view class="act__ghost" bindtap="callShop" hover-class="act__ghost--hover">电话咨询门店</view>
+    </view>
   </view>
 </view>

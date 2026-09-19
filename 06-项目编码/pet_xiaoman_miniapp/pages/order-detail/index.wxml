@@ -1,66 +1,122 @@
+<!-- C006 订单进度时间线（对齐画布 2:312，我的 · 二级页）
+     结构：返回+页头「服务进度」→ 渐变 Hero（情绪定调 + 单号·套餐）→ 竖向时间线
+           （轨道圆点 + 连接线，已完成松绿实心 / 当前呼吸 / 未发生不列）
+           → 节点影像网格 → 订单信息卡 + 取消入口 → 底部上下文操作条。
+     二级页无 tabBar。 -->
 <view class="page" style="{{brandStyle}}">
-  <view wx:if="{{loading}}" class="state state--card">
-    <view class="state__text">加载中…</view>
+
+  <view class="nav nav--sub" style="padding-top:{{nav.navTop}}px">
+    <view class="nav__head" style="min-height:{{nav.headerH}}px">
+      <view class="nav__back" bindtap="goBack" hover-class="nav__back--hover">
+        <view class="nav__back-ic"></view>
+      </view>
+      <view class="nav__titles">
+        <view class="nav__title">服务进度</view>
+      </view>
+    </view>
   </view>
 
+  <block wx:if="{{loading}}">
+    <view class="tstate">
+      <view class="skeleton sk-hero"></view>
+      <view class="skeleton sk-step"></view>
+      <view class="skeleton sk-step"></view>
+    </view>
+  </block>
+
   <block wx:elif="{{order}}">
-    <view class="status-head">
-      <view class="status-head__label">当前进度</view>
-      <view class="status">{{order.status}}</view>
-      <view class="sub">订单号 {{order.order_no}}</view>
-    </view>
+    <view class="tbody">
 
-    <view class="card">
-      <view class="row"><text class="k">期望服务</text><text class="v">{{order.expect_text}}</text></view>
-      <view class="row"><text class="k">费用合计</text><text class="v amount">¥{{order.amount_text}}</text></view>
-      <view class="row"><text class="k">支付状态</text><text class="v">{{order.pay_type}} · 已付 ¥{{order.paid_amount}}</text></view>
-      <view class="row" wx:if="{{order.cancel_reason}}">
-        <text class="k">取消原因</text><text class="v">{{order.cancel_reason}}</text>
+      <!-- Hero：一句情绪定调，而不是把单号放大当标题 -->
+      <view class="hero">
+        <view class="hero__t">它正在被温柔以待</view>
+        <view class="hero__s">{{heroSub}}</view>
       </view>
-    </view>
 
-    <view class="action-card" wx:if="{{canCustomerEdit}}">
-      <picker class="action-card__picker" mode="date" start="{{rescheduleStartDate}}" bindchange="onRescheduleDate">
-        <view class="action-card__btn">
-          <image src="/assets/icons/clock-primary.png" mode="aspectFit" />
-          <text>免费改期 {{order.reschedule_quota_left}} 次</text>
-        </view>
-      </picker>
-      <button class="action-card__btn danger" bindtap="cancelOrder">
-        <image src="/assets/icons/back-primary.png" mode="aspectFit" />
-        <text>取消预约</text>
-      </button>
-      <button class="action-card__btn" bindtap="subscribeProgress">
-        <image src="/assets/icons/info-primary.png" mode="aspectFit" />
-        <text>订阅进度通知</text>
-      </button>
-    </view>
+      <!-- 时间线：只列已发生 / 当前节点 -->
+      <view class="tline">
+        <view class="step" wx:for="{{timeline}}" wx:key="name">
+          <view class="step__rail">
+            <view class="step__dot {{item.current ? 'step__dot--now' : ''}}"></view>
+            <view class="step__line" wx:if="{{!item.current}}"></view>
+          </view>
+          <view class="step__body {{item.current ? 'step__body--now' : ''}}">
+            <view class="step__head">
+              <view class="step__name">{{item.name}}</view>
+              <view class="step__tag" wx:if="{{item.current}}">进行中</view>
+            </view>
+            <view class="step__time" wx:if="{{item.name === '待确认'}}">下单 {{order.created_text}}</view>
+            <view class="step__time" wx:elif="{{item.name === '已预约'}}">期望服务 {{order.expect_text}}</view>
 
-    <view class="card">
-      <view class="label">
-        <image class="label__icon" src="/assets/icons/check-primary.png" mode="aspectFit" />
-        <text>服务进度</text>
-      </view>
-      <view class="timeline">
-        <view class="node {{item.done ? 'done' : ''}} {{item.current ? 'current' : ''}}" wx:for="{{timeline}}" wx:key="name">
-          <view class="dot"></view>
-          <view class="node-body">
-            <view class="node-name">{{item.name}}</view>
-            <view class="thumbs" wx:if="{{item.media.length}}">
-              <image wx:for="{{item.media}}" wx:for-item="m" wx:key="id" wx:if="{{m.media_type === 'photo'}}"
-                src="{{m.url}}" mode="aspectFill" class="thumb"
-                data-urls="{{item.photoUrls}}" data-current="{{m.url}}" bindtap="preview" />
-              <video wx:for="{{item.media}}" wx:for-item="m" wx:key="id" wx:if="{{m.media_type === 'video'}}"
-                src="{{m.url}}" class="thumb video" />
+            <!-- 节点影像：唯一「过程可见」的证据位 -->
+            <view class="media" wx:if="{{item.hasMedia}}">
+              <image
+                wx:for="{{item.media}}"
+                wx:for-item="m"
+                wx:key="id"
+                class="media__item"
+                src="{{m.url}}"
+                mode="aspectFill"
+                data-urls="{{item.photoUrls}}"
+                data-current="{{m.url}}"
+                bindtap="preview"
+              />
             </view>
           </view>
         </view>
       </view>
+
+      <!-- 订单信息 + 取消入口（取消是低频危险操作，故不做成主按钮） -->
+      <view class="card info">
+        <view class="info__row">
+          <view class="info__l">订单编号</view>
+          <view class="info__v num">{{order.order_no}}</view>
+        </view>
+        <view class="info__row">
+          <view class="info__l">服务项目</view>
+          <view class="info__v">{{order.pkg_name}}</view>
+        </view>
+        <view class="info__row">
+          <view class="info__l">期望时间</view>
+          <view class="info__v">{{order.expect_text}}</view>
+        </view>
+        <view class="info__row">
+          <view class="info__l">订单金额</view>
+          <view class="info__v num">¥{{order.amount_text}}</view>
+        </view>
+        <view class="info__row info__row--last">
+          <view class="info__l">支付方式</view>
+          <view class="info__v">{{order.pay_type}}</view>
+        </view>
+        <view class="info__cancel" wx:if="{{canCustomerEdit}}" bindtap="cancelOrder">取消预约</view>
+      </view>
     </view>
 
-    <button class="btn-primary call" bindtap="callShop">
-      <image class="call__icon" src="/assets/icons/phone-white.png" mode="aspectFit" />
-      <text>联系门店</text>
-    </button>
+    <view class="tspacer"></view>
+
+    <!-- 底部上下文操作条：可改期 → 改期为主；否则订阅进度为主。联系门店恒在左侧第二出口 -->
+    <view class="bottom-bar bottom-bar--base">
+      <view class="bar-ghost" bindtap="callShop" hover-class="bar-ghost--hover">联系门店</view>
+      <picker
+        wx:if="{{canCustomerEdit}}"
+        mode="date"
+        value="{{order.expect_text}}"
+        start="{{rescheduleStartDate}}"
+        bindchange="onRescheduleDate"
+      >
+        <view class="bar-primary">改期（剩 {{rescheduleLeft}} 次）</view>
+      </picker>
+      <view wx:else class="bar-primary" bindtap="subscribeProgress" hover-class="bar-primary--hover">订阅进度</view>
+    </view>
   </block>
+
+  <!-- 加载失败 / 订单不存在 -->
+  <view wx:else class="state">
+    <view class="state__disc">
+      <image class="state__icon" src="/assets/icons/info-primary.png" mode="aspectFit" />
+    </view>
+    <view class="state__title">订单信息加载失败</view>
+    <view class="state__text">请稍后重试，或联系门店协助查询</view>
+    <view class="state__cta" bindtap="callShop" hover-class="state__cta--hover">联系门店</view>
+  </view>
 </view>

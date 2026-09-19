@@ -1,6 +1,6 @@
 """纪念品管理（B006）与 C 端展示购买（C007）。"""
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -19,7 +19,24 @@ class ProductInput(BaseModel):
     price: float = Field(gt=0)
     images: list[str] = Field(default_factory=list)
     description: str | None = Field(default=None, max_length=200)
+    category: str | None = Field(default=None, max_length=20, description="分类，如「纪念饰品」")
     stock_note: str | None = Field(default=None, max_length=100)
+    # 履约能力（2026-09-19 拍板：混合履约，SKU 声明能力）见 app/models/product.py
+    ship_enabled: bool = Field(default=False, description="是否支持邮寄；false=仅到店自取")
+    lead_days: int = Field(default=0, ge=0, le=60, description="制作工期（天），0=现货")
+
+    @field_validator("description", "category", "stock_note", mode="before")
+    @classmethod
+    def blank_to_none(cls, v):
+        """空白串一律归一成 None。
+
+        不能只靠前端 trim：接口是对外契约，任何客户端（脚本、别的端）都能传空格进来，
+        存成 `'   '` 后列表里会出现「看着是空、但不是 —」的格子，也无法用 IS NULL 筛。
+        """
+        if isinstance(v, str):
+            v = v.strip()
+            return v or None
+        return v
 
 
 @router.get("/api/c/products", summary="C007 纪念品展示（在售）")
@@ -28,12 +45,31 @@ def c_list(store_id: int | None = Depends(store_context), db: Session = Depends(
             .order_by(Product.id.desc()).all())
     return [{"id": i.id, "name": i.name, "price": float(i.price),
              "image": (i.images or [None])[0], "description": i.description,
-             "stock_note": i.stock_note} for i in rows]
+             "category": i.category, "stock_note": i.stock_note,
+             # 列表卡要显示「现货·到店取」/「定制 3-5 天·可邮寄」，故必须透出履约能力
+             "ship_enabled": bool(i.ship_enabled), "lead_days": int(i.lead_days or 0)}
+            for i in rows]
 
 
-@router.post("/api/c/products/{product_id}/buy", summary="C007 单件直购（支付开关关闭时提示到店选购）")
+@router.get("/api/c/products/{product_id}", summary="C007 纪念品详情")
+def c_detail(product_id: int, store_id: int | None = Depends(store_context),
+             db: Session = Depends(get_db)):
+    p = db.get(Product, product_id)
+    if (not p or p.status != ProductStatus.ON_SALE or not belongs(p, store_id)):
+        raise HTTPException(404, "商品不存在或已下架")
+    return {
+        "id": p.id, "name": p.name, "price": float(p.price),
+        "images": p.images or [], "image": (p.images or [None])[0],
+        "description": p.description, "category": p.category, "stock_note": p.stock_note,
+        "ship_enabled": bool(p.ship_enabled), "lead_days": int(p.lead_days or 0),
+    }
+
+
+@router.post("/api/c/products/{product_id}/buy", summary="C007 单件直购（保留：B 端代客/随单交付用）")
 def c_buy(product_id: int, payload: dict, store_id: int | None = Depends(store_context),
           db: Session = Depends(get_db)):
+    """单件直购：C 端主流程已改为「纪念清单 → 结算」（见 `app/routes/c_cart.py`），
+    本接口保留给 B 端代客下单与「随服务订单交付」场景，故不做移除。"""
     product = db.get(Product, product_id)
     if (not product or product.status != ProductStatus.ON_SALE
             or not belongs(product, store_id)):
@@ -47,7 +83,7 @@ def c_buy(product_id: int, payload: dict, store_id: int | None = Depends(store_c
         linked_order = db.query(Order).filter(Order.order_no == linked).first()
         if not belongs(linked_order, store_id):
             raise HTTPException(422, "关联订单不存在")
-    po = ProductOrder(product_id=product_id, customer_id=customer_id,
+    po = ProductOrder(product_id=product_id, customer_id=customer_id, qty=1,
                       amount=float(product.price), fulfillment=fulfillment,
                       linked_order_no=linked, pay_status="已支付", store_id=store_id)
     db.add(po)
@@ -61,7 +97,9 @@ def c_buy(product_id: int, payload: dict, store_id: int | None = Depends(store_c
 def b_list(staff: Staff = Depends(staff_auth), db: Session = Depends(get_db)):
     rows = scoped(db, Product, staff.store_id).order_by(Product.id.desc()).all()
     return [{"id": i.id, "name": i.name, "price": float(i.price), "images": i.images or [],
-             "description": i.description, "status": i.status.value, "stock_note": i.stock_note}
+             "description": i.description, "category": i.category,
+             "status": i.status.value, "stock_note": i.stock_note,
+             "ship_enabled": bool(i.ship_enabled), "lead_days": int(i.lead_days or 0)}
             for i in rows]
 
 

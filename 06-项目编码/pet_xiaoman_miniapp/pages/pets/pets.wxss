@@ -1,65 +1,105 @@
-.pets-head {
-  padding: var(--sp-6) var(--sp-4) 72rpx;
-  color: #fff;
-  background: var(--c-primary);
-  border-bottom-left-radius: 36rpx;
-  border-bottom-right-radius: 36rpx;
-}
-.pets-head__title {
-  font-size: var(--fs-xl);
-  font-weight: 600;
-  line-height: var(--lh-title);
-}
-.pets-head__desc {
-  margin-top: var(--sp-2);
-  color: rgba(255, 255, 255, 0.72);
-  font-size: var(--fs-sm);
-  line-height: 1.7;
+/* C009 宠物档案（对齐画布 2:474）· 1 画布 px = 2rpx */
+
+.abody {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;                           /* 16px */
+  padding: 0 40rpx var(--sp-6);
+  box-sizing: border-box;
 }
 
-.card {
-  margin: var(--sp-3) var(--sp-4);
-  padding: var(--sp-4);
-  border: 1rpx solid var(--c-border);
-}
-.pets-head + .card {
-  margin-top: -36rpx;
+.pcard {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;                           /* 14px */
+  padding: 36rpx;                       /* 18px */
+  background: var(--c-card);
+  border: 1rpx solid var(--c-stroke);
+  border-radius: 36rpx;                 /* 18px */
+  box-sizing: border-box;
 }
 
-.head {
+/* 档案头：中立色圆盘（画布 avatar 为 #EFEDE6，与主色无关——避免宠物照片缺失时
+   用品牌色圆盘造成「这是官方吉祥物」的误读）*/
+.pcard__top {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  padding-bottom: var(--sp-3);
-  border-bottom: 1rpx solid var(--c-divider);
+  gap: 32rpx;                           /* 16px */
 }
-.head__icon {
-  width: 40rpx;
-  height: 40rpx;
-}
-.name {
-  font-size: var(--fs-md);
+.pcard__avatar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 128rpx;                        /* 64px */
+  height: 128rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-paper-deep);
+  font-family: var(--font-serif);
+  font-size: 52rpx;
   font-weight: 600;
+  line-height: 1;
+  color: var(--c-gray-mid);
+}
+.pcard__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12rpx;                           /* 6px */
+}
+.pcard__name {
+  font-family: var(--font-serif);
+  font-size: 36rpx;                     /* 18px */
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--c-ink-strong);
+}
+.pcard__meta {
+  font-size: 26rpx;                     /* 13px */
+  line-height: 1.4;
+  color: var(--c-gray-mid);
+}
+.pcard__tag { margin-top: 2rpx; }
+
+/* 服务历史 */
+.pcard__hist {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid var(--c-divider);
+}
+.hrow {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 14rpx 0;
+  box-sizing: border-box;
+}
+.hrow--hover { background: var(--c-primary-pale); }
+.hrow__no {
+  flex: 1;
+  min-width: 0;
+  font-size: 26rpx;
   color: var(--c-ink);
 }
-
-.history {
-  padding: var(--sp-3) 0;
-  font-size: var(--fs-sm);
+.hrow__date {
+  flex: none;
+  font-size: 24rpx;
   color: var(--c-gray);
-  border-bottom: 1rpx dashed var(--c-divider);
 }
-.history:last-child { border-bottom: none; }
-
-.empty {
-  padding: var(--sp-3) 0;
-  font-size: var(--fs-sm);
+.pcard__none {
+  padding-top: 24rpx;
+  border-top: 1rpx solid var(--c-divider);
+  font-size: 24rpx;
   color: var(--c-gray-light);
 }
 
-.sk-line {
-  height: 28rpx;
-  margin-bottom: var(--sp-2);
-}
-.sk-line--lg { width: 40%; }
-.sk-line--sm { width: 70%; margin-bottom: 0; }
+/* 骨架 */
+.sk-a { height: 128rpx; width: 100%; }
+.sk-b { height: 24rpx; width: 46%; }
+
+/* 空态：二级页无底栏，居中于 body */
+.abody .state { padding: 140rpx 40rpx; }

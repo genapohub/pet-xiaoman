@@ -1,206 +1,166 @@
-.page {
-  padding-bottom: 336rpx;
-}
+/* C004 预约下单（对齐画布 2:219）· 1 画布 px = 2rpx */
 
-.form-head {
-  padding: var(--sp-6) var(--sp-4) var(--sp-4);
-  color: #fff;
-  background: var(--c-primary);
-  border-bottom-left-radius: 36rpx;
-  border-bottom-right-radius: 36rpx;
-}
-.form-head__title {
-  font-size: var(--fs-xl);
-  font-weight: 600;
-  line-height: var(--lh-title);
-}
-.form-head__desc {
-  margin-top: var(--sp-2);
-  color: rgba(255, 255, 255, 0.72);
-  font-size: var(--fs-sm);
-  line-height: 1.7;
-}
+.page { padding-bottom: 0; }
 
-.card {
-  margin: var(--sp-3) var(--sp-4);
-  padding: var(--sp-4);
-  border: 1rpx solid var(--c-border);
-}
-.form-head + .card {
-  margin-top: -20rpx;
-}
-
-.label {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-1);
-  margin-bottom: var(--sp-3);
-  font-size: var(--fs-base);
-  font-weight: 600;
-  color: var(--c-ink);
-}
-.label__icon {
-  width: 32rpx;
-  height: 32rpx;
-}
-
-.picker {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: var(--h-touch);
-  padding: 0 var(--sp-3);
-  background: transparent;
-  border-bottom: 1rpx solid var(--c-divider);
-  border-radius: 0;
-  font-size: var(--fs-base);
-  color: var(--c-ink);
-}
-.picker__arrow {
-  width: 32rpx;
-  height: 32rpx;
-  opacity: 0.7;
-}
-.is-placeholder { color: var(--c-gray-light); }
-
-.form-input {
-  height: var(--h-touch);
-  padding: 0 var(--sp-3);
-  margin-top: var(--sp-2);
-  background: transparent;
-  border-bottom: 1rpx solid var(--c-divider);
-  border-radius: 0;
-  font-size: var(--fs-base);
-  color: var(--c-ink);
-}
-
-.location-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-1);
-  height: 72rpx;
-  margin: var(--sp-3) 0 var(--sp-1);
-  padding: 0 var(--sp-3);
-  background: var(--c-primary-light);
-  color: var(--c-primary-deep);
-  font-size: var(--fs-sm);
-  border-radius: var(--r-md);
-}
-.location-btn::after { border: none; }
-.location-btn.is-disabled {
-  background: #F2F3F5;
-  color: var(--c-gray);
-}
-.location-btn__icon {
-  width: 32rpx;
-  height: 32rpx;
-}
-
-.species-field {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 104rpx;
-  gap: var(--sp-3);
-  padding: 12rpx var(--sp-3);
-  margin-top: var(--sp-3);
-  background: transparent;
-  border-bottom: 1rpx solid var(--c-divider);
-  border-radius: 0;
-  font-size: var(--fs-base);
-  color: var(--c-ink);
-  box-sizing: border-box;
-}
-.species-field__label {
-  flex-shrink: 0;
-  font-weight: 500;
-}
-.species-segment {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10rpx;
-  width: 288rpx;
-  padding: 6rpx;
-  border: 1rpx solid rgba(91, 140, 133, 0.14);
-  border-radius: 24rpx;
-  background: var(--c-primary-pale);
-  box-sizing: border-box;
-}
-.species-option {
-  min-height: 68rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6rpx;
-  border-radius: 18rpx;
-  color: var(--c-gray);
-  transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
-}
-.species-option.is-active {
-  background: var(--c-primary);
-  color: #fff;
-  box-shadow: 0 10rpx 24rpx rgba(61, 92, 87, 0.18);
-}
-.species-option__name {
-  font-size: var(--fs-base);
-  font-weight: 600;
-  line-height: 1;
-}
-.species-option__hint {
-  font-size: 22rpx;
-  line-height: 1;
-  opacity: 0.82;
-}
-
-.summary-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 20;
+.fbody {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom));
-  background: rgba(255, 253, 248, 0.98);
-  border-top: 1rpx solid rgba(61, 92, 87, 0.08);
-  box-shadow: 0 -8rpx 28rpx rgba(61, 92, 87, 0.08);
+  gap: 24rpx;                           /* 12px */
+  padding: 0 40rpx;                     /* 20px */
+  box-sizing: border-box;
 }
-.summary-bar__notice {
+
+.fcard {
   display: flex;
-  align-items: center;
-  gap: var(--sp-1);
-  min-height: 48rpx;
-  padding: 0 var(--sp-2);
-  color: #A9762F;
-  font-size: var(--fs-xs);
+  flex-direction: column;
+  gap: 16rpx;                           /* 8px */
+  padding: 28rpx 36rpx;                 /* 上下 14px / 左右 18px */
+}
+.fcard__label {
+  font-size: 26rpx;                     /* 13px */
+  font-weight: 500;
   line-height: 1.4;
+  color: var(--c-gray-mid);
 }
-.summary-bar__notice-icon {
-  width: 28rpx;
-  height: 28rpx;
-  flex-shrink: 0;
+.fcard__note {
+  font-size: 22rpx;                     /* 11px */
+  line-height: 1.5;
+  color: var(--c-gray-light);
 }
-.summary-bar__main {
+
+/* ===== 已选套餐（可点整行切换）===== */
+.pkgrow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sp-3);
+  gap: 16rpx;
+  padding: 8rpx 0;
+  box-sizing: border-box;
 }
-.summary-bar__label {
-  color: var(--c-gray);
-  font-size: var(--fs-xs);
+.pkgrow--hover { background: var(--c-primary-pale); }
+.pkgrow__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 32rpx;                     /* 16px */
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--c-ink-strong);
 }
-.summary-bar__price {
-  margin-top: 2rpx;
-  color: var(--c-primary);
-  font-size: 44rpx;
+.pkgrow__price {
+  flex: none;
+  font-size: 40rpx;                     /* 20px */
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  color: var(--c-primary);
 }
-.submit {
-  width: 396rpx;
-  margin: 0;
+
+/* ===== 附加服务多选行 ===== */
+.arow {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  min-height: 76rpx;
+  box-sizing: border-box;
 }
+.arow--hover { background: var(--c-primary-pale); }
+/* 自绘勾选框：避免用原生 checkbox 带来平台不一致的观感 */
+.arow__check {
+  flex: none;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  border: 2rpx solid var(--c-stroke);
+  background: var(--c-card);
+  box-sizing: border-box;
+}
+.arow__check--on {
+  border-color: var(--c-primary);
+  background: var(--c-primary);
+  /* 选中态用内嵌白点表示，免引入图标资源 */
+  box-shadow: inset 0 0 0 8rpx var(--c-primary);
+}
+.arow__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 30rpx;                     /* 15px */
+  line-height: 1.4;
+  color: var(--c-ink);
+}
+.arow__price {
+  flex: none;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--c-primary);
+}
+
+/* ===== 输入类字段（纸感底 + 12rpx 圆角 + 高 52px）===== */
+.finput {
+  box-sizing: border-box;
+  width: 100%;
+  height: 104rpx;                       /* 52px */
+  padding: 0 32rpx;
+  border-radius: 24rpx;                 /* 12px */
+  background: var(--c-paper);
+  font-size: 30rpx;                     /* 15px */
+  color: var(--c-ink);
+}
+.fph { color: var(--c-gray); }
+.finput--row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+.finput__ic { flex: none; width: 40rpx; height: 40rpx; }
+.finput__ph {
+  flex: 1;
+  min-width: 0;
+  font-size: 30rpx;
+  color: var(--c-gray);
+}
+.finput__val {
+  flex: 1;
+  min-width: 0;
+  font-size: 30rpx;
+  color: var(--c-ink);
+}
+.finput__inner {
+  flex: 1;
+  min-width: 0;
+  font-size: 30rpx;
+  color: var(--c-ink);
+}
+.finput__inner--ro { color: var(--c-ink); }
+.finput__act {
+  flex: none;
+  font-size: 26rpx;
+  color: var(--c-primary);
+}
+
+/* 物种选择胶囊：选中=松绿实色白字；未选中=白底描边灰字 */
+.sprow {
+  display: flex;
+  gap: 20rpx;                           /* 10px */
+}
+.spill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80rpx;                        /* 40px */
+  padding: 0 36rpx;                     /* 18px */
+  border-radius: var(--r-pill);
+  background: var(--c-card);
+  border: 1rpx solid var(--c-stroke);
+  color: var(--c-gray-mid);
+  font-size: 28rpx;
+  line-height: 1;
+}
+.spill--on {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: #fff;
+  font-weight: 500;
+}
+
+/* 底部费用条样式（.feebar*）已收口到 app.wxss 共用 */
+
+/* 给固定费用条让位 */
+.fspacer { height: 200rpx; }

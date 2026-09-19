@@ -1,3 +1,6 @@
+<!-- B-服务项目 ServiceItems（对齐画布 2:885）
+     版式：B 端标准列表页；顶部为服务/加购 Tab，表格列为名称、价格、时长、体重分档、状态、价格版本、操作。
+     新建/编辑使用右侧抽屉，价格变更与历史订单锁价分离。 -->
 <template>
   <div>
     <px-table-page
@@ -23,6 +26,10 @@
       <el-table-column prop="name" label="名称" min-width="180" />
       <el-table-column label="价格" width="120" align="right">
         <template #default="{ row }"><span class="num">¥{{ fmtMoney(row.price) }}</span></template>
+      </el-table-column>
+      <!-- 时长：画布要求列（「约 2 小时」「按里程」），自由文本，门店自己描述 -->
+      <el-table-column label="时长" width="120">
+        <template #default="{ row }">{{ row.duration_text || "—" }}</template>
       </el-table-column>
       <el-table-column label="体重分档" width="110">
         <template #default="{ row }">{{ row.weight_tier || "—" }}</template>
@@ -65,6 +72,15 @@
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="名称" prop="name"><el-input v-model="form.name" maxlength="50" /></el-form-item>
         <el-form-item label="价格" prop="price"><el-input-number v-model="form.price" :min="0.01" :precision="2" class="w-full" /></el-form-item>
+        <el-form-item label="时长" prop="duration_text">
+          <div class="field-block">
+            <el-input v-model="form.duration_text" maxlength="20" placeholder="如：约 2 小时 / 按里程" />
+            <div class="hint">
+              自由文本，不参与锁价计算。建议写门店能兑现的说法——
+              善终服务受交通与仪式时长影响，写死分钟数容易与实际不符。
+            </div>
+          </div>
+        </el-form-item>
         <el-form-item label="体重分档" prop="weight_tier">
           <el-select v-model="form.weight_tier" clearable placeholder="仅火化单项需要" class="w-full">
             <el-option v-for="t in ['0-10kg', '10-20kg', '20kg+']" :key="t" :label="t" :value="t" />
@@ -107,7 +123,8 @@ const versionVisible = ref(false);
 const versions = ref([]);
 const saving = ref(false);
 const originPrice = ref(0);
-const form = ref({ id: null, type: "套餐", name: "", price: 1, weight_tier: null });
+const BLANK_FORM = { id: null, type: "套餐", name: "", price: 1, weight_tier: null, duration_text: null };
+const form = ref({ ...BLANK_FORM });
 const formRef = ref(null);
 const rules = {
   name: [{ required: true, message: "请填写服务名称", trigger: "blur" }],
@@ -115,7 +132,8 @@ const rules = {
 };
 
 function openEdit(row) {
-  form.value = row ? { ...row } : { id: null, type: activeTab.value, name: "", price: 1, weight_tier: null };
+  // 老数据可能没有 duration_text（本次迁移前建的项目）→ 用 BLANK_FORM 兜底，别让 undefined 进表单
+  form.value = row ? { ...BLANK_FORM, ...row } : { ...BLANK_FORM, type: activeTab.value };
   originPrice.value = row ? row.price : 0;
   editVisible.value = true;
 }
@@ -129,6 +147,8 @@ async function save() {
       name: form.value.name.trim(),
       price: form.value.price,
       weight_tier: form.value.weight_tier || null,
+      // 空串统一转 null：留空表示「不承诺时长」，而不是存一个空字符串
+      duration_text: (form.value.duration_text || "").trim() || null,
     };
     if (form.value.id) await updateItem(form.value.id, payload);
     else await createItem(payload);
@@ -161,6 +181,9 @@ async function showVersions(row) {
 
 <style scoped>
 .tabs { margin-bottom: var(--px-sp-2); }
+/* 「控件 + 说明」竖排块（Element 的 form-item content 默认横向 flex，不加包裹会挤一行） */
+.field-block { width: 100%; }
+.hint { margin-top: var(--px-sp-2); color: var(--px-text-3); font-size: var(--px-fs-xs); line-height: 1.6; }
 .num { font-variant-numeric: tabular-nums; }
 .w-full { width: 100%; }
 </style>

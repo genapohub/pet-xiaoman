@@ -1,1 +1,4 @@
-{ "navigationBarTitleText": "骨灰寄存查询" }
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "骨灰寄存查询"
+}

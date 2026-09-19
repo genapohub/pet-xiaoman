@@ -9,7 +9,7 @@ from pathlib import Path
 from fastapi.staticfiles import StaticFiles
 
 from app.routes import health, c_orders, b_orders, pay, service_items, products, boarding, customers, c_extra, stats, auth
-from app.routes import b_auth, b_staff, b_rbac, b_platform
+from app.routes import b_auth, b_staff, b_rbac, b_platform, c_cart
 
 app = FastAPI(title="pet_xiaoman API", version="0.1.0",
               description="宠物善终门店系统（单店版）。接口文档即知识地图接口协议来源。")
@@ -20,6 +20,7 @@ app.include_router(b_orders.router, prefix="/api/b", tags=["b-订单"])
 app.include_router(pay.router, prefix="/api/pay", tags=["支付"])
 app.include_router(service_items.router, prefix="/api/b", tags=["服务项目"])
 app.include_router(products.router, tags=["纪念品"])  # 路由含全路径
+app.include_router(c_cart.router, prefix="/api/c", tags=["c-纪念清单"])
 app.include_router(boarding.router, tags=["寄存"])  # 路由含全路径
 app.include_router(customers.router, prefix="/api/b", tags=["客户"])
 app.include_router(c_extra.router, prefix="/api/c", tags=["C 端公开"])

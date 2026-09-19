@@ -1,28 +1,74 @@
+<!-- C008 骨灰寄存查询（对齐画布 2:512，我的 · 二级页）
+     结构：页头（返回 + 衬线标题 + 情绪副题）→ 查询卡（后四位输入 + 主按钮）
+           → 结果卡（宠物名/位置/到期日/剩余天数/提示 + 续期）→ 无记录态。
+     无 tabBar；无匹配时后端返 404，故「无记录」与「查询失败」文案分开。 -->
 <view class="page" style="{{brandStyle}}">
-  <view class="query-head">
-    <view class="query-head__title">骨灰寄存查询</view>
-    <view class="query-head__desc">输入预留手机号后四位，查看寄存位置和到期时间。</view>
-  </view>
 
-  <view class="card">
-    <view class="label">
-      <image class="label__icon" src="/assets/icons/box-primary.png" mode="aspectFit" />
-      <text>输入寄存时预留的手机号后四位</text>
+  <view class="nav nav--sub" style="padding-top:{{nav.navTop}}px">
+    <view class="nav__head" style="min-height:{{nav.headerH}}px">
+      <view class="nav__back" bindtap="goBack" hover-class="nav__back--hover">
+        <view class="nav__back-ic"></view>
+      </view>
+      <view class="nav__titles">
+        <view class="nav__title">骨灰寄存</view>
+        <view class="nav__sub">安心托付，定期养护</view>
+      </view>
     </view>
-    <input type="number" maxlength="4" placeholder="后四位" value="{{tail}}" bindinput="onInput" />
-    <button class="btn-primary query" bindtap="query">查询</button>
   </view>
 
-  <view class="card" wx:for="{{result || []}}" wx:key="location">
-    <view class="row"><text class="k">宠物</text><text class="v">{{item.pet_name}}</text></view>
-    <view class="row"><text class="k">位置</text><text class="v">{{item.location}}</text></view>
-    <view class="row"><text class="k">到期日</text><text class="v">{{item.expire_date}}</text></view>
-    <view class="status-pill">{{item.severity}} · 剩 {{item.days_left}} 天</view>
-  </view>
+  <view class="sbody">
 
-  <view wx:if="{{searched && (!result || !result.length)}}" class="state state--card">
-    <image class="state__icon" src="/assets/icons/box.png" mode="aspectFit" />
-    <view class="state__text">{{error || "没有查询到寄存记录"}}</view>
-    <view class="state__hint">确认手机号后四位是否正确，或直接联系门店</view>
+    <!-- 查询卡 -->
+    <view class="card qcard">
+      <view class="qcard__t">查询寄存信息</view>
+      <input
+        class="qcard__input"
+        type="number"
+        maxlength="4"
+        placeholder="请输入寄存人手机号后四位"
+        placeholder-class="qcard__ph"
+        value="{{tail}}"
+        bindinput="onInput"
+        confirm-type="search"
+        bindconfirm="query"
+      />
+      <view class="qcard__btn {{loading ? 'qcard__btn--busy' : ''}}" bindtap="query" hover-class="qcard__btn--hover">
+        {{loading ? '查询中…' : '查询'}}
+      </view>
+    </view>
+
+    <!-- 结果卡（命中多条时逐条列出） -->
+    <view class="card rcard" wx:for="{{result}}" wx:key="expire_date">
+      <view class="rcard__top">
+        <view class="rcard__pet">{{item.pet_name}}</view>
+        <view class="tag tag--sm {{item.severityClass}}">{{item.severity}}</view>
+      </view>
+      <view class="rcard__row">
+        <view class="rcard__l">寄存位置</view>
+        <view class="rcard__v">{{item.location}}</view>
+      </view>
+      <view class="rcard__row">
+        <view class="rcard__l">到期日期</view>
+        <view class="rcard__v num">{{item.expire_text}}</view>
+      </view>
+      <view class="rcard__row">
+        <view class="rcard__l">寄存时长</view>
+        <view class="rcard__v">{{item.daysText}}</view>
+      </view>
+      <view class="rcard__note">我们会定期养护，环境恒温恒湿，请您安心。</view>
+      <view class="rcard__renew" bindtap="renew" hover-class="rcard__renew--hover">续期</view>
+    </view>
+
+    <!-- 无记录 / 查询失败（区分文案） -->
+    <view wx:if="{{searched && !result.length}}" class="state state--card">
+      <view class="state__disc">
+        <image class="state__icon" src="/assets/icons/info-primary.png" mode="aspectFit" />
+      </view>
+      <view class="state__title">未查询到寄存记录</view>
+      <view class="state__text">{{error || '请确认手机号后四位是否正确'}}</view>
+      <view class="state__cta" bindtap="callShop" hover-class="state__cta--hover">联系门店</view>
+    </view>
+
+    <view class="scard-tip">同一手机号可查询多位爱宠的寄存信息。</view>
   </view>
 </view>

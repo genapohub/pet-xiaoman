@@ -1,38 +1,75 @@
-<view class="page cashier-page" style="{{brandStyle}}">
-  <view class="amount-card" wx:if="{{orderNo}}">
-    <view class="amount-card__label">应付金额</view>
-    <view class="amount-card__value">¥{{amountText}}</view>
-    <view class="amount-card__order">订单号 {{orderNo}}</view>
-  </view>
+<!-- C012 收银台（对齐画布 47:281，服务 · 二级页）
+     结构：返回 + 页头「确认支付」→ 订单摘要 → 费用明细 → 支付方式（可选/不可选）→ 支付说明
+           → 底部固定费用条（合计应付 + 主按钮）。
+     一期线上支付未开通：定金/全款项 dimmed 且点击给出原因，默认「到店付款」。 -->
+<view class="page" style="{{brandStyle}}">
 
-  <view class="pay-switch" wx:if="{{!payEnabled && orderNo}}">
-    <image src="/assets/icons/shield-primary.png" mode="aspectFit" />
-    <text>线上支付入口已预留；若商户号未配置，可切换到店付款</text>
-  </view>
-
-  <view class="card method-card" wx:if="{{orderNo}}">
-    <view class="method {{item.key === selected ? 'is-selected' : ''}} {{item.disabled ? 'is-disabled' : ''}}"
-      wx:for="{{methods}}" wx:key="key" data-key="{{item.key}}" bindtap="selectMethod">
-      <view class="radio"></view>
-      <image class="method__icon" src="{{item.icon}}" mode="aspectFit" />
-      <view class="method__body">
-        <view class="method__name">{{item.name}}</view>
-        <view class="method__desc">{{item.disabled ? item.disabledText : item.desc}}</view>
+  <view class="nav nav--sub" style="padding-top:{{nav.navTop}}px">
+    <view class="nav__head" style="min-height:{{nav.headerH}}px">
+      <view class="nav__back" bindtap="goBack" hover-class="nav__back--hover">
+        <view class="nav__back-ic"></view>
+      </view>
+      <view class="nav__titles">
+        <view class="nav__title">确认支付</view>
       </view>
     </view>
   </view>
 
-  <view class="trust-note" wx:if="{{orderNo}}">
-    定金在接宠完成前取消可全额退回；选择到店付款不会影响门店确认预约。
+  <view class="cbody">
+
+    <!-- 订单摘要 -->
+    <view class="card ccard">
+      <view class="ccard__label">订单摘要</view>
+      <view class="crow">
+        <view class="crow__l">预约服务</view>
+        <view class="crow__v num">¥{{amountText}}</view>
+      </view>
+      <view class="ccard__note">订单号 {{orderNo}}</view>
+    </view>
+
+    <!-- 费用明细（由真实金额推导） -->
+    <view class="card ccard">
+      <view class="ccard__label">费用明细</view>
+      <view class="crow" wx:for="{{feeRows}}" wx:key="l">
+        <view class="crow__l">{{item.l}}</view>
+        <view class="crow__v num">{{item.v}}</view>
+      </view>
+    </view>
+
+    <!-- 支付方式 -->
+    <view class="card ccard">
+      <view class="ccard__label">支付方式</view>
+      <view
+        class="mopt {{selected === item.key ? 'mopt--on' : ''}} {{item.disabled ? 'mopt--off' : ''}}"
+        wx:for="{{methods}}" wx:key="key"
+        data-key="{{item.key}}" bindtap="selectMethod" hover-class="mopt--hover"
+      >
+        <view class="mopt__main">
+          <view class="mopt__name">{{item.name}}</view>
+          <view class="mopt__desc">{{item.disabled ? item.disabledText : item.desc}}</view>
+        </view>
+        <view class="mopt__radio {{selected === item.key ? 'mopt__radio--on' : ''}}"></view>
+      </view>
+    </view>
+
+    <!-- 支付说明 -->
+    <view class="card ccard">
+      <view class="ccard__label">支付说明</view>
+      <view class="ccard__note">线上支付未开通时，可直接选择到店付款，门店会电话确认预约。</view>
+      <view class="ccard__note">价格按下单时刻的版本锁定，门店确认后不会临时加价。</view>
+      <view class="ccard__note">如需发票或对公转账，请联系门店。</view>
+    </view>
   </view>
 
-  <view class="cashier-bar" wx:if="{{orderNo}}">
-    <button class="btn-primary" disabled="{{submitting}}" bindtap="submit">{{submitting ? "处理中..." : actionText}}</button>
-  </view>
+  <view class="cspacer"></view>
 
-  <view wx:else class="state state--card">
-    <image class="state__icon" src="/assets/icons/tab-order.png" mode="aspectFit" />
-    <view class="state__text">没有找到订单信息</view>
-    <view class="state__hint">可返回预约页重新提交</view>
+  <!-- 底部费用条 -->
+  <view class="bottom-bar bottom-bar--base feebar">
+    <view class="feebar__left">
+      <view class="feebar__l">合计应付</view>
+      <view class="feebar__a num">¥{{amountText}}</view>
+    </view>
+    <view class="bottom-bar__btn feebar__btn {{submitting ? 'feebar__btn--busy' : ''}}"
+      bindtap="submit" hover-class="bottom-bar__btn--hover">{{submitting ? '处理中…' : actionText}}</view>
   </view>
 </view>

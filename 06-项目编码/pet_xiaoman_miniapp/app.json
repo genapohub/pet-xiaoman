@@ -1,10 +1,16 @@
 {
   "pages": [
+    "pages/splash/index",
     "pages/index/index",
+    "pages/service/service",
     "pages/login/index",
     "pages/order-create/index",
     "pages/order-list/index",
     "pages/products/products",
+    "pages/product-detail/detail",
+    "pages/cart/index",
+    "pages/product-confirm/index",
+    "pages/product-orders/index",
     "pages/profile/index",
     "pages/profile-detail/detail",
     "pages/about-promise/detail",
@@ -20,7 +26,7 @@
     "custom": false,
     "color": "#86909C",
     "selectedColor": "#5B8C85",
-    "backgroundColor": "#FAF9F6",
+    "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [
       {
@@ -30,16 +36,10 @@
         "selectedIconPath": "assets/icons/tab-home-active.png"
       },
       {
-        "pagePath": "pages/order-create/index",
-        "text": "预约",
-        "iconPath": "assets/icons/tab-booking.png",
-        "selectedIconPath": "assets/icons/tab-booking-active.png"
-      },
-      {
-        "pagePath": "pages/order-list/index",
-        "text": "订单",
-        "iconPath": "assets/icons/tab-order.png",
-        "selectedIconPath": "assets/icons/tab-order-active.png"
+        "pagePath": "pages/service/service",
+        "text": "服务",
+        "iconPath": "assets/icons/tab-service.png",
+        "selectedIconPath": "assets/icons/tab-service-active.png"
       },
       {
         "pagePath": "pages/products/products",
@@ -57,8 +57,10 @@
   },
   "window": {
     "navigationBarTitleText": "宠物善终服务",
-    "navigationBarBackgroundColor": "#5B8C85",
-    "navigationBarTextStyle": "white"
+    "navigationBarBackgroundColor": "#FAF9F6",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#FAF9F6",
+    "backgroundTextStyle": "dark"
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json"

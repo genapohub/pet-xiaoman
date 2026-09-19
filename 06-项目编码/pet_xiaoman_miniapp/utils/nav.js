@@ -9,10 +9,11 @@
 // 所以统一走 go()：自动识别目标是不是 tabBar 页 → 选对 API → 参数经本地暂存传递。
 
 // 与 app.json 的 tabBar.list 保持一致（改 app.json 时同步这里）
+// 服务 Tab 落地页 = 服务枢纽页（pages/service/service），非价格表：
+// 枢纽页承载「即时预约 / 我的订单 / 全部服务 / 服务流程」，价格表降为二级页。
 const TAB_PAGES = [
   "/pages/index/index",
-  "/pages/order-create/index",
-  "/pages/order-list/index",
+  "/pages/service/service",
   "/pages/products/products",
   "/pages/profile/index",
 ];

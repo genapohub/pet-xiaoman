@@ -84,7 +84,8 @@ def c_price_list(store_id: int | None = Depends(store_context), db: Session = De
     rows = (scoped(db, ServiceItem, store_id).filter(ServiceItem.status == ItemStatus.ON_SALE)
             .order_by(ServiceItem.type, ServiceItem.id).all())
     return [{"id": i.id, "type": i.type.value, "name": i.name, "price": float(i.price),
-             "weight_tier": i.weight_tier, "version": i.version} for i in rows]
+             "weight_tier": i.weight_tier, "duration_text": i.duration_text,
+             "version": i.version} for i in rows]
 
 
 class CustomerInput(BaseModel):

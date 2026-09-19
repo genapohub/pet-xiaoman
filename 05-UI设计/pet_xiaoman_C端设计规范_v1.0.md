@@ -264,4 +264,12 @@
 
 ---
 
+## 10. 与 V2.0 信息架构对齐说明（2026-09-19）
+
+> 本规范（C 端 v1.1）与《C 端信息架构 V2.0》对齐：C 端底部导航为 **4 个一级入口：首页 / 服务 / 纪念品 / 我的**（非早期 5 项）。骨灰寄存查询（C008）归属「我的」，不在「纪念品」Tab。画布 C 端各屏底部导航已于 2026-09-18 改为 4-tab。
+>
+> - ✅ **代码已同步（2026-09-19）**：`app.json` `tabBar.list` 为 4 项（首页 `index` / 服务 `service` / 纪念品 `products` / 我的 `profile`），预约 `order-create`、订单 `order-list` 收敛为普通子页；`utils/nav.js` 的 `TAB_PAGES` 一并更新；新增图标 `assets/icons/tab-service(-active).png`（三横线，81×81；常态 `#86909C` / 激活 `#5B8C85`）。<br>**注**：「服务」Tab 落地页已由 `prices` 改为**新建的服务枢纽页 `pages/service/service`**（对齐画布 `2:1260`），价格表降为二级页——见《C 端信息架构 V2.0》§7。
+> - **Tab Bar / 底栏硬性布局规则（09-19 补，源自画布缺陷修复）**：① 每个 tab 项必须 `primaryAxisAlignItems: CENTER` + `counterAxisAlignItems: CENTER`（否则内容贴槽位左上角，出现「服务」项那类偏移）；② 底栏容器必须 `constraints: {horizontal: STRETCH, vertical: MAX}`（否则更高屏不贴底）；③ 底栏内按钮必须 `counterAxisAlignItems: CENTER`；④ 基准尺寸：Tab Bar 外层 414×83（内嵌胶囊浮层 362×62，r36）、Fee Bar / Bottom Bar 高 72、条内按钮高 52。
+> - ✅ **画布状态标注已撤除（09-19）**：`2:442 商品详情`、`47:408 纪念清单`、`52:83 确认订单` 三屏原有的「V2.0 规划 · 未实现」标注牌已删除、frame 名已复原。**设计稿只承载设计意图，实现进度统一归口《C 端信息架构 V2.0》§2 阶段列与《C 端画布自检报告》**，不再在画布上贴状态。三屏的代码实现（`product-detail` / `cart` / `confirm` 路由）仍待排期——以信息架构文档为准。
+
 _版本：v1.1 · 下一版触发：Ardot 原型走查反馈 / 品牌终名视觉（logo）定稿_

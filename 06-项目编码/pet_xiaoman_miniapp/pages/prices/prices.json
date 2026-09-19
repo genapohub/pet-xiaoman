@@ -1,1 +1,4 @@
-{ "navigationBarTitleText": "服务价格" }
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "服务价格"
+}

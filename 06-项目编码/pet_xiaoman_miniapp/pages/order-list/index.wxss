@@ -1,97 +1,100 @@
-.page {
-  padding-bottom: 180rpx; /* 给固定底部按钮留位 */
-}
+/* C005 我的订单（对齐画布 2:264）· 1 画布 px = 2rpx */
 
-.orders-head {
-  padding: var(--sp-6) var(--sp-4) 72rpx;
-  color: #fff;
-  background: var(--c-primary);
-  border-bottom-left-radius: 36rpx;
-  border-bottom-right-radius: 36rpx;
-}
-.orders-head__title {
-  font-size: var(--fs-xl);
-  font-weight: 600;
-  line-height: var(--lh-title);
-}
-.orders-head__desc {
-  margin-top: var(--sp-2);
-  color: rgba(255, 255, 255, 0.72);
-  font-size: var(--fs-sm);
-  line-height: 1.7;
-}
-
-.tabs {
+/* ===== 状态筛选 ===== */
+.filters {
   display: flex;
-  margin: -36rpx var(--sp-4) 0;
-  padding: 0 var(--sp-2);
-  background: var(--c-card-warm);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sd-card);
+  align-items: center;
+  gap: 20rpx;                           /* 10px */
+  padding: 40rpx;                       /* 20px */
+  box-sizing: border-box;
 }
-.tab {
-  position: relative;
-  flex: 1;
-  padding: var(--sp-3) 0 var(--sp-4);
-  text-align: center;
-  font-size: var(--fs-base);
-  color: var(--c-gray);
-}
-.tab.on {
-  color: var(--c-primary);
-  font-weight: 600;
-}
-.tab.on::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: var(--sp-2);
-  width: 40rpx;
-  height: 6rpx;
-  margin-left: -20rpx;
+.fpill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 68rpx;                        /* 34px */
+  padding: 0 32rpx;                     /* 16px */
   border-radius: var(--r-pill);
+  background: var(--c-card);
+  border: 1rpx solid var(--c-stroke);
+  color: var(--c-gray-mid);
+  font-size: 26rpx;                     /* 13px */
+  line-height: 1;
+}
+.fpill--on {
   background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: #fff;
+  font-weight: 500;
 }
 
-.card {
-  margin: var(--sp-3) var(--sp-4);
-  padding: var(--sp-4);
-  border: 1rpx solid var(--c-border);
+/* ===== 订单卡列表 ===== */
+.olist {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;                           /* 16px */
+  padding: 0 40rpx;
+  box-sizing: border-box;
 }
-.row {
+.ocard {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;                           /* 10px */
+  padding: 32rpx;                       /* 16px */
+  background: var(--c-card);
+  border: 1rpx solid var(--c-stroke);
+  border-radius: 36rpx;                 /* 18px */
+  box-sizing: border-box;
+}
+.ocard--hover { background: var(--c-primary-pale); }
+.ocard__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sp-3);
-  padding: 8rpx 0;
+  gap: 16rpx;
 }
-.no {
-  font-size: var(--fs-base);
+.ocard__no {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-num);
+  font-size: 28rpx;                     /* 14px */
   font-weight: 600;
+  color: var(--c-ink-strong);
+}
+.ocard__mid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+.ocard__svc {
+  flex: 1;
+  min-width: 0;
+  font-size: 28rpx;                     /* 14px */
+  line-height: 1.4;
   color: var(--c-ink);
 }
-.price {
-  color: var(--c-primary);
-  font-size: var(--fs-md);
+.ocard__amt {
+  flex: none;
+  font-size: 36rpx;                     /* 18px */
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  color: var(--c-primary);
 }
-.time {
-  font-size: var(--fs-sm);
+/* 终态订单金额降为中性灰：已完成/已取消不该继续抢视觉 */
+.ocard__amt--done { color: var(--c-gray-mid); }
+.ocard__time {
+  font-size: 24rpx;                     /* 12px */
+  line-height: 1.45;
   color: var(--c-gray);
 }
 
-.sk-line {
-  height: 28rpx;
-  margin-bottom: var(--sp-2);
-}
-.sk-line--lg { width: 60%; }
-.sk-line--sm { width: 35%; margin-bottom: 0; }
+/* 空态：状态屏居中（无 tabBar，body 内即整屏可视区） */
+.olist .state { padding: 120rpx 40rpx; }
 
-.go {
-  position: fixed;
-  bottom: var(--sp-4);
-  left: var(--sp-4);
-  right: var(--sp-4);
-  border-radius: var(--r-md);
-}
+/* ===== 骨架 ===== */
+.sk-a { height: 28rpx; width: 52%; }
+.sk-b { height: 36rpx; width: 68%; }
+.sk-c { height: 24rpx; width: 44%; }
+
+/* 给固定底栏让位（bar 144rpx + 呼吸） */
+.olist-spacer { height: 220rpx; }

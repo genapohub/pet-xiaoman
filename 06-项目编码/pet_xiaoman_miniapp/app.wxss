@@ -1,9 +1,12 @@
 /* 小程序（多门店白标）· Design Token
  * 唯一事实源：04-品牌设计/pet_xiaoman_brand_kit_v1.0/02-color/chongxiaoman_色值表_v1.0.md
+ * 视觉基准：《宠小满 UI 设计风格规范 v2.0》（05-UI设计/）——设计转代码以该文档为准。
  * 规则：页面禁止写死色值/间距，一律引用本文件变量；需要新值先问「现有 Token 能否覆盖」。
  * 配比纪律：中性 60% / 主绿 30% / 陶土+点缀 10%；五禁忌=纯黑/冷蓝/促销红/荧光绿/紫色系。
  * 多租户：以下 --c-primary* 全套会在运行时按门店主色重算（utils/brand.js brandStyle()），
  *        故页面只能引用变量、不得写死主色，否则该门店会「一半绿一半自己色」。
+ *
+ * 几何换算基准（与画布 414×896 对齐）：1 画布 px = 2rpx（如画布卡片题 16px → --fs-md 32rpx）。
  */
 
 page {
@@ -11,66 +14,91 @@ page {
   --c-primary: #5B8C85;        /* 识别 / 操作 / 导航底 */
   --c-primary-press: #4A756E;  /* 按压 / 渐变终点 */
   --c-primary-deep: #3D5C57;   /* 文字 / 线条 / logo */
-  --c-primary-light: #EEF4F3;  /* 背景块 */
+  --c-primary-deepest: #2F4F4A; /* 启动页渐变终点（画布 2:44 手调深色，非等比压暗；多租户阶段再评估是否派生） */
+  --c-primary-light: #EEF4F3;  /* 背景块（画布 sage-light）*/
   --c-primary-pale: #F5F9F8;   /* 更浅的选中底 */
   --c-primary-ghost: #F8FBFA;  /* 极浅操作区 */
+  --c-primary-disabled: #B9CFCB;
 
   /* ===== 辅色：暖陶土（情绪刺点 ≤10%）===== */
   --c-clay: #D9A468;
-  --c-clay-light: #F6EADB;     /* 纪念场景底 */
+  --c-clay-light: #F7EFE6;     /* 陶雾底（画布 terra-light）*/
+  --c-clay-deep: #C08A4E;      /* 浅陶底上的陶土文字 */
+  --c-clay-ink: #8A5A22;       /* 深陶文字 */
 
   /* ===== 中性 ===== */
-  --c-paper: #FAF9F6;          /* 页面底色 60% */
+  --c-paper: #FAF9F6;          /* 页面底色 60%（画布纸感）*/
   --c-paper-deep: #F4F0E8;     /* 纸感层次 */
-  --c-card: #FFFFFF;
+  --c-card: #FFFFFF;           /* 卡片（画布卡片统一纯白）*/
   --c-card-warm: #FFFDF8;      /* 轻暖白，避免冷白卡片 */
-  --c-ink: #3B3F45;            /* 正文（禁纯黑） */
+  --c-ink: #3B3F45;            /* 正文（禁纯黑）*/
+  --c-ink-strong: #1F2422;     /* 一级标题（规范 v2.0 neutral/ink）*/
   --c-gray: #86909C;           /* 辅助文字 */
+  --c-gray-mid: #6B716B;       /* 卡片内说明（画布 #6B716B）*/
   --c-gray-light: #B9BEC6;     /* 占位 / 失效 */
-  --c-border: #EAE7E1;         /* 暖调边框（随纸感底） */
-  --c-divider: #F1EFEA;
+  --c-stroke: #ECE9E3;         /* 卡片描边（画布 stroke/card）*/
+  --c-border: #ECE9E3;         /* 同上，兼容旧命名 */
+  --c-divider: #F2F0EC;
 
   /* ===== 功能色 ===== */
   --c-error: #D54941;          /* 错误 / 取消，禁作促销 */
   --c-success: #5B8C85;        /* 善终场景：完成即松绿，不用亮绿 */
   --c-warning: #D9A468;        /* 警示复用陶土，保持色系克制 */
 
-  /* ===== 间距（8rpx 基准）===== */
+  /* ===== 间距（4rpx 基准）===== */
   --sp-1: 8rpx;
+  --sp-1h: 12rpx;
   --sp-2: 16rpx;
   --sp-3: 24rpx;
+  --sp-3h: 28rpx;
   --sp-4: 32rpx;
-  --sp-5: 40rpx;
+  --sp-4h: 36rpx;
+  --sp-5: 40rpx;               /* C 端页面左右留白（规范 v2.0 spacing/page 20px）*/
+  --sp-page: 40rpx;
   --sp-6: 48rpx;
   --sp-8: 64rpx;
 
   /* ===== 圆角 ===== */
   --r-sm: 8rpx;
-  --r-md: 16rpx;
-  --r-lg: 20rpx;
+  --r-tag: 12rpx;              /* 表格/小标签（规范 v2.0 radius/tag 6px）*/
+  --r-btn: 20rpx;              /* 按钮（规范 v2.0 radius/btn 10px）*/
+  --r-md: 20rpx;
+  --r-lg: 36rpx;               /* 卡片（画布 C 端卡片统一 18px）*/
+  --r-xl: 40rpx;               /* 大面板 / hero 下沿 */
   --r-pill: 999rpx;
 
   /* ===== 字号 / 行高 ===== */
-  --fs-xs: 22rpx;
-  --fs-sm: 24rpx;
-  --fs-base: 28rpx;
-  --fs-md: 32rpx;
-  --fs-lg: 36rpx;
-  --fs-xl: 44rpx;
+  --fs-xs: 22rpx;              /* 11px 卡片说明 */
+  --fs-sm: 24rpx;              /* 12px 辅助说明 */
+  --fs-base: 28rpx;            /* 14px 正文 / 卡片题 */
+  --fs-md: 32rpx;              /* 16px 卡片主标 */
+  --fs-btn: 30rpx;             /* 15px 按钮文字 */
+  --fs-lg: 36rpx;              /* 18px 衬线引言 */
+  --fs-xl: 44rpx;              /* 22px C 端衬线页题 */
+  --fs-hero: 52rpx;            /* 26px hero 大标 */
   --fs-display: 56rpx;
   --lh-body: 1.6;
   --lh-title: 1.35;
 
-  /* ===== 阴影（暖调，用品牌深绿代替纯黑）===== */
+  /* ===== 字体栈（规范 v2.0 §3）=====
+   * 标题衬线 / 正文无衬线 / 数字等宽——"轻奢感"的来源。
+   * 不引 web font：iOS 走 Songti SC，Android 走 Noto Serif CJK，均为系统自带。 */
+  --font-sans: -apple-system, "PingFang SC", "Noto Sans SC", "Helvetica Neue", sans-serif;
+  --font-serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "Noto Serif CJK SC", serif;
+  --font-num: "DIN Alternate", "Inter", "SF Pro Display", -apple-system, sans-serif;
+
+  /* ===== 阴影（暖调，用品牌深绿代替纯黑）=====
+   * 规范 v2.0 §4：卡片靠 1rpx 描边区分层级，阴影只留给真正浮起来的东西。 */
   --sd-card: 0 2rpx 12rpx rgba(61, 92, 87, 0.05);
   --sd-raised: 0 8rpx 32rpx rgba(61, 92, 87, 0.10);
   --sd-action: 0 12rpx 28rpx rgba(61, 92, 87, 0.18);
+  --sd-float: 0 20rpx 48rpx rgba(0, 0, 0, 0.08);
 
   /* ===== 触控尺寸（无障碍：触控区 ≥ 88rpx ≈ 44px）===== */
   --h-touch: 88rpx;
 
   background: var(--c-paper);
-  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  font-family: var(--font-sans);
   font-size: var(--fs-base);
   line-height: var(--lh-body);
   color: var(--c-ink);
@@ -85,42 +113,171 @@ page {
   box-sizing: border-box;
 }
 
+/* ===== 排版工具类（规范 v2.0 §3）===== */
+.t-serif {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  line-height: var(--lh-title);
+  color: var(--c-ink-strong);
+}
+.t-title { font-size: var(--fs-xl); }
+.t-sub {
+  font-size: var(--fs-sm);
+  color: var(--c-gray);
+}
+.num {
+  font-family: var(--font-num);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 自绘导航（P0 页面 navigationStyle: custom）=====
+ * 对齐画布：纸感底 + 衬线大标题 + 情绪副题 + 二级页返回箭头。
+ * padding-top 由 utils/navbar.js 的 nav.navTop 注入（状态栏高度）。 */
+.nav {
+  background: var(--c-paper);
+  box-sizing: border-box;
+}
+.nav__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-page);
+  box-sizing: border-box;
+}
+.nav__back {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56rpx;
+  height: 56rpx;
+  margin-left: -12rpx;
+}
+/* 返回箭头用 CSS 画：旋转 45° 的两边框，省一张图片资源 */
+.nav__back-ic {
+  width: 18rpx;
+  height: 18rpx;
+  border-left: 4rpx solid var(--c-ink);
+  border-bottom: 4rpx solid var(--c-ink);
+  border-radius: 2rpx;
+  transform: rotate(45deg);
+  margin-left: 6rpx;
+}
+.nav__titles {
+  flex: 1;
+  min-width: 0;
+}
+.nav__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: var(--lh-title);
+  color: var(--c-ink-strong);
+}
+.nav__sub {
+  margin-top: 2rpx;
+  font-size: var(--fs-sm);
+  color: var(--c-gray);
+}
+/* 二级页大标题降一档：与返回箭头同排时不抢视觉 */
+.nav--sub .nav__title { font-size: var(--fs-lg); }
+.nav__action {
+  flex: none;
+  font-size: var(--fs-sm);
+  color: var(--c-primary);
+}
+/* 页头右侧主操作（如「宠物档案 · 新增」）：松绿实色小胶囊 */
+.nav__add {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56rpx;
+  padding: 0 28rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-primary);
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 500;
+  line-height: 1;
+}
+.nav__add--hover { background: var(--c-primary-press); }
+
+/* C 端页头（无自绘导航时的降级版，保留兼容） */
+.page-head {
+  padding: var(--sp-4h) var(--sp-page) var(--sp-2);
+}
+.page-head__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: var(--lh-title);
+  color: var(--c-ink-strong);
+}
+.page-head__sub {
+  margin-top: var(--sp-1);
+  font-size: var(--fs-sm);
+  color: var(--c-gray);
+}
+/* 区块小标题 */
+.sect-title {
+  font-size: var(--fs-base);
+  font-weight: 500;
+  color: var(--c-ink);
+}
+
 /* ===== 按钮 ===== */
+
+/* ⚠️⚠️ 原生 <button> 的通栏坑 —— width 必须带 !important（2026-09-19 逐项实验确认）:
+   微信框架给原生 button 的基样式对 width / margin 用了 !important，普通优先级压不过。
+   证据：`width: 100%` 与 `width: 600rpx` 均无效（实测仍为内容宽 184px），
+        加 !important 后立刻生效；同规则块的 box-sizing / border-radius / height 都正常。
+   退化机制：width 被压回 auto + 框架的 margin-left/right:auto → 在 flex 列容器里
+        放弃 stretch，退化为内容宽并居中（「h56 通栏主按钮」实际只有 184px / 321rpx）。
+   规则：凡是必须用原生 <button> 的场景（open-type=getPhoneNumber / share / contact），
+   要做通栏 CTA 就用 .btn-block（已含 !important），**不要去掉 !important**。 */
+.btn-block {
+  width: 100% !important;
+  box-sizing: border-box;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
 .btn-primary {
   display: flex;
   align-items: center;
   justify-content: center;
   height: var(--h-touch);
-  border-radius: var(--r-md);
+  border-radius: var(--r-pill);
   background: var(--c-primary);
   color: #fff;
-  font-size: var(--fs-md);
-  font-weight: 600;
+  font-size: var(--fs-btn);
+  font-weight: 500;
   line-height: 1;
-  box-shadow: var(--sd-action);
 }
 .btn-primary::after { border: none; }
 .btn-primary.button-hover {
   background: var(--c-primary-press);
   transform: translateY(1rpx);
-  box-shadow: 0 6rpx 18rpx rgba(61, 92, 87, 0.14);
 }
 .btn-primary[disabled] {
-  background: #B9CFCB;
+  background: var(--c-primary-disabled);
   color: rgba(255, 255, 255, 0.9);
-  box-shadow: none;
 }
 
+/* 描边幽灵按钮（次要动作）——画布 CTA 分层：主=实色胶囊，次=白底松绿描边 */
 .btn-plain {
   display: flex;
   align-items: center;
   justify-content: center;
   height: var(--h-touch);
-  border-radius: var(--r-md);
+  border-radius: var(--r-pill);
   background: var(--c-card);
   color: var(--c-primary);
   border: 1rpx solid var(--c-primary);
-  font-size: var(--fs-md);
+  font-size: var(--fs-btn);
+  font-weight: 500;
   line-height: 1;
 }
 .btn-plain::after { border: none; }
@@ -128,13 +285,30 @@ page {
   background: var(--c-primary-light);
 }
 
+/* 小号描边胶囊（卡片内「选这个 / 预留」）——hug 宽，不整行撑满 */
+.btn-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 60rpx;
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-pill);
+  background: var(--c-card);
+  border: 1rpx solid var(--c-primary);
+  color: var(--c-primary);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  line-height: 1;
+}
+.btn-chip::after { border: none; }
+.btn-chip.button-hover { background: var(--c-primary-light); }
+
 /* ===== 卡片 ===== */
 .card {
-  background: var(--c-card-warm);
+  background: var(--c-card);
   border-radius: var(--r-lg);
-  padding: var(--sp-4);
-  box-shadow: 0 2rpx 10rpx rgba(61, 92, 87, 0.045);
-  border: 1rpx solid rgba(61, 92, 87, 0.06);
+  padding: var(--sp-5);
+  border: 1rpx solid var(--c-stroke);
   /* 小程序默认 content-box：一旦给 .card 设了百分比宽度，
      内边距就会额外撑宽导致换行（两列网格踩过此坑）。统一改为 border-box。 */
   box-sizing: border-box;
@@ -145,38 +319,81 @@ page {
   display: inline-flex;
   align-items: center;
   padding: 4rpx 16rpx;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-tag);
   font-size: var(--fs-xs);
   line-height: 1.5;
 }
-.tag--primary { background: var(--c-primary-light); color: var(--c-primary); }
-.tag--clay { background: var(--c-clay-light); color: #A9762F; }
-.tag--error { background: #FCECEB; color: var(--c-error); }
+.tag--primary { background: var(--c-primary-light); color: var(--c-primary-deep); }
+.tag--clay { background: var(--c-clay-light); color: var(--c-clay-deep); }
+.tag--error { background: #FBEAE9; color: var(--c-error); }
 .tag--muted { background: var(--c-divider); color: var(--c-gray); }
+
+/* 内部小标签（订单状态：高 44rpx，与规范 tag 尺寸一致） */
+.tag--sm { height: 44rpx; padding: 0 16rpx; border-radius: var(--r-tag); }
 
 /* ===== 图标 ===== */
 .icon-sm { width: 32rpx; height: 32rpx; }
 .icon-md { width: 40rpx; height: 40rpx; }
 .icon-lg { width: 48rpx; height: 48rpx; }
 
-/* ===== 状态页（加载 / 空 / 错误）===== */
+/* ===== 状态页（加载 / 空 / 无结果 / 错误）=====
+ * 与画布空态同款：sage-light 圆盘（76px→152rpx，内嵌 32px→64rpx 松绿描边图标）
+ * + 标题 16px + 副文案 13px + 可选 CTA。 */
 .state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--sp-3);
-  padding: var(--sp-8) var(--sp-4);
+  justify-content: center;
+  gap: var(--sp-3h);
+  padding: var(--sp-8) var(--sp-5);
   text-align: center;
 }
-.state--card {
-  margin: var(--sp-4);
-  background: var(--c-card-warm);
-  border-radius: var(--r-lg);
-  border: 1rpx solid var(--c-border);
+.state__disc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 152rpx;
+  height: 152rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-primary-light);
 }
-.state__icon { width: 80rpx; height: 80rpx; opacity: 0.6; }
-.state__text { font-size: var(--fs-base); color: var(--c-gray); }
-.state__hint { font-size: var(--fs-sm); color: var(--c-gray-light); }
+.state__icon { width: 64rpx; height: 64rpx; }
+.state__title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--c-ink);
+  line-height: var(--lh-title);
+}
+.state__text {
+  font-size: var(--fs-sm);
+  color: var(--c-gray);
+  line-height: var(--lh-body);
+}
+.state__hint {
+  font-size: var(--fs-sm);
+  color: var(--c-gray-light);
+}
+/* 空态主 CTA：松绿实色胶囊（hug 宽，不整行撑满） */
+.state__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80rpx;                        /* 40px */
+  padding: 0 44rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-primary);
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 500;
+  line-height: 1;
+}
+.state__cta--hover { background: var(--c-primary-press); }
+.state--card {
+  margin: var(--sp-5);
+  background: var(--c-card);
+  border-radius: var(--r-lg);
+  border: 1rpx solid var(--c-stroke);
+}
 
 /* 骨架屏 */
 .skeleton {
@@ -189,6 +406,11 @@ page {
   0% { background-position: 100% 50%; }
   100% { background-position: 0 50%; }
 }
+/* 时间线当前节点的 2s 呼吸（规范：仅用于时间线当前节点） */
+@keyframes breath {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
 
 /* ===== 列表行（箭头导航）===== */
 .row-link {
@@ -198,9 +420,111 @@ page {
   min-height: var(--h-touch);
   padding: var(--sp-3) var(--sp-4);
   background: var(--c-card);
-  border: 1rpx solid var(--c-border);
+  border-bottom: 1rpx solid var(--c-divider);
 }
+.row-link:last-child { border-bottom: none; }
 .row-link__label { flex: 1; font-size: var(--fs-base); color: var(--c-ink); }
+
+/* ===== 底部固定条（TabBar / 汇总条之上）=====
+ * 规范 v2.0 §5.1：有 Tab Bar 的屏 → y741；无 Tab Bar 的二级页 → y824。 */
+.bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  height: 144rpx;
+  padding: 0 var(--sp-page);
+  background: var(--c-card);
+  border-top: 1rpx solid var(--c-divider);
+  box-sizing: border-box;
+}
+.bottom-bar--tab { bottom: 166rpx; }   /* 83px 原生 tabBar 之上 */
+.bottom-bar--base { bottom: 0; }
+
+/* 底部条内的通栏主按钮：条高 72px、上下内缩 12px ⇒ 按钮 48px（画布一致）。
+   注意与「卡片内 CTA 必须 hug 宽」的区别——这是唯一允许整行撑满的按钮位。 */
+.bottom-bar__btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96rpx;                        /* 48px */
+  border-radius: var(--r-pill);
+  background: var(--c-primary);
+  color: #fff;
+  font-size: var(--fs-md);
+  font-weight: 500;
+  line-height: 1;
+}
+.bottom-bar__btn--hover { background: var(--c-primary-press); }
+
+/* 底部条内的次要动作（ghost 描边）——hug 宽，与主按钮同高 */
+.bar-ghost {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96rpx;
+  padding: 0 32rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-card);
+  border: 1rpx solid var(--c-primary);
+  color: var(--c-primary);
+  font-size: 28rpx;
+  font-weight: 500;
+  line-height: 1;
+}
+.bar-ghost--hover { background: var(--c-primary-light); }
+
+/* 底部条内的主按钮（可单独用，也可放在 picker 里） */
+.bar-primary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-primary);
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 500;
+  line-height: 1;
+}
+.bar-primary--hover { background: var(--c-primary-press); }
+
+/* 费用条（Fee Bar）：左侧「标签 + 大字金额」+ 右侧按内容宽的主按钮。
+   order-create / cashier / order-success 三屏同款，故收口到这里。 */
+.feebar {
+  padding: 0 32rpx 0 0;                 /* 画布右侧内缩 16px；左侧内容自带 20px */
+  justify-content: space-between;
+}
+.feebar__left {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  padding-left: 40rpx;
+}
+.feebar__l {
+  font-size: 24rpx;                     /* 12px */
+  line-height: 1.3;
+  color: var(--c-gray-mid);
+}
+.feebar__a {
+  font-family: var(--font-num);
+  font-size: 44rpx;                     /* 22px */
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--c-primary);
+}
+.feebar__btn {
+  flex: none;
+  min-width: 220rpx;
+  height: 96rpx;                        /* 48px —— 统一底栏主按钮高（画布订单列表「去预约」= 72 条 − 上下各 12 = 48px；预约/收银台/支付成功/确认订单此前 52px，统一到 48） */
+}
+.feebar__btn--busy { background: var(--c-primary-disabled); }
 
 /* ===== 品牌占位标（门店未上传 logo 时）=====
  * 用店名首字 + 反白描边顶位，绝不用平台或别家门店的图形标：

@@ -1,81 +1,90 @@
+<!-- C004 预约下单（对齐画布 2:219，服务 · 二级页）
+     结构：返回 + 页头「预约服务」→ 已选套餐（可点切换）→ 附加服务（多选）→ 宠物信息
+           → 服务安排 → 底部固定费用条（合计 + 提交预约）。
+     合计 = 套餐 + 已勾选加购（提交时由后端按价格版本锁定，前端值仅作展示）。 -->
 <view class="page" style="{{brandStyle}}">
-  <view class="form-head">
-    <view class="form-head__title">预约服务</view>
-    <view class="form-head__desc">提交后门店 30 分钟内电话确认，支付方式可稍后再定。</view>
-  </view>
 
-  <view class="card">
-    <view class="label">
-      <image class="label__icon" src="/assets/icons/tab-gift.png" mode="aspectFit" />
-      <text>选择套餐</text>
-    </view>
-    <picker range="{{packages}}" range-key="name" value="{{pkgIndex}}" bindchange="onPkgChange">
-      <view class="picker">
-        <text>{{currentPackage ? currentPackage.name : "请选择套餐"}} · ¥{{currentPackage ? currentPackage.price : "--"}}</text>
-        <image class="picker__arrow" src="/assets/icons/chevron.png" mode="aspectFit" />
+  <view class="nav nav--sub" style="padding-top:{{nav.navTop}}px">
+    <view class="nav__head" style="min-height:{{nav.headerH}}px">
+      <view class="nav__back" bindtap="goBack" hover-class="nav__back--hover">
+        <view class="nav__back-ic"></view>
       </view>
-    </picker>
+      <view class="nav__titles">
+        <view class="nav__title">预约服务</view>
+      </view>
+    </view>
   </view>
 
-  <view class="card">
-    <view class="label">
-      <image class="label__icon" src="/assets/icons/paw.png" mode="aspectFit" />
-      <text>宠物信息</text>
-    </view>
-    <input class="form-input" placeholder="宠物名字（必填）" value="{{form.pet_name}}" data-field="pet_name" bindinput="onInput" />
-    <view class="species-field">
-      <text class="species-field__label">种类</text>
-      <view class="species-segment" aria-label="宠物种类">
-        <view
-          class="species-option {{form.species === '犬' ? 'is-active' : ''}}"
-          data-species="犬"
-          bindtap="onSpeciesSelect"
-        >
-          <text class="species-option__name">犬</text>
-          <text class="species-option__hint">狗狗</text>
+  <view class="fbody">
+
+    <!-- ===== 已选套餐（整行可点切换）===== -->
+    <view class="card fcard">
+      <view class="fcard__label">已选套餐</view>
+      <picker mode="selector" range="{{packages}}" range-key="name" value="{{pkgIndex}}" bindchange="onPkgChange">
+        <view class="pkgrow" hover-class="pkgrow--hover">
+          <view class="pkgrow__name">{{currentPackage.name || '请选择套餐'}}</view>
+          <view class="pkgrow__price num" wx:if="{{currentPackage}}">¥{{currentPackage.price}}</view>
         </view>
-        <view
-          class="species-option {{form.species === '猫' ? 'is-active' : ''}}"
-          data-species="猫"
-          bindtap="onSpeciesSelect"
-        >
-          <text class="species-option__name">猫</text>
-          <text class="species-option__hint">猫咪</text>
+      </picker>
+      <view class="fcard__note" wx:if="{{currentPackage}}">锁价版本 {{currentPackage.version}} · 提交后按此版本结算</view>
+    </view>
+
+    <!-- ===== 附加服务（多选）===== -->
+    <view class="card fcard" wx:if="{{addons.length}}">
+      <view class="fcard__label">附加服务</view>
+      <view class="arow {{item.checked ? 'arow--on' : ''}}" wx:for="{{addons}}" wx:key="id"
+        data-id="{{item.id}}" bindtap="onAddonToggle" hover-class="arow--hover">
+        <view class="arow__check {{item.checked ? 'arow__check--on' : ''}}"></view>
+        <view class="arow__name">{{item.name}}</view>
+        <view class="arow__price num">¥{{item.priceText}}</view>
+      </view>
+    </view>
+
+    <!-- ===== 宠物信息 ===== -->
+    <view class="card fcard">
+      <view class="fcard__label">宠物信息</view>
+      <input class="finput" placeholder="它熟悉的称呼" placeholder-class="fph"
+        value="{{form.pet_name}}" data-field="pet_name" bindinput="onInput" maxlength="30" />
+      <view class="sprow">
+        <view class="spill {{form.species === item ? 'spill--on' : ''}}" wx:for="{{speciesOptions}}" wx:key="*this"
+          data-species="{{item}}" bindtap="onSpeciesSelect">{{item}}</view>
+      </view>
+      <input class="finput" type="digit" placeholder="体重（kg）" placeholder-class="fph"
+        value="{{form.weight}}" data-field="weight" bindinput="onInput" />
+    </view>
+
+    <!-- ===== 服务安排 ===== -->
+    <view class="card fcard">
+      <view class="fcard__label">服务安排</view>
+      <picker mode="date" value="{{expectTime}}" start="{{minServiceDate}}" bindchange="onTime">
+        <view class="finput finput--row">
+          <image class="finput__ic" src="/assets/icons/clock-primary.png" mode="aspectFit" />
+          <view class="finput__ph" wx:if="{{!expectTime}}">选择期望服务日期</view>
+          <view class="finput__val" wx:else>{{expectTime}}</view>
         </view>
+      </picker>
+      <view class="finput finput--row">
+        <input class="finput__inner" placeholder="上门接送地址（可选）" placeholder-class="fph"
+          value="{{form.address}}" data-field="address" bindinput="onInput" />
+        <view class="finput__act" wx:if="{{mapPickerEnabled}}" bindtap="chooseAddress">选择</view>
       </view>
+      <view class="finput finput--row" bindtap="goProfile">
+        <view class="finput__inner finput__inner--ro">{{notifPhone || '未绑定通知手机号'}}</view>
+        <view class="finput__act">修改</view>
+      </view>
+      <view class="fcard__note">进度通知将发送到该手机号；如需更换，请到「资料编辑」修改。</view>
     </view>
-    <input class="form-input" type="digit" placeholder="体重 kg（选填，影响火化计价）" value="{{form.weight}}" data-field="weight" bindinput="onInput" />
   </view>
 
-  <view class="card">
-    <view class="label">
-      <image class="label__icon" src="/assets/icons/clock.png" mode="aspectFit" />
-      <text>服务安排</text>
-    </view>
-    <picker mode="date" start="{{minServiceDate}}" bindchange="onTime">
-      <view class="picker">
-        <text class="{{expectTime ? '' : 'is-placeholder'}}">{{expectTime || "选择期望服务日期"}}</text>
-        <image class="picker__arrow" src="/assets/icons/chevron.png" mode="aspectFit" />
-      </view>
-    </picker>
-    <button class="location-btn {{mapPickerEnabled ? '' : 'is-disabled'}}" bindtap="chooseAddress">
-      <image class="location-btn__icon" src="/assets/icons/location-primary.png" mode="aspectFit" />
-      <text>{{mapPickerEnabled ? ("使用" + mapProviderLabel + "接送地址") : "地图能力未开启，手动填写接送地址"}}</text>
-    </button>
-    <input class="form-input" placeholder="接送地址（到店自送可不填）" value="{{form.address}}" data-field="address" bindinput="onInput" />
-  </view>
+  <view class="fspacer"></view>
 
-  <view class="summary-bar">
-    <view class="summary-bar__notice">
-      <image class="summary-bar__notice-icon" src="/assets/icons/shield-primary.png" mode="aspectFit" />
-      <text>明码标价 · 提交后门店 30 分钟内电话确认 · 到店付款</text>
+  <!-- ===== 底部费用条（画布 Fee Bar 72px）===== -->
+  <view class="bottom-bar bottom-bar--base feebar">
+    <view class="feebar__left">
+      <view class="feebar__l">合计</view>
+      <view class="feebar__a num">¥{{totalText}}</view>
     </view>
-    <view class="summary-bar__main">
-      <view>
-        <view class="summary-bar__label">预计费用</view>
-        <view class="summary-bar__price">¥{{currentPackage ? currentPackage.price : "--"}}</view>
-      </view>
-      <button class="btn-primary submit" disabled="{{submitting || !currentPackage}}" bindtap="submit">{{submitting ? "提交中..." : (currentPackage ? "提交预约" : "暂无套餐")}}</button>
-    </view>
+    <view class="bottom-bar__btn feebar__btn {{submitting ? 'feebar__btn--busy' : ''}}"
+      bindtap="submit" hover-class="bottom-bar__btn--hover">{{submitting ? '提交中…' : '提交预约'}}</view>
   </view>
 </view>

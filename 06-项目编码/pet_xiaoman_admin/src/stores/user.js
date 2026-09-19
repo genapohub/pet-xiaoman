@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { getMe, getStoreProfile, login as loginApi } from "../api/auth";
-import { applyBrandColor, resetBrandColor } from "../utils/theme";
+import { applyBrandColor, resetBrandColor, DEFAULT_PRIMARY } from "../utils/theme";
 
 // 用户登录态（角色权限对齐 PRD §8.5：平台超管 / 店长 / 店员，接口侧 RBAC）
 // 多租户：登录后拉取本店白标资料，按店主色换肤 + 展示门店店名/logo。
@@ -34,7 +34,7 @@ export const useUserStore = defineStore("user", {
       return state.role === "super_admin" ? "多门店统一管理" : "";
     },
     storeLogo: (state) => state.storeProfile?.logo_url || "",
-    storeColor: (state) => state.storeProfile?.primary_color || "#5B8C85",
+    storeColor: (state) => state.storeProfile?.primary_color || DEFAULT_PRIMARY,
     // 未配 logo 时的占位字：取店名首字，而不是某家门店的品牌资产
     storeInitial: (state) => {
       const own = state.storeProfile?.name?.trim();

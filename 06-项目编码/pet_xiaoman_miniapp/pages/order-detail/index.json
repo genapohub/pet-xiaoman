@@ -1,1 +1,4 @@
-{ "navigationBarTitleText": "服务进度" }
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "订单进度"
+}

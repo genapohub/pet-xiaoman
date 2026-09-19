@@ -1,45 +1,65 @@
+<!-- C005 我的订单（对齐画布 2:264，我的 · 二级页）
+     结构：返回+衬线页头 → 状态筛选胶囊 → 订单卡列表（单号/状态/服务/金额/时间）
+           → 空态 → 底部「去预约」固定条。
+     无 tabBar（二级页）；筛选为客户端过滤，切换不闪白。 -->
 <view class="page" style="{{brandStyle}}">
-  <view class="orders-head">
-    <view class="orders-head__title">我的订单</view>
-    <view class="orders-head__desc">服务进度、费用与影像记录都会同步到这里。</view>
-  </view>
 
-  <view class="tabs">
-    <view wx:for="{{tabs}}" wx:key="*this" class="tab {{active === item ? 'on' : ''}}"
-      data-tab="{{item}}" bindtap="switchTab">{{item}}</view>
-  </view>
-
-  <!-- 加载：骨架屏（比「加载中...」更能减少等待焦虑） -->
-  <block wx:if="{{loading}}">
-    <view class="card" wx:for="{{[1, 2, 3]}}" wx:key="*this">
-      <view class="skeleton sk-line sk-line--lg"></view>
-      <view class="skeleton sk-line sk-line--sm"></view>
+  <view class="nav nav--sub" style="padding-top:{{nav.navTop}}px">
+    <view class="nav__head" style="min-height:{{nav.headerH}}px">
+      <view class="nav__back" bindtap="goBack" hover-class="nav__back--hover">
+        <view class="nav__back-ic"></view>
+      </view>
+      <view class="nav__titles">
+        <view class="nav__title">我的订单</view>
+      </view>
     </view>
-  </block>
+  </view>
 
-  <block wx:else>
-    <block wx:for="{{orders}}" wx:key="order_no">
-      <view class="card"
-        wx:if="{{active === '全部' || (active === '已完成' ? item.status === '已完成' : item.status !== '已完成' && item.status !== '已取消')}}"
-        data-no="{{item.order_no}}" bindtap="goDetail">
-        <view class="row">
-          <text class="no">{{item.order_no}}</text>
-          <text class="tag {{statusClass[item.status] || 'tag--muted'}}">{{item.status}}</text>
-        </view>
-        <view class="row">
-          <text class="price">¥{{item.amount_text}}</text>
-          <text class="time">{{item.expect_text}}</text>
-        </view>
+  <!-- 状态筛选：选中=松绿实色胶囊白字；未选中=白底 + 描边 + 灰字 -->
+  <view class="filters">
+    <view class="fpill {{active === item.key ? 'fpill--on' : ''}}"
+      wx:for="{{tabs}}" wx:key="key" data-tab="{{item.key}}" bindtap="switchTab">{{item.key}}</view>
+  </view>
+
+  <view class="olist">
+
+    <!-- 加载骨架 -->
+    <block wx:if="{{loading}}">
+      <view class="ocard" wx:for="{{[1, 2, 3]}}" wx:key="*this">
+        <view class="skeleton sk-a"></view>
+        <view class="skeleton sk-b"></view>
+        <view class="skeleton sk-c"></view>
       </view>
     </block>
 
-    <!-- 空态：告诉用户「为什么空」和「下一步做什么」 -->
-    <view wx:if="{{!orders.length}}" class="state state--card">
-      <image class="state__icon" src="/assets/icons/tab-order.png" mode="aspectFit" />
-      <view class="state__text">还没有订单</view>
-      <view class="state__hint">预约后可以在这里查看服务进度</view>
-    </view>
-  </block>
+    <block wx:else>
+      <view class="ocard" wx:for="{{shown}}" wx:key="order_no"
+        data-no="{{item.order_no}}" bindtap="goDetail" hover-class="ocard--hover">
+        <view class="ocard__top">
+          <view class="ocard__no">{{item.order_no}}</view>
+          <view class="tag tag--sm {{item.tagClass}}">{{item.status}}</view>
+        </view>
+        <view class="ocard__mid">
+          <view class="ocard__svc">{{item.pkg_name}}</view>
+          <view class="ocard__amt num {{item.isDone ? 'ocard__amt--done' : ''}}">¥{{item.amount_text}}</view>
+        </view>
+        <view class="ocard__time">{{item.timeText}}</view>
+      </view>
 
-  <button class="btn-primary go" bindtap="goCreate">去预约</button>
+      <!-- 空态（画布 58:613）：有底栏让位时容器已含 padding，此处不再重复 -->
+      <view wx:if="{{!shown.length}}" class="state">
+        <view class="state__disc">
+          <image class="state__icon" src="/assets/icons/info-primary.png" mode="aspectFit" />
+        </view>
+        <view class="state__title">{{emptyTitle}}</view>
+        <view class="state__text">{{emptyHint}}</view>
+      </view>
+    </block>
+  </view>
+
+  <view class="olist-spacer"></view>
+
+  <view class="bottom-bar bottom-bar--base">
+    <view class="bottom-bar__btn" bindtap="goCreate" hover-class="bottom-bar__btn--hover">去预约</view>
+  </view>
 </view>

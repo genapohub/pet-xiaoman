@@ -1,1 +1,4 @@
-{ "navigationBarTitleText": "收银台" }
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "收银台"
+}

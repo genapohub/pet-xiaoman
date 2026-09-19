@@ -70,6 +70,8 @@ function request(path, method = "GET", data = {}, options = {}) {
 module.exports = {
   get: (p, d, options) => request(p, "GET", d, options),
   post: (p, d, options) => request(p, "POST", d, options),
+  put: (p, d, options) => request(p, "PUT", d, options),
+  del: (p, d, options) => request(p, "DELETE", d, options),
   // 手机号一键登录：dev 走 dev_phone，真机走 phone_code（getPhoneNumber 返回）
   phoneLogin: (payload) => request("/api/c/auth/phone-login", "POST", payload),
   // 门店白标（多租户换肤）：按门店标识拉 logo/主色/店名；缺失不弹错（回退默认品牌）

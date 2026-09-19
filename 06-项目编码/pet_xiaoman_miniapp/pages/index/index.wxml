@@ -1,45 +1,104 @@
+<!-- C001 首页（对齐画布 2:84）
+     结构：沉浸式 Hero 轮播（3 屏，右侧露出下一屏）→ 三承诺 → 服务宫格 → 今日寄语 → 门店信息。
+     首页无页头——Hero 本身就是顶部，故只垫出状态栏高度；品牌名/标语走 theme，保证多门店换肤。 -->
 <view class="page" style="{{brandStyle}}">
-  <!-- hero：门店主色底 + 反白标；门店有自定义 logo 用图，没有则用店名首字占位 -->
+
+  <!-- 状态栏占位：首页 Hero 直接顶到状态栏下方（画布 Status Bar 44px = 纸感底） -->
+  <view class="home-status" style="height:{{nav.navTop}}px"></view>
+
+  <!-- ===== Hero 轮播 =====
+       next-margin 128rpx ⇒ 每屏可视宽 750−128 = 622rpx ≈ 画布 350/414 的露出比例 -->
   <view class="hero">
-    <view class="hero__eyebrow">门店专属服务</view>
-    <image wx:if="{{theme.logoUrl}}" class="hero__logo" src="{{theme.logoUrl}}" mode="aspectFit" />
-    <view wx:else class="hero__logo hero__mark brandmark">{{shopInitial}}</view>
-    <view class="hero__name">{{theme.shopName}}</view>
-    <view class="hero__slogan" wx:if="{{theme.slogan}}">{{theme.slogan}}</view>
-    <view class="hero__proof">价格公开 · 过程可见 · 24小时可约</view>
-  </view>
+    <swiper
+      class="hero__swiper"
+      previous-margin="0"
+      next-margin="128rpx"
+      circular
+      autoplay="{{heroes.length > 1}}"
+      interval="4800"
+      duration="420"
+      current="{{heroIndex}}"
+      bindchange="onHeroChange"
+    >
+      <swiper-item wx:for="{{heroes}}" wx:key="key">
+        <view class="slide slide--{{item.key}}">
+          <view class="slide__body">
+            <view wx:if="{{item.eyebrow}}" class="slide__eyebrow">{{item.eyebrow}}</view>
+            <view wx:if="{{item.brand}}" class="slide__brand">{{item.brand}}</view>
+            <view class="slide__title">{{item.title}}</view>
+            <view class="slide__slogan">{{item.slogan}}</view>
+          </view>
+          <!-- 品牌标：有 logo 用图，没有则店名首字占位（中性兜底，绝不显示别家门店图形标） -->
+          <view class="slide__emblem">
+            <image wx:if="{{theme.logoUrl}}" class="slide__logo" src="{{theme.logoUrl}}" mode="aspectFit" />
+            <view wx:else class="slide__mark">{{shopInitial}}</view>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
 
-  <!-- 三承诺：上浮卡片压住 hero 底边，去图标、纯文字（spec §9.2），首卡 1.2 宽形成非对称节奏 -->
-  <view class="promises">
-    <view class="promise" wx:for="{{promises}}" wx:key="text">
-      <view class="promise__text">{{item.text}}</view>
+    <view class="hero__dots">
+      <view class="dot {{heroIndex === index ? 'dot--on' : ''}}" wx:for="{{heroes}}" wx:key="key"></view>
     </view>
   </view>
 
-  <view class="actions">
-    <button class="btn-primary" bindtap="goCreate">立即预约</button>
-    <button class="btn-plain" bindtap="goPrices">查看服务价格表</button>
+  <view class="home-body">
+
+    <!-- ===== 三承诺（首卡 1.2 宽，形成非对称节奏，避免机械三等分）===== -->
+    <view class="promises">
+      <view class="promise {{item.main ? 'promise--main' : ''}}" wx:for="{{promises}}" wx:key="key">
+        <image class="promise__ic" src="/assets/icons/{{item.icon}}" mode="aspectFit" />
+        <view class="promise__t">{{item.title}}</view>
+        <view class="promise__d">{{item.desc}}</view>
+      </view>
+    </view>
+
+    <!-- ===== 服务宫格（2 列）===== -->
+    <view class="grid">
+      <view class="gcard" wx:for="{{entries}}" wx:key="key" data-idx="{{index}}" bindtap="goEntry" hover-class="gcard--hover">
+        <image class="gcard__ic" src="/assets/icons/{{item.icon}}" mode="aspectFit" />
+        <view class="gcard__t">{{item.title}}</view>
+        <view class="gcard__s">{{item.desc}}</view>
+      </view>
+    </view>
+
+    <!-- ===== 今日寄语 ===== -->
+    <view class="quote">
+      <view class="quote__label">今 日 寄 语</view>
+      <view class="quote__text">它们只是先去看了看远方</view>
+      <view class="quote__sub">我们在这里，陪你慢慢说再见</view>
+    </view>
+
+    <!-- ===== 门店信息（信息架构 V2.0 §3 要求的「电话直呼」入口；画布未画，随卡片同源样式）===== -->
+    <view class="store">
+      <view class="store__row" bindtap="callShop" hover-class="store__row--hover">
+        <image class="store__ic" src="/assets/icons/phone-primary.png" mode="aspectFit" />
+        <view class="store__label">
+          <view class="store__t">24 小时电话咨询</view>
+          <view class="store__meta">{{theme.contactPhone || '门店电话待配置'}}</view>
+        </view>
+        <image class="store__chev" src="/assets/icons/chevron.png" mode="aspectFit" />
+      </view>
+      <view class="store__row" wx:if="{{theme.contactAddress}}" bindtap="copyAddress" hover-class="store__row--hover">
+        <image class="store__ic" src="/assets/icons/location-primary.png" mode="aspectFit" />
+        <view class="store__label">
+          <view class="store__t">门店地址</view>
+          <view class="store__meta">{{theme.contactAddress}}</view>
+        </view>
+        <image class="store__chev" src="/assets/icons/chevron.png" mode="aspectFit" />
+      </view>
+      <view class="store__row store__row--last" wx:if="{{theme.businessHours}}">
+        <image class="store__ic" src="/assets/icons/clock-primary.png" mode="aspectFit" />
+        <view class="store__label">
+          <view class="store__t">营业时间</view>
+          <view class="store__meta">{{theme.businessHours}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="trust">明码标价 · 单独火化 · 下单后不加价</view>
   </view>
 
-  <view class="contact row-link" bindtap="callShop">
-    <image class="icon-md" src="/assets/icons/phone.png" mode="aspectFit" />
-    <view class="row-link__label">
-      <view>24 小时电话咨询</view>
-      <view class="row-link__meta" wx:if="{{theme.contactPhone}}">{{theme.contactPhone}}</view>
-    </view>
-    <image class="icon-sm" src="/assets/icons/chevron.png" mode="aspectFit" />
-  </view>
-
-  <view class="store-info" wx:if="{{theme.contactAddress || theme.businessHours}}">
-    <view class="store-info__line" wx:if="{{theme.contactAddress}}">
-      <image class="icon-sm" src="/assets/icons/location.png" mode="aspectFit" />
-      <text>{{theme.contactAddress}}</text>
-    </view>
-    <view class="store-info__line" wx:if="{{theme.businessHours}}">
-      <image class="icon-sm" src="/assets/icons/clock.png" mode="aspectFit" />
-      <text>{{theme.businessHours}}</text>
-    </view>
-  </view>
-
-  <view class="trust-strip">明码标价 · 单独火化 · 下单后不加价</view>
+  <!-- 给原生 tabBar 让位（画布 Bottom Spacer 90px） -->
+  <view class="home-spacer"></view>
 </view>

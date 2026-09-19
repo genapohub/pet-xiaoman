@@ -1,134 +1,182 @@
-.page {
-  padding-bottom: 120rpx; /* 给固定承诺条留位 */
-}
+/* C002/C003 价格表（对齐画布 2:170）· 1 画布 px = 2rpx */
 
-.price-head {
-  padding: var(--sp-6) var(--sp-4) var(--sp-4);
-  background: var(--c-primary);
-  color: #fff;
-  border-bottom-left-radius: 36rpx;
-  border-bottom-right-radius: 36rpx;
-}
-.price-head__title {
-  font-size: var(--fs-xl);
-  font-weight: 600;
-  line-height: var(--lh-title);
-}
-.price-head__desc {
-  width: 620rpx;
-  max-width: 100%;
-  margin-top: var(--sp-2);
-  color: rgba(255, 255, 255, 0.72);
-  font-size: var(--fs-sm);
-  line-height: 1.7;
-}
-
-.tabs {
+/* ===== 分类 Tab ===== */
+.ptabs {
   display: flex;
-  margin: -20rpx var(--sp-4) 0;
-  padding: 0 var(--sp-2);
-  background: var(--c-card-warm);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sd-card);
+  align-items: center;
+  gap: 48rpx;                           /* 24px */
+  padding: 40rpx;                       /* 20px */
+  box-sizing: border-box;
 }
-.tab {
-  position: relative;
-  flex: 1;
-  padding: var(--sp-3) 0 var(--sp-4);
-  text-align: center;
-  font-size: var(--fs-base);
-  color: var(--c-gray);
-}
-.tab.on {
-  color: var(--c-primary);
-  font-weight: 600;
-}
-.tab.on::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: var(--sp-2);
-  width: 40rpx;
-  height: 6rpx;
-  margin-left: -20rpx;
-  border-radius: var(--r-pill);
-  background: var(--c-primary);
-}
-
-.card {
-  margin: var(--sp-3) var(--sp-4);
-  padding: var(--sp-4);
-  border: 1rpx solid var(--c-border);
-}
-.row {
+.ptab {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--sp-3);
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;                           /* 6px */
 }
-.name {
-  font-size: var(--fs-md);
-  font-weight: 600;
-  color: var(--c-ink);
+.ptab__l {
+  font-size: 30rpx;                     /* 15px */
+  line-height: 1.4;
+  color: var(--c-gray-mid);
 }
-.price-wrap {
-  min-width: 148rpx;
-  text-align: right;
-}
-.price {
+.ptab__l--on {
+  font-weight: 500;
   color: var(--c-primary);
-  font-size: 48rpx;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
 }
-.price-note {
-  display: block;
-  margin-top: 4rpx;
-  color: var(--c-gray);
-  font-size: var(--fs-xs);
-}
-.tier {
-  margin-top: var(--sp-1);
-  font-size: var(--fs-sm);
-  color: var(--c-gray);
-}
-.pick {
-  margin: var(--sp-4) 0 0;
-  padding: 0 28rpx;
-  height: 64rpx;
-  line-height: 64rpx;
-  font-size: var(--fs-sm);
+.ptab__ul {
+  width: 40rpx;                         /* 20px */
+  height: 6rpx;                         /* 3px */
+  border-radius: 3rpx;
   background: transparent;
+}
+.ptab__ul--on { background: var(--c-primary); }
+
+/* ===== 价格卡列表 ===== */
+.plist {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;                           /* 16px */
+  padding: 0 40rpx;                     /* 左右 20px（页头与 Tab 已给上下留白）*/
+  box-sizing: border-box;
+}
+.pcard {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;                           /* 12px */
+  padding: 36rpx;                       /* 18px */
+  background: var(--c-card);
+  border: 1rpx solid var(--c-stroke);
+  border-radius: 36rpx;                 /* 18px */
+  box-sizing: border-box;
+}
+.pcard--hover { background: var(--c-primary-pale); }
+
+/* 推荐徽章：只用松绿浅底，不做红色角标贴纸，避免促销感 */
+.pcard__badge {
+  align-self: flex-start;
+  padding: 10rpx 20rpx;                 /* 10 / 5 */
+  border-radius: var(--r-pill);
+  background: var(--c-primary-light);
   color: var(--c-primary);
-  border: 1rpx solid rgba(91, 140, 133, 0.42);
-  border-radius: var(--r-md);
+  font-size: 22rpx;                     /* 11px */
+  font-weight: 500;
+  line-height: 1.2;
 }
-.pick::after { border: none; }
-.pick.button-hover { background: var(--c-primary-light); }
-
-.sk-line {
-  height: 28rpx;
-  margin-bottom: var(--sp-2);
+.pcard__row1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
 }
-.sk-line--lg { width: 55%; }
-.sk-line--sm { width: 30%; margin-bottom: 0; }
-
-.promise {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+.pcard__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 32rpx;                     /* 16px */
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--c-ink-strong);
+}
+.pcard__price {
+  flex: none;
+  font-size: 44rpx;                     /* 22px */
+  font-weight: 600;
+  color: var(--c-primary);
+}
+.pcard__row2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;                           /* 12px */
+}
+.pcard__desc {
+  flex: 1;
+  min-width: 0;
+  font-size: 24rpx;                     /* 12px */
+  line-height: 1.45;
+  color: var(--c-gray-mid);
+}
+/* 主服务选择 = 松绿实色胶囊；hug 宽、不整行撑满（规范 §5.1 CTA 分层） */
+.pcard__btn {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-1);
-  padding: var(--sp-3);
-  background: var(--c-primary-deep);
+  height: 68rpx;                        /* 34px */
+  padding: 0 28rpx;                     /* 14px */
+  border-radius: var(--r-pill);
+  background: var(--c-primary);
   color: #fff;
-  font-size: var(--fs-sm);
+  font-size: 26rpx;                     /* 13px */
+  font-weight: 500;
+  line-height: 1;
 }
-.promise__icon {
-  width: 32rpx;
-  height: 32rpx;
+.pcard__btn--hover { background: var(--c-primary-press); }
+
+/* ===== 顾问卡 ===== */
+.advice {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;                           /* 8px */
+  padding: 32rpx;                       /* 16px */
+  background: var(--c-card);
+  border: 1rpx solid var(--c-stroke);
+  border-radius: 36rpx;
+  box-sizing: border-box;
+}
+.advice__t {
+  font-size: 28rpx;                     /* 14px */
+  font-weight: 500;
+  color: var(--c-ink-strong);
+}
+.advice__d {
+  font-size: 24rpx;                     /* 12px */
+  line-height: 1.5;
+  color: var(--c-gray-mid);
+}
+/* 次要动作 = 描边 ghost（白底 + 松绿描边 + 松绿字） */
+.advice__cta {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 68rpx;
+  padding: 0 28rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-card);
+  border: 1rpx solid var(--c-primary);
+  color: var(--c-primary);
+  font-size: 26rpx;
+  font-weight: 500;
+  line-height: 1;
+}
+.advice__cta--hover { background: var(--c-primary-light); }
+
+/* ===== 骨架 ===== */
+.sk-r1 { height: 40rpx; width: 55%; }
+.sk-r2 { height: 56rpx; width: 38%; }
+
+/* 给固定承诺条让位 */
+.plist-spacer { height: 168rpx; }
+
+/* ===== 固定承诺条（画布 Commitment Bar 64px）===== */
+.commit-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 128rpx;                       /* 64px */
+  padding: 0 40rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, var(--c-primary), var(--c-primary-press));
+}
+.commit-bar__t {
+  font-size: 28rpx;                     /* 14px */
+  font-weight: 500;
+  line-height: 1.4;
+  color: #fff;
+  text-align: center;
 }

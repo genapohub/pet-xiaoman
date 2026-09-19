@@ -1,35 +1,65 @@
+<!-- C009 宠物档案（对齐画布 2:474，我的 · 二级页）
+     结构：页头（返回 + 衬线标题 + 右侧「新增」）→ 每只宠物一张档案卡（头像/名/meta/服务次数）
+           → 该宠物的服务历史行（可点进订单进度）。
+     无 tabBar；档案在预约时自动建档，故「新增」引导到预约而非本地新建。 -->
 <view class="page" style="{{brandStyle}}">
-  <view class="pets-head">
-    <view class="pets-head__title">宠物档案</view>
-    <view class="pets-head__desc">每一次服务记录，都会安静地归档在这里。</view>
+
+  <view class="nav nav--sub" style="padding-top:{{nav.navTop}}px">
+    <view class="nav__head" style="min-height:{{nav.headerH}}px">
+      <view class="nav__back" bindtap="goBack" hover-class="nav__back--hover">
+        <view class="nav__back-ic"></view>
+      </view>
+      <view class="nav__titles">
+        <view class="nav__title">宠物档案</view>
+      </view>
+      <view class="nav__add" bindtap="addPet" hover-class="nav__add--hover">新增</view>
+    </view>
   </view>
 
-  <!-- 加载：骨架屏 -->
-  <block wx:if="{{loading}}">
-    <view class="card" wx:for="{{[1, 2]}}" wx:key="*this">
-      <view class="skeleton sk-line sk-line--lg"></view>
-      <view class="skeleton sk-line"></view>
-    </view>
-  </block>
+  <view class="abody">
 
-  <block wx:else>
-    <view class="card" wx:for="{{pets}}" wx:key="pet_id">
-      <view class="head">
-        <image class="head__icon" src="/assets/icons/paw-primary.png" mode="aspectFit" />
-        <text class="name">{{item.name}}</text>
-        <text class="tag tag--primary">{{item.species}}</text>
+    <!-- 加载骨架 -->
+    <block wx:if="{{loading}}">
+      <view class="pcard" wx:for="{{[1, 2]}}" wx:key="*this">
+        <view class="skeleton sk-a"></view>
+        <view class="skeleton sk-b"></view>
       </view>
-      <view class="history" wx:for="{{item.orders}}" wx:for-item="o" wx:key="order_no"
-        data-no="{{o.order_no}}" bindtap="goOrder">
-        {{o.order_no}} · {{o.status}} · {{o.date_text}}
-      </view>
-      <view wx:if="{{!item.orders.length}}" class="empty">服务记录会在完成后沉淀在这里</view>
-    </view>
+    </block>
 
-    <view wx:if="{{!pets.length}}" class="state state--card">
-      <image class="state__icon" src="/assets/icons/paw.png" mode="aspectFit" />
-      <view class="state__text">还没有宠物档案</view>
-      <view class="state__hint">预约后会自动生成，服务记录也会沉淀在这里</view>
-    </view>
-  </block>
+    <block wx:else>
+      <view class="pcard" wx:for="{{pets}}" wx:key="pet_id">
+        <!-- 档案头：中立色圆盘 + 名字首字（没有照片也不显示别家的宠物图） -->
+        <view class="pcard__top">
+          <view class="pcard__avatar">{{item.initial}}</view>
+          <view class="pcard__info">
+            <view class="pcard__name">{{item.name}}</view>
+            <view class="pcard__meta">{{item.metaText}}</view>
+            <view class="tag tag--clay pcard__tag">服务 {{item.orderCount}} 次</view>
+          </view>
+        </view>
+
+        <!-- 服务历史：只列已发生的订单，点进去看时间线与影像 -->
+        <view class="pcard__hist" wx:if="{{item.orderCount}}">
+          <view class="sect-title">服务历史</view>
+          <view class="hrow" wx:for="{{item.orders}}" wx:for-item="o" wx:key="order_no"
+            data-no="{{o.order_no}}" bindtap="goOrder" hover-class="hrow--hover">
+            <view class="hrow__no num">{{o.order_no}}</view>
+            <view class="tag tag--sm {{o.tagClass}}">{{o.status}}</view>
+            <view class="hrow__date">{{o.date_text}}</view>
+          </view>
+        </view>
+        <view class="pcard__none" wx:else>还没有服务记录</view>
+      </view>
+
+      <!-- 空态：与线上一致——档案由预约自动生成 -->
+      <view wx:if="{{!pets.length}}" class="state">
+        <view class="state__disc">
+          <image class="state__icon" src="/assets/icons/paw-primary.png" mode="aspectFit" />
+        </view>
+        <view class="state__title">还没有宠物档案</view>
+        <view class="state__text">预约服务后，门店会为爱宠建立档案</view>
+        <view class="state__cta" bindtap="goCreate" hover-class="state__cta--hover">去预约</view>
+      </view>
+    </block>
+  </view>
 </view>

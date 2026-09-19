@@ -1,9 +1,15 @@
-// 关于我们的承诺：透明定价 + 单独火化 + 过程可见
+// C-关于与承诺 about-promise（对齐画布 58:520，我的 · 二级页）
+//
+// 定位：这是「信任页」——家属在第一次决策前最想确认的三件事（价格透明 / 单独火化 / 过程可见），
+// 以及品牌为什么这样做。故内容顺序为：品牌 → 三承诺 → 流程 → 理念与资质。
 const { go } = require("../../utils/nav");
 const { brandPage } = require("../../utils/brand");
+const navbar = require("../../utils/navbar");
 
 Page(brandPage({
   data: {
+    nav: navbar.measure(),
+    // 三承诺速览（首屏可见的信任锚点）
     proofs: [
       { value: "价格", label: "下单前公开" },
       { value: "节点", label: "订单内留痕" },
@@ -32,8 +38,11 @@ Page(brandPage({
       { step: "03", title: "节点跟进", text: "关键服务节点进入订单详情，方便家属回看。" },
     ],
   },
+
+  goBack() { navbar.back(); },
   goPrices() { go("/pages/prices/prices"); },
   goCreate() { go("/pages/order-create/index"); },
+
   callShop() {
     const phone = this.data.theme && this.data.theme.contactPhone;
     if (!phone) return wx.showToast({ title: "门店电话暂未配置", icon: "none" });

@@ -1,120 +1,248 @@
+/* C001 首页（对齐画布 2:84）· 几何按 1 画布 px = 2rpx 换算 */
+
+.home-status { background: var(--c-paper); }
+
+/* ===== Hero 轮播 ===== */
 .hero {
+  position: relative;
+  width: 750rpx;
+  height: 560rpx;                       /* 280px */
+  background: linear-gradient(180deg, var(--c-primary), var(--c-primary-press));
+}
+.hero__swiper {
+  width: 750rpx;
+  height: 560rpx;
+}
+/* 每屏：渐变底 + 左上文案 + 右上品牌标（左右内缩均 24px） */
+.slide {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 560rpx;
+  padding: 48rpx;
+  overflow: hidden;
+}
+.slide--brand  { background: linear-gradient(180deg, var(--c-primary), var(--c-primary-press)); }
+.slide--price  { background: linear-gradient(180deg, var(--c-primary-press), var(--c-primary)); }
+.slide--memory { background: linear-gradient(180deg, var(--c-primary-press), var(--c-ink-strong)); }
+
+.slide__body {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: var(--sp-6) var(--sp-4) 96rpx;
-  background: var(--c-primary);
-  border-bottom-left-radius: 42rpx;
-  border-bottom-right-radius: 42rpx;
+  gap: 20rpx;                           /* 10px */
+  max-width: 470rpx;                    /* 给右上品牌标与右侧露出留位，避免长标题压到标上 */
 }
-.hero__eyebrow {
-  padding: 8rpx 18rpx;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: var(--fs-xs);
-  border: 1rpx solid rgba(255, 255, 255, 0.24);
-  border-radius: var(--r-pill);
+.slide__eyebrow {
+  font-size: 24rpx;                     /* 12px */
+  color: var(--c-clay);
 }
-.hero__logo {
-  width: 124rpx;
-  height: 124rpx;
-  margin-top: var(--sp-5);
-}
-/* 未配 logo 时的中性占位标：与 logo 同尺寸，字号按视觉重心调 */
-.hero__mark {
-  font-size: 58rpx;
-}
-.hero__name {
-  margin-top: var(--sp-3);
-  color: #fff;
-  font-size: var(--fs-display);
+.slide__brand {
+  font-family: var(--font-serif);
+  font-size: 36rpx;                     /* 18px */
   font-weight: 600;
-  letter-spacing: 0;
-  line-height: 1.1;
+  line-height: 1.2;
+  color: #fff;
 }
-.hero__slogan {
-  margin-top: var(--sp-1);
-  color: rgba(255, 255, 255, 0.64);
-  font-size: var(--fs-sm);
-  letter-spacing: 2rpx;
+.slide__title {
+  font-family: var(--font-serif);
+  font-size: 52rpx;                     /* 26px */
+  font-weight: 600;
+  line-height: 1.25;
+  color: #fff;
 }
-.hero__proof {
-  margin-top: var(--sp-4);
+.slide__slogan {
+  font-size: 28rpx;                     /* 14px */
+  line-height: 1.5;
   color: rgba(255, 255, 255, 0.88);
-  font-size: var(--fs-sm);
+}
+.slide__emblem {
+  position: absolute;
+  top: 48rpx;
+  right: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96rpx;                         /* 48px */
+  height: 96rpx;
+  border-radius: var(--r-pill);
+  /* 画布为同色实心圆（渐变顶部几乎不可见）；这里覆一层薄白提高可读性，
+     与 .brandmark 的反白顶位约定一致 */
+  background: rgba(255, 255, 255, 0.16);
+}
+.slide__logo { width: 96rpx; height: 96rpx; }
+.slide__mark {
+  font-family: var(--font-serif);
+  font-size: 40rpx;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
 }
 
-/* 承诺条上浮，压住 hero 底边，避免「两块色块硬拼」 */
-.promises {
-  position: relative;
-  z-index: 1;
+/* 分页点：贴 Hero 底部（画布 y250 / 屏高 280） */
+.hero__dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 22rpx;
   display: flex;
-  gap: var(--sp-2);
-  margin-top: -56rpx;
-  padding: 0 var(--sp-4);
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;                           /* 8px */
+}
+.dot {
+  width: 12rpx;                         /* 6px */
+  height: 12rpx;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.4);
+}
+.dot--on {
+  width: 16rpx;                         /* 8px */
+  height: 16rpx;
+  background: #fff;
+}
+
+/* ===== Body ===== */
+.home-body {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;                           /* 16px */
+  padding: 40rpx;                       /* 20px */
+  box-sizing: border-box;
+}
+
+/* ---- 三承诺 ---- */
+.promises {
+  display: flex;
+  gap: 24rpx;                           /* 12px */
 }
 .promise {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--sp-1);
-  padding: var(--sp-4) 0;
-  background: var(--c-card-warm);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sd-card);
-  border: 1rpx solid rgba(61, 92, 87, 0.06);
+  gap: 12rpx;                           /* 6px */
+  min-width: 0;
+  padding: 28rpx;                       /* 14px */
+  background: var(--c-card);
+  border: 1rpx solid var(--c-stroke);
+  border-radius: 36rpx;                 /* 18px */
+  box-sizing: border-box;
 }
-.promise:first-child { flex: 1.2; }
-.promise__text {
-  font-size: var(--fs-xs);
-  color: var(--c-ink);
-  font-weight: 600;
+.promise--main { flex: 1.2; }           /* 画布 140 : 117 : 117 */
+.promise__ic { width: 44rpx; height: 44rpx; }   /* 22px */
+.promise__t {
+  font-size: 28rpx;                     /* 14px */
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--c-ink-strong);
+}
+.promise__d {
+  font-size: 22rpx;                     /* 11px */
+  line-height: 1.4;
+  color: var(--c-gray-mid);
 }
 
-.actions {
+/* ---- 服务宫格（2 列，等宽）---- */
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;                           /* 12px */
+}
+.gcard {
+  width: 323rpx;                        /* (750−80−24)/2 = 画布 181px */
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-3);
-  padding: var(--sp-6) var(--sp-4) 0;
+  gap: 16rpx;                           /* 8px */
+  padding: 32rpx;                       /* 16px */
+  background: var(--c-card);
+  border: 1rpx solid var(--c-stroke);
+  border-radius: 36rpx;                 /* 18px */
+}
+.gcard--hover { background: var(--c-primary-pale); }
+.gcard__ic { width: 48rpx; height: 48rpx; }     /* 24px */
+.gcard__t {
+  font-size: 30rpx;                     /* 15px */
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--c-ink-strong);
+}
+.gcard__s {
+  font-size: 22rpx;                     /* 11px */
+  line-height: 1.4;
+  color: var(--c-gray-mid);
 }
 
-.contact {
-  margin: var(--sp-6) var(--sp-4) 0;
-  border-radius: var(--r-lg);
-  box-shadow: var(--sd-card);
-  border: 1rpx solid var(--c-border);
-}
-.row-link__meta {
-  margin-top: 4rpx;
-  color: var(--c-gray);
-  font-size: var(--fs-xs);
-}
-
-.store-info {
-  display: grid;
-  gap: var(--sp-2);
-  margin: var(--sp-3) var(--sp-4) 0;
-  padding: var(--sp-3);
-  background: rgba(255, 253, 248, 0.86);
-  border: 1rpx solid rgba(61, 92, 87, 0.06);
-  border-radius: var(--r-lg);
-}
-.store-info__line {
+/* ---- 今日寄语 ---- */
+.quote {
   display: flex;
-  align-items: flex-start;
-  gap: var(--sp-1);
-  color: var(--c-gray);
-  font-size: var(--fs-sm);
-  line-height: var(--lh-body);
+  flex-direction: column;
+  gap: 16rpx;                           /* 8px */
+  padding: 36rpx;                       /* 18px */
+  background: var(--c-primary-light);
+  border-radius: 36rpx;
+  box-sizing: border-box;
+}
+.quote__label {
+  font-size: 24rpx;                     /* 12px */
+  font-weight: 500;
+  letter-spacing: 4rpx;
+  color: var(--c-clay-deep);
+}
+.quote__text {
+  font-family: var(--font-serif);
+  font-size: 36rpx;                     /* 18px */
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--c-ink-strong);
+}
+.quote__sub {
+  font-size: 24rpx;                     /* 12px */
+  line-height: 1.5;
+  color: var(--c-gray-mid);
 }
 
-.trust-strip {
-  margin: var(--sp-4) var(--sp-4) 0;
-  padding: var(--sp-3);
-  color: #fff;
-  font-size: var(--fs-sm);
-  text-align: center;
-  background: var(--c-primary-deep);
-  border-radius: var(--r-lg);
-  box-shadow: 0 8rpx 28rpx rgba(61, 92, 87, 0.12);
+/* ---- 门店信息（唯一电话入口，须显眼且可点）---- */
+.store {
+  background: var(--c-card);
+  border: 1rpx solid var(--c-stroke);
+  border-radius: 36rpx;
+  overflow: hidden;
+  box-sizing: border-box;
 }
+.store__row {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 26rpx 32rpx;
+  border-bottom: 1rpx solid var(--c-divider);
+}
+.store__row--last { border-bottom: none; }
+.store__row--hover { background: var(--c-primary-pale); }
+.store__ic { flex: none; width: 40rpx; height: 40rpx; }
+.store__label { flex: 1; min-width: 0; }
+.store__t {
+  font-size: 28rpx;
+  line-height: 1.4;
+  color: var(--c-ink);
+}
+.store__meta {
+  margin-top: 4rpx;
+  font-size: 24rpx;
+  line-height: 1.4;
+  color: var(--c-gray);
+}
+.store__chev { flex: none; width: 28rpx; height: 28rpx; }
+
+/* ---- 底承诺条 ---- */
+.trust {
+  padding: 26rpx 32rpx;
+  background: var(--c-primary-deep);
+  border-radius: 36rpx;
+  color: #fff;
+  font-size: 24rpx;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* 给原生 tabBar 让位（画布 Bottom Spacer 90px） */
+.home-spacer { height: 180rpx; }

@@ -103,7 +103,7 @@ import { computed, reactive, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { Delete, Upload } from "@element-plus/icons-vue";
 import { getStoreBrand, updateStoreBrand, uploadStoreLogo } from "../api/platform";
-import { isValidHex, mix } from "../utils/theme";
+import { isValidHex, mix, DEFAULT_PRIMARY } from "../utils/theme";
 import { mediaUrl } from "../utils/url";
 
 const props = defineProps({ storeId: { type: Number, required: true } });
@@ -118,7 +118,7 @@ const logoUploading = ref(false);
 // 联系方式与小程序发布信息——C 端按门店「真实电话/地址/营业时间」展示，超管集中维护。
 // miniapp_entry_enabled 后端默认 true；空表单里也要给个 fallback，否则 switch 显示为关闭态。
 const form = reactive({
-  name: "", slogan: "", logo_url: "", primary_color: "#5B8C85",
+  name: "", slogan: "", logo_url: "", primary_color: DEFAULT_PRIMARY,
   contact_phone: "", contact_address: "", business_hours: "",
   miniapp_name: "", miniapp_appid: "", miniapp_entry_enabled: true,
 });
@@ -148,7 +148,7 @@ const initial = computed(() => (form.name || "店").trim().slice(0, 1));
 
 // 预览里的小色块要用「这家店」的色，而不是后台自己的主色，否则预览会撒谎
 const markBackground = computed(() => {
-  const c = isValidHex(form.primary_color) ? form.primary_color : "#5B8C85";
+  const c = isValidHex(form.primary_color) ? form.primary_color : DEFAULT_PRIMARY;
   return `linear-gradient(180deg, ${c}, ${mix(c, "#000000", 0.12)})`;
 });
 const contactReady = computed(() => Boolean(form.contact_phone && form.contact_address));
@@ -169,7 +169,7 @@ async function load() {
       name: p.name || "",
       slogan: p.slogan || "",
       logo_url: p.logo_url || "",
-      primary_color: p.primary_color || "#5B8C85",
+      primary_color: p.primary_color || DEFAULT_PRIMARY,
       contact_phone: p.contact_phone || "",
       contact_address: p.contact_address || "",
       business_hours: p.business_hours || "",

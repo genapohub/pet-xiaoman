@@ -1,5 +1,4 @@
 {
-  "navigationBarTitleText": "手机号登录",
-  "navigationBarBackgroundColor": "#5B8C85",
-  "navigationBarTextStyle": "white"
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "登录"
 }

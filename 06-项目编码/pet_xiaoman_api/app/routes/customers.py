@@ -43,6 +43,11 @@ def b_list(staff: Staff = Depends(staff_auth), db: Session = Depends(get_db)):
             "phone": _mask(c.phone, is_owner),
             "pets": [p.name for p in pets],
             "order_count": len(orders),
+            # 累计消费：只算**已完成**订单的订单金额（未完成/已取消不计入，
+            # 否则取消单会让店长高估客户价值）。另给实收合计作对照——
+            # 两者差额 = 已完成但未登记收款的单，本身就是需要跟进的信号。
+            "total_spent": round(sum(float(o.total_amount) for o in completed), 2),
+            "paid_total": round(sum(float(o.paid_amount) for o in completed), 2),
             "last_order_at": max((o.created_at for o in orders), default=None).isoformat() if orders else None,
             "visit_status": "待回访" if pending_visit else ("已回访" if visits else "无需回访"),
         })

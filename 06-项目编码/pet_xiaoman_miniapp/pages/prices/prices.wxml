@@ -1,46 +1,75 @@
+<!-- C002/C003 价格表（对齐画布 2:170）
+     结构：衬线页头（二级页带返回）→ 三分类 Tab（选中=品牌色文字+短横线）→ 价格卡列表
+           → 顾问卡（仅套餐）→ 底部「不加价」固定承诺条。
+     差异化内核：全量单项价公开，所以价格直接印在卡片上，不做「点击查看价格」。 -->
 <view class="page" style="{{brandStyle}}">
-  <view class="price-head">
-    <view class="price-head__title">服务价格表</view>
-    <view class="price-head__desc">所有项目公开展示，提交预约后按当前价格锁价。</view>
-  </view>
 
-  <view class="tabs">
-    <view wx:for="{{tabs}}" wx:key="*this" class="tab {{active === item ? 'on' : ''}}"
-      data-tab="{{item}}" bindtap="switchTab">{{item}}</view>
-  </view>
-
-  <!-- 加载：骨架屏 -->
-  <block wx:if="{{loading}}">
-    <view class="card" wx:for="{{[1, 2]}}" wx:key="*this">
-      <view class="skeleton sk-line sk-line--lg"></view>
-      <view class="skeleton sk-line sk-line--sm"></view>
+  <!-- 自绘页头（navigationStyle: custom）：返回箭头 + 衬线大标题 -->
+  <view class="nav nav--sub" style="padding-top:{{nav.navTop}}px">
+    <view class="nav__head" style="min-height:{{nav.headerH}}px">
+      <view class="nav__back" bindtap="goBack" hover-class="nav__back--hover">
+        <view class="nav__back-ic"></view>
+      </view>
+      <view class="nav__titles">
+        <view class="nav__title">服务价格</view>
+      </view>
     </view>
-  </block>
+  </view>
 
-  <block wx:else>
-    <view class="card" wx:for="{{current}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
-      <view class="row">
-        <view>
-          <view class="name">{{item.name}}</view>
-          <view class="tier" wx:if="{{item.weight_tier}}">适用体重：{{item.weight_tier}}</view>
+  <!-- 分类 Tab：横向等距，选中项品牌色 + 20×3 短横线 -->
+  <view class="ptabs">
+    <view class="ptab" wx:for="{{tabs}}" wx:key="*this" data-tab="{{item}}" bindtap="switchTab">
+      <view class="ptab__l {{active === item ? 'ptab__l--on' : ''}}">{{item}}</view>
+      <view class="ptab__ul {{active === item ? 'ptab__ul--on' : ''}}"></view>
+    </view>
+  </view>
+
+  <view class="plist">
+
+    <!-- 加载骨架 -->
+    <block wx:if="{{loading}}">
+      <view class="pcard" wx:for="{{[1, 2, 3]}}" wx:key="*this">
+        <view class="skeleton sk-r1"></view>
+        <view class="skeleton sk-r2"></view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <!-- 价格卡：整卡可点进详情，卡内「选这个」直接带 id 进预约 -->
+      <view class="pcard" wx:for="{{current}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail" hover-class="pcard--hover">
+        <view wx:if="{{item.recommend}}" class="pcard__badge">多数家庭的选择</view>
+        <view class="pcard__row1">
+          <view class="pcard__name">{{item.name}}</view>
+          <view class="pcard__price num">¥{{item.priceText}}</view>
         </view>
-        <view class="price-wrap">
-          <text class="price">¥{{item.price}}</text>
-          <text class="price-note">公开价</text>
+        <view class="pcard__row2">
+          <view class="pcard__desc">{{item.desc}}</view>
+          <view class="pcard__btn" data-id="{{item.id}}" catchtap="goCreate" hover-class="pcard__btn--hover">选这个</view>
         </view>
       </view>
-      <button class="pick" size="mini" data-id="{{item.id}}" catchtap="goCreate">选这个</button>
-    </view>
 
-    <view wx:if="{{!current.length}}" class="state state--card">
-      <image class="state__icon" src="/assets/icons/price.png" mode="aspectFit" />
-      <view class="state__text">该分类暂无项目</view>
-      <view class="state__hint">切换上方分类看看其他服务</view>
-    </view>
-  </block>
+      <!-- 顾问卡：只在套餐分类出现（画布 47:393）——不确定选哪档时给人工出口，不推销 -->
+      <view wx:if="{{active === '套餐' && current.length}}" class="advice">
+        <view class="advice__t">不确定怎么选？</view>
+        <view class="advice__d">顾问会按宠物体型和你的想法，帮你安排最合适的方式，不推销。</view>
+        <view class="advice__cta" bindtap="callShop" hover-class="advice__cta--hover">找顾问聊聊</view>
+      </view>
 
-  <view class="promise">
-    <image class="promise__icon" src="/assets/icons/shield-white.png" mode="aspectFit" />
-    <text>明码标价 · 单独火化 · 下单后不加价</text>
+      <!-- 空态 -->
+      <view wx:if="{{!current.length}}" class="state state--card">
+        <view class="state__disc">
+          <image class="state__icon" src="/assets/icons/price-primary.png" mode="aspectFit" />
+        </view>
+        <view class="state__title">该分类暂无项目</view>
+        <view class="state__text">切换上方分类看看其他服务</view>
+      </view>
+    </block>
+  </view>
+
+  <view class="plist-spacer"></view>
+
+  <!-- 固定承诺条（画布 Commitment Bar 64px）：价格页唯一底部条，二级页无 tabBar -->
+  <view class="commit-bar">
+    <text class="commit-bar__t">明码标价 · 单独火化 · 下单后不加价</text>
   </view>
 </view>

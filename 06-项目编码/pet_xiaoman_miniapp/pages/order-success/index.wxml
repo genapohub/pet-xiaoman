@@ -1,34 +1,67 @@
-<view class="page success-page" style="{{brandStyle}}">
-  <view class="success" wx:if="{{orderNo}}">
-    <view class="success__icon">
-      <image src="/assets/icons/check-white.png" mode="aspectFit" />
+<!-- C011 预约 / 支付成功（对齐画布 47:342，服务 · 二级页）
+     结构：返回 + 页头 → 结果卡（松绿对勾徽章 + 标题 + 金额 + 订单号，居中）
+           → 订单信息 → 下一步说明 → 底部固定条（订单状态 + 查看订单）。
+     文案按「到店付 / 已支付」分流；订单信息回查接口，不只依赖 query。 -->
+<view class="page" style="{{brandStyle}}">
+
+  <view class="nav nav--sub" style="padding-top:{{nav.navTop}}px">
+    <view class="nav__head" style="min-height:{{nav.headerH}}px">
+      <view class="nav__back" bindtap="goBack" hover-class="nav__back--hover">
+        <view class="nav__back-ic"></view>
+      </view>
+      <view class="nav__titles">
+        <view class="nav__title">{{title}}</view>
+      </view>
     </view>
-    <view class="success__title">预约已提交</view>
-    <view class="success__desc">门店将在 30 分钟内电话确认</view>
   </view>
 
-  <view class="card order-card" wx:if="{{orderNo}}" bindtap="copyOrderNo">
-    <view>
-      <view class="order-card__label">订单号</view>
-      <view class="order-card__no">{{orderNo}}</view>
+  <view class="sbody">
+
+    <!-- 结果卡：徽章 + 标题 + 金额 + 单号，全部居中 -->
+    <view class="card rescard">
+      <view class="rescard__badge">
+        <image class="rescard__check" src="/assets/icons/check-white.png" mode="aspectFit" />
+      </view>
+      <view class="rescard__title">{{title}}</view>
+      <view class="rescard__amount num" wx:if="{{order}}">¥{{order.total_amount}}</view>
+      <view class="rescard__no">订单号 {{orderNo}}</view>
     </view>
-    <view class="copy-pill">复制</view>
+
+    <!-- 订单信息（回查接口，避免只信 query） -->
+    <view class="card icard" wx:if="{{order}}">
+      <view class="icard__label">订单信息</view>
+      <view class="irow">
+        <view class="irow__l">服务项目</view>
+        <view class="irow__v">{{order.pkg_name}}</view>
+      </view>
+      <view class="irow">
+        <view class="irow__l">期望时间</view>
+        <view class="irow__v">{{order.expect_time}}</view>
+      </view>
+      <view class="irow">
+        <view class="irow__l">支付方式</view>
+        <view class="irow__v">{{payText}}</view>
+      </view>
+    </view>
+
+    <!-- 下一步 -->
+    <view class="card icard">
+      <view class="icard__label">接下来</view>
+      <view class="icard__note">门店将在 30 分钟内电话确认时间与服务细节。</view>
+      <view class="icard__note">服务关键节点会上传影像，可在「服务进度」里回看。</view>
+      <view class="icard__note" wx:if="{{payText === '到店付款'}}">到店完成服务后支付即可，无需线上预付。</view>
+    </view>
+
   </view>
 
-  <view class="pay-note" wx:if="{{orderNo}}">
-    <image src="/assets/icons/shield-primary.png" mode="aspectFit" />
-    <text>{{payText}} · 服务完成前可在门店确认尾款</text>
-  </view>
+  <view class="sspacer"></view>
 
-  <view class="actions" wx:if="{{orderNo}}">
-    <button class="btn-primary" bindtap="viewOrder">查看订单</button>
-    <button class="btn-plain" bindtap="backHome">返回首页</button>
-  </view>
-
-  <view wx:else class="state state--card">
-    <image class="state__icon" src="/assets/icons/tab-order.png" mode="aspectFit" />
-    <view class="state__text">没有找到预约信息</view>
-    <view class="state__hint">可返回首页重新进入预约流程</view>
-    <button class="btn-primary empty-action" bindtap="backHome">返回首页</button>
+  <!-- 底部条：状态 + 查看订单 -->
+  <view class="bottom-bar bottom-bar--base feebar">
+    <view class="feebar__left">
+      <view class="feebar__l">订单状态</view>
+      <view class="feebar__a">{{statusText}}</view>
+    </view>
+    <view class="bottom-bar__btn feebar__btn" bindtap="viewOrder" hover-class="bottom-bar__btn--hover">查看订单</view>
   </view>
 </view>

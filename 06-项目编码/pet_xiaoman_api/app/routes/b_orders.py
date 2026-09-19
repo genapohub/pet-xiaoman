@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import require_perm, staff_auth
 from app.models.order import Order, OrderStatus, PayType, RefundStatus
+from app.models.pet import Pet
+from app.models.service_item import ServiceItem
 from app.models.staff import Staff, StaffRole
 from app.services import media_service, order_service, payment_service
 from app.services.order_service import BusinessError
@@ -17,6 +19,26 @@ from app.services.order_state import TransitionContext
 from app.services.tenant import belongs, store_clause
 
 router = APIRouter()
+
+
+def _lookups(db: Session, orders: list[Order]) -> tuple[dict, dict]:
+    """批量取套餐名 / 宠物名，避免列表页 N+1。
+
+    为什么必须补：设计稿的订单列表有「服务项目」列（显示「单独火化 · 中型」），
+    而订单表只存 `pkg_id`；关键词检索的占位文案是「订单号/宠物名」，
+    也依赖宠物名可查。缺了这两项，前端只能显示裸 id 或假装能搜宠物名。
+    """
+    pkg_ids = {o.pkg_id for o in orders if o.pkg_id}
+    pet_ids = {o.pet_id for o in orders if o.pet_id}
+    pkg_names: dict = {}
+    pet_names: dict = {}
+    if pkg_ids:
+        pkg_names = {r[0]: r[1] for r in db.query(ServiceItem.id, ServiceItem.name)
+                     .filter(ServiceItem.id.in_(pkg_ids)).all()}
+    if pet_ids:
+        pet_names = {r[0]: r[1] for r in db.query(Pet.id, Pet.name)
+                     .filter(Pet.id.in_(pet_ids)).all()}
+    return pkg_names, pet_names
 
 
 @router.get("/orders", summary="订单列表（B002：状态/日期/夜间单/关键词筛选 + 分页）")
@@ -38,15 +60,24 @@ def list_orders(status: str | None = None,
     if is_night is not None:
         query = query.filter(Order.is_night == is_night)
     if keyword:
-        query = query.filter(Order.order_no.like(f"%{keyword}%"))
+        # 占位文案承诺「订单号/宠物名」都能搜 → 必须真的支持宠物名，
+        # 否则门店按宠物名搜不到，会以为订单丢了。用 outerjoin 保证没建档的订单仍能按单号命中。
+        like = f"%{keyword}%"
+        query = (query.outerjoin(Pet, Order.pet_id == Pet.id)
+                 .filter((Order.order_no.like(like)) | (Pet.name.like(like))))
     total = query.count()
     rows = (query.order_by(Order.created_at.desc())
             .offset((page - 1) * size).limit(size).all())
+    pkg_names, pet_names = _lookups(db, rows)
     return {
         "total": total,
         "items": [{
             "order_no": o.order_no,
             "status": o.status.value,
+            "pkg_id": o.pkg_id,
+            "pkg_name": pkg_names.get(o.pkg_id, ""),
+            "pet_id": o.pet_id,
+            "pet_name": pet_names.get(o.pet_id, ""),
             "total_amount": float(o.total_amount),
             "pay_type": o.pay_type.value,
             "paid_amount": float(o.paid_amount),

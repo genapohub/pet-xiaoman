@@ -1,186 +1,137 @@
+/* C000 登录（对齐画布 2:60）· 1 画布 px = 2rpx
+   版式基准：纸感底 + 顶对齐 + 品牌行（小标 48px）→ 26px 衬线标题 → 14px 副题
+             → Spacer 120px → 主按钮 h56 → 次按钮 h52 → 11px 协议说明 */
+
 .login {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   box-sizing: border-box;
-  padding: 0 32rpx 56rpx;
   background: var(--c-paper);
 }
+.login__status { flex: none; }
 
-.login__hero {
-  position: relative;
-  margin: 0 -32rpx;
-  padding: 92rpx 32rpx 124rpx;
-  background: var(--c-primary-light);
-  border-bottom-left-radius: 52rpx;
-  border-bottom-right-radius: 52rpx;
-}
-
-.login__brand {
+.login__wrap {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-}
-
-.login__lockup {
-  width: 292rpx;
-  height: 124rpx;
-  object-fit: contain;
-}
-
-/* 未配 logo 时的中性占位标：浅底用描边徽章，避免和导航栏深底标识重复 */
-.login__mark {
-  width: 132rpx;
-  height: 132rpx;
-  border: 4rpx solid rgba(91, 140, 133, 0.72);
-  border-radius: 30rpx;
-  background: rgba(255, 255, 255, 0.64);
-  color: var(--c-primary);
-  font-size: 62rpx;
-  box-shadow: 0 18rpx 42rpx rgba(61, 92, 87, 0.10);
-}
-
-.login__shop {
-  max-width: 560rpx;
-  margin-top: 22rpx;
-  color: var(--c-primary-deep);
-  font-size: 34rpx;
-  font-weight: 600;
-  line-height: var(--lh-title);
-  text-align: center;
-}
-
-.login__slogan {
-  max-width: 560rpx;
-  margin-top: 10rpx;
-  color: var(--c-primary);
-  font-size: 25rpx;
-  line-height: var(--lh-body);
-  text-align: center;
-}
-
-.login__card {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
+  /* 画布 primaryAxisAlignItems = MIN → 内容顶对齐，靠 Spacer 把按钮压到中下部 */
+  gap: 48rpx;                           /* 24px */
+  padding: 64rpx;                       /* 32px */
   box-sizing: border-box;
-  margin-top: -64rpx;
-  padding: 34rpx 32rpx 30rpx;
-  border: 1rpx solid rgba(61, 92, 87, 0.07);
-  border-radius: var(--r-lg);
-  background: var(--c-card-warm);
-  box-shadow: 0 24rpx 64rpx rgba(61, 92, 87, 0.12);
 }
 
-.login__card-head {
+/* 品牌行：左对齐的「小圆盘标 + 店名」，不是居中大 logo */
+.login__brandrow {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding-bottom: 28rpx;
+  gap: 24rpx;                           /* 12px */
+}
+.login__emblem {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96rpx;                         /* 48px */
+  height: 96rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-primary);
+  overflow: hidden;
+}
+.login__logo { width: 96rpx; height: 96rpx; }
+.login__mark {
+  font-family: var(--font-serif);
+  font-size: 44rpx;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+}
+.login__brandname {
+  font-family: var(--font-serif);
+  font-size: 44rpx;                     /* 22px */
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--c-ink-strong);
 }
 
 .login__title {
-  color: var(--c-ink);
-  font-size: 34rpx;
+  font-family: var(--font-serif);
+  font-size: 52rpx;                     /* 26px */
   font-weight: 600;
-  line-height: var(--lh-title);
+  line-height: 1.25;
+  color: var(--c-ink-strong);
+}
+.login__sub {
+  font-size: 28rpx;                     /* 14px */
+  line-height: 1.5;
+  color: var(--c-gray-mid);
 }
 
-.login__subtitle {
-  margin-top: 8rpx;
-  color: var(--c-gray);
-  font-size: 24rpx;
-  line-height: var(--lh-body);
-}
+/* 画布 Spacer 120px：把按钮组压到中下部，上方留白是设计的一部分 */
+.login__spacer { height: 240rpx; }
 
+/* ⚠️⚠️ 原生 <button> 的通栏坑 —— width 必须带 !important（2026-09-19 逐项实验确认）：
+   微信框架给原生 button 的基样式对 **width 与 margin 使用了 !important**，普通优先级压不过。
+   实测证据（同一台模拟器、同一页面，逐次只改一处）：
+     1. `width: 100%`          → 无效，实测仍 184px（内容宽）
+     2. `width: 600rpx`        → 无效，仍 184px  ← 说明不是「百分比解析」问题，是 width 整体被压
+     3. `width: 600rpx !important` → 生效，344px（= 600×430/750），auto 外边距随之归零
+   对照：同一规则块里的 box-sizing / border-radius / height 均正常生效，唯独 width、margin 被压。
+   退化机制：width 被压回 auto 后，框架的 `margin-left/right: auto` 让按钮在
+   flex 列容器里**放弃 stretch** → 退化为内容宽并居中（h56 通栏主按钮只有 184px / 321rpx）。
+   结论：本文件两个按钮的 width 都写 `100% !important`，且不要试图删掉它 —— 删了版式就错。 */
+
+/* 主按钮：微信授权登录（h56 / sage 实色胶囊 / 内含 22px 图标） */
+.login__wx {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;                           /* 10px */
+  width: 100% !important;               /* 见上方注释：框架 button 基样式对 width 用了 !important，普通优先级压不过 */
+  box-sizing: border-box;
+  height: 112rpx;                       /* 56px */
+  margin: 0;
+  padding: 0;
+  border-radius: var(--r-pill);
+  background: var(--c-primary);
+  color: #fff;
+  font-size: 32rpx;                     /* 16px */
+  font-weight: 600;
+  line-height: 1;
+}
+.login__wx::after { border: none; }
+.login__wx.button-hover { background: var(--c-primary-press); }
+.login__wx--busy { background: var(--c-primary-disabled); }
+/* 图标尺寸来自画布 2:78「WX Icon」框 22×22（字形本身 15×12 已含在图内留白中） */
+.login__wxicon { flex: none; width: 44rpx; height: 44rpx; }
+.login__wxt { color: #fff; }
+
+/* 次按钮：手机号登录（h52 / 白底胶囊 + 描边 / 松绿字）
+   画布为纯白底；但白胶囊落在纸感底上几乎看不见，故补 1rpx 描边保证可辨。
+   同时不使用 .btn-plain（它高 88rpx，与画布的 52px 不符）。 */
 .login__phone {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 96rpx;
-  border: none;
-  border-radius: var(--r-md);
-  background: var(--c-primary);
-  color: #fff;
-  font-size: 32rpx;
-  font-weight: 600;
+  width: 100% !important;               /* 同 .login__wx：不带 !important 会被框架 button 基样式压回内容宽 */
+  box-sizing: border-box;
+  height: 104rpx;                       /* 52px */
+  margin: 0;
+  padding: 0;
+  border-radius: var(--r-pill);
+  background: var(--c-card);
+  border: 1rpx solid var(--c-stroke);
+  color: var(--c-primary);
+  font-size: 30rpx;                     /* 15px */
+  font-weight: 500;
   line-height: 1;
-  white-space: nowrap;
-  box-shadow: 0 16rpx 34rpx rgba(61, 92, 87, 0.18);
 }
 .login__phone::after { border: none; }
-.login__phone.button-hover {
-  background: var(--c-primary-press);
-  transform: translateY(1rpx);
-}
+.login__phone.button-hover { background: var(--c-primary-pale); }
 
-.login__dev {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 82rpx;
-  margin-top: 20rpx;
-  border: 1rpx solid rgba(91, 140, 133, 0.54);
-  border-radius: var(--r-md);
-  background: rgba(255, 255, 255, 0.82);
-  color: var(--c-primary);
-  font-size: 28rpx;
-  font-weight: 600;
-  line-height: 1;
-}
-.login__dev::after { border: none; }
-
-.login__promise {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10rpx;
-  margin-top: 30rpx;
-  padding-top: 28rpx;
-  border-top: 1rpx solid rgba(61, 92, 87, 0.08);
-}
-
-.login__promise-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  gap: 8rpx;
-  height: 58rpx;
-  border-radius: var(--r-pill);
-  background: var(--c-primary-pale);
-  color: var(--c-primary-deep);
-  font-size: 22rpx;
-  font-weight: 600;
-}
-
-.login__promise-item image {
-  width: 28rpx;
-  height: 28rpx;
-  flex-shrink: 0;
-}
-
-.login__promise-item text {
-  white-space: nowrap;
-}
-
-.login__hint {
-  display: flex;
-  align-items: flex-start;
-  gap: 10rpx;
-  margin-top: 26rpx;
-  padding: 18rpx 20rpx;
-  border-radius: 22rpx;
-  background: rgba(238, 244, 243, 0.78);
-  color: var(--c-gray);
-  font-size: 21rpx;
-  line-height: 1.55;
-}
-
-.login__hint image {
-  width: 28rpx;
-  height: 28rpx;
-  margin-top: 3rpx;
-  flex-shrink: 0;
-  opacity: 0.82;
+.login__agree {
+  font-size: 22rpx;                     /* 11px */
+  line-height: 1.6;
+  color: var(--c-gray-light);
+  text-align: center;
 }
