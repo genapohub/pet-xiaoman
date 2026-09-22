@@ -44,12 +44,12 @@
         </view>
         <view class="pcard__row2">
           <view class="pcard__desc">{{item.desc}}</view>
-          <view class="pcard__btn" data-id="{{item.id}}" catchtap="goCreate" hover-class="pcard__btn--hover">选这个</view>
+          <view class="pcard__btn {{item.isAddon ? 'pcard__btn--ghost' : ''}}" data-id="{{item.id}}" catchtap="goCreate" hover-class="pcard__btn--hover">{{item.actionText}}</view>
         </view>
       </view>
 
-      <!-- 顾问卡：只在套餐分类出现（画布 47:393）——不确定选哪档时给人工出口，不推销 -->
-      <view wx:if="{{active === '套餐' && current.length}}" class="advice">
+      <!-- 顾问卡：三类价格页底部同款——不确定选哪档时给人工出口，不推销 -->
+      <view wx:if="{{current.length}}" class="advice">
         <view class="advice__t">不确定怎么选？</view>
         <view class="advice__d">顾问会按宠物体型和你的想法，帮你安排最合适的方式，不推销。</view>
         <view class="advice__cta" bindtap="callShop" hover-class="advice__cta--hover">找顾问聊聊</view>

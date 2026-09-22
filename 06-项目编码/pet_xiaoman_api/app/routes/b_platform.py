@@ -64,6 +64,8 @@ class StoreCreateInput(BaseModel):
     miniapp_appid: str | None = Field(default=None, max_length=64, description="独立小程序 AppID")
     miniapp_entry_enabled: bool = Field(default=True, description="是否启用独立小程序搜索入口")
     admin_username: str = Field(max_length=32, description="该店首位店长账号")
+    lat: float | None = Field(default=None, description="门店纬度，C 端地图导航用")
+    lng: float | None = Field(default=None, description="门店经度，C 端地图导航用")
     admin_password: str = Field(min_length=6)
     admin_name: str = Field(default="店长", max_length=50)
 
@@ -94,6 +96,9 @@ class StoreProfileInput(BaseModel):
     miniapp_name: str | None = Field(default=None, max_length=50)
     miniapp_appid: str | None = Field(default=None, max_length=64)
     miniapp_entry_enabled: bool | None = None
+    content_json: dict | None = Field(default=None, description="门店内容编辑（首页轮播/承诺/入口/关于我们）")
+    lat: float | None = Field(default=None, description="门店纬度，C 端地图导航用")
+    lng: float | None = Field(default=None, description="门店经度，C 端地图导航用")
 
     _check_slogan = field_validator("slogan")(valid_slogan)
     _check_logo = field_validator("logo_url")(valid_logo_url)
@@ -261,6 +266,7 @@ def create_store(payload: StoreCreateInput,
         miniapp_name=payload.miniapp_name or payload.brand_name or payload.store_name,
         miniapp_appid=payload.miniapp_appid,
         miniapp_entry_enabled=payload.miniapp_entry_enabled,
+        content_json={}, lat=payload.lat, lng=payload.lng,
     )
     db.add(prof)
     mgr = Staff(username=payload.admin_username,

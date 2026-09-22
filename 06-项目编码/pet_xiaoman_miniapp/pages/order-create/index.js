@@ -20,17 +20,29 @@ function formatDate(date) {
   return `${y}-${m}-${d}`;
 }
 
+function maskPhone(phone) {
+  const raw = String(phone || "").trim();
+  if (!raw) return "未绑定通知手机号 · 去资料编辑修改";
+  if (raw.length < 7) return `${raw} · 去资料编辑修改`;
+  return `通知手机号 ${raw.slice(0, 3)}****${raw.slice(-4)} · 去资料编辑修改`;
+}
+
 Page(brandPage({
   data: {
     nav: navbar.measure(),
     packages: [], pkgIndex: 0, currentPackage: null,
-    addons: [], addonIds: [],
+    addons: [], addonIds: [], addonSelectedCount: 0,
     totalText: "0",
     form: { pet_name: "", species: "犬", weight: "", address: "" },
-    speciesOptions: ["犬", "猫", "其他"],
+    speciesOptions: [
+      { label: "狗狗", value: "犬" },
+      { label: "猫猫", value: "猫" },
+      { label: "其他", value: "其他" },
+    ],
     expectTime: "",
     minServiceDate: formatDate(new Date()),
     notifPhone: "",
+    notifPhoneText: "未绑定通知手机号 · 去资料编辑修改",
     submitting: false,
     mapPickerEnabled: storeConfig.MAP_PICKER_ENABLED !== false,
     mapProviderLabel: storeConfig.MAP_PROVIDER === "manual" ? "手动填写" : "微信位置选择",
@@ -76,7 +88,10 @@ Page(brandPage({
     const app = getApp();
     if (!app.getCustomerId()) return;
     get("/api/c/auth/me", {}, { silentError: true })
-      .then((me) => this.setData({ notifPhone: (me && me.phone) || "" }))
+      .then((me) => {
+        const phone = (me && me.phone) || "";
+        this.setData({ notifPhone: phone, notifPhoneText: maskPhone(phone) });
+      })
       .catch(() => {});
   },
 
@@ -109,6 +124,7 @@ Page(brandPage({
     this.setData({
       addons,
       addonIds: addons.filter((a) => a.checked).map((a) => a.id),
+      addonSelectedCount: addons.filter((a) => a.checked).length,
     });
     this._recalc();
   },

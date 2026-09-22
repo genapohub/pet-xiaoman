@@ -5,7 +5,7 @@
 """
 from datetime import datetime
 
-from sqlalchemy import Boolean, String, Integer, JSON, DateTime, ForeignKey
+from sqlalchemy import Boolean, String, Integer, JSON, DateTime, Float, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import BaseModel
@@ -30,6 +30,14 @@ class StoreProfile(BaseModel):
     miniapp_name: Mapped[str | None] = mapped_column(String(50), nullable=True)     # 独立小程序名称
     miniapp_appid: Mapped[str | None] = mapped_column(String(64), nullable=True)    # 独立小程序 AppID
     miniapp_entry_enabled: Mapped[bool] = mapped_column(Boolean, default=True)      # 搜索入口是否启用
+    # 品牌文案（门店级编辑文案，与 theme_json 的「UI token」区分开）：首页轮播、三承诺、
+    # 服务入口宫格、关于与承诺页的信任文案等。此前这些写死在 C 端 JS 常量里，门店无法改、
+    # 双端也对不齐；现归到数据层，B 端品牌配置可维护、C 端按 slug 读取同一份。
+    content_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    # 门店经纬度（wx.openLocation 导航用）。C 端此前因缺经纬度只能「复制地址」，
+    # 补字段后可由品牌配置页填写，C 端接地图导航。
+    lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     @property

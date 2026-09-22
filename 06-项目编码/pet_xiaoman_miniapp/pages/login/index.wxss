@@ -1,6 +1,4 @@
-/* C000 登录（对齐画布 2:60）· 1 画布 px = 2rpx
-   版式基准：纸感底 + 顶对齐 + 品牌行（小标 48px）→ 26px 衬线标题 → 14px 副题
-             → Spacer 120px → 主按钮 h56 → 次按钮 h52 → 11px 协议说明 */
+/* C000 登录 Login（Ardot 2:60 一比一复刻）· 1 画布 px = 2rpx */
 
 .login {
   display: flex;
@@ -15,13 +13,11 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  /* 画布 primaryAxisAlignItems = MIN → 内容顶对齐，靠 Spacer 把按钮压到中下部 */
   gap: 48rpx;                           /* 24px */
   padding: 64rpx;                       /* 32px */
   box-sizing: border-box;
 }
 
-/* 品牌行：左对齐的「小圆盘标 + 店名」，不是居中大 logo */
 .login__brandrow {
   display: flex;
   align-items: center;
@@ -38,14 +34,7 @@
   background: var(--c-primary);
   overflow: hidden;
 }
-.login__logo { width: 96rpx; height: 96rpx; }
-.login__mark {
-  font-family: var(--font-serif);
-  font-size: 44rpx;
-  font-weight: 600;
-  line-height: 1;
-  color: #fff;
-}
+.login__logo { width: 48rpx; height: 48rpx; }
 .login__brandname {
   font-family: var(--font-serif);
   font-size: 44rpx;                     /* 22px */
@@ -67,7 +56,6 @@
   color: var(--c-gray-mid);
 }
 
-/* 画布 Spacer 120px：把按钮组压到中下部，上方留白是设计的一部分 */
 .login__spacer { height: 240rpx; }
 
 /* ⚠️⚠️ 原生 <button> 的通栏坑 —— width 必须带 !important（2026-09-19 逐项实验确认）：
@@ -81,7 +69,6 @@
    flex 列容器里**放弃 stretch** → 退化为内容宽并居中（h56 通栏主按钮只有 184px / 321rpx）。
    结论：本文件两个按钮的 width 都写 `100% !important`，且不要试图删掉它 —— 删了版式就错。 */
 
-/* 主按钮：微信授权登录（h56 / sage 实色胶囊 / 内含 22px 图标） */
 .login__wx {
   display: flex;
   align-items: center;
@@ -102,13 +89,9 @@
 .login__wx::after { border: none; }
 .login__wx.button-hover { background: var(--c-primary-press); }
 .login__wx--busy { background: var(--c-primary-disabled); }
-/* 图标尺寸来自画布 2:78「WX Icon」框 22×22（字形本身 15×12 已含在图内留白中） */
 .login__wxicon { flex: none; width: 44rpx; height: 44rpx; }
 .login__wxt { color: #fff; }
 
-/* 次按钮：手机号登录（h52 / 白底胶囊 + 描边 / 松绿字）
-   画布为纯白底；但白胶囊落在纸感底上几乎看不见，故补 1rpx 描边保证可辨。
-   同时不使用 .btn-plain（它高 88rpx，与画布的 52px 不符）。 */
 .login__phone {
   display: flex;
   align-items: center;
@@ -120,7 +103,7 @@
   padding: 0;
   border-radius: var(--r-pill);
   background: var(--c-card);
-  border: 1rpx solid var(--c-stroke);
+  border: 2rpx solid var(--c-primary);
   color: var(--c-primary);
   font-size: 30rpx;                     /* 15px */
   font-weight: 500;

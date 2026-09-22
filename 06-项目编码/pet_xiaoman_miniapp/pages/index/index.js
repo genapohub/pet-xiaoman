@@ -14,32 +14,58 @@ const HEROES = [
   { key: "memory",  eyebrow: "温柔纪念", title: "纪念，是最好的告别", slogan: "为爱留一处温柔归处" },
 ];
 
-// 三承诺：宽度 140:117:117（非对称节奏，避免机械三等分）
+// 三承诺：图标直接使用 Ardot 导出的节点资源，避免近似替代
 const PROMISES = [
-  { key: "price",  main: true, icon: "shield-primary.png", title: "明码标价", desc: "无隐藏费用" },
-  { key: "single", icon: "heart-primary.png",  title: "单独火化", desc: "专属送别" },
-  { key: "24h",    icon: "clock-primary.png",  title: "24h 可约", desc: "随时响应" },
+  { key: "price", icon: "/assets/ardot/icons/2_98-20260922_083300113.png", title: "明码标价", desc: "无隐藏费用" },
+  { key: "single", icon: "/assets/ardot/icons/2_104-20260922_083300123.png", title: "单独火化", desc: "专属送别" },
+  { key: "24h", icon: "/assets/ardot/icons/2_110-20260922_083300123.png", title: "24h 可约", desc: "随时响应" },
 ];
 
 // 服务入口宫格（2 列）：与画布 Service Grid 4 张卡一致
 const ENTRIES = [
-  { key: "booking", title: "预约火化", desc: "安心送别", icon: "check-primary.png", url: "/pages/order-create/index" },
-  { key: "price",   title: "服务价格", desc: "明码标价", icon: "price-primary.png", url: "/pages/prices/prices" },
-  { key: "gift",    title: "纪念品",   desc: "把爱留驻", icon: "box-primary.png",   url: "/pages/products/products" },
-  { key: "archive", title: "宠物档案", desc: "记忆永存", icon: "paw-primary.png",   url: "/pages/pets/pets" },
+  { key: "booking", title: "预约火化", desc: "安心送别", icon: "/assets/ardot/icons/2_117-20260922_083300123.png", url: "/pages/order-create/index" },
+  { key: "price", title: "服务价格", desc: "明码标价", icon: "/assets/ardot/icons/2_123-20260922_083300124.png", url: "/pages/prices/prices" },
+  { key: "gift", title: "纪念品", desc: "把爱留驻", icon: "/assets/ardot/icons/2_128-20260922_083300124.png", url: "/pages/products/products" },
+  { key: "archive", title: "宠物档案", desc: "记忆永存", icon: "/assets/ardot/icons/2_134-20260922_083300124.png", url: "/pages/pets/pets" },
 ];
+
+function heroesWithActive(activeIndex) {
+  return HEROES.map((item, index) => {
+    const active = index === activeIndex;
+    return Object.assign({}, item, { active, dotClass: active ? "dot--on" : "" });
+  });
+}
+
+function syncTabBar(page) {
+  if (typeof page.getTabBar !== "function") return;
+  const tabBar = page.getTabBar();
+  if (tabBar && typeof tabBar.setSelected === "function") {
+    tabBar.setSelected("/pages/index/index");
+  }
+}
 
 Page(brandPage({
   data: {
     nav: navbar.measure(),
-    heroes: HEROES,
+    heroes: heroesWithActive(0),
     heroIndex: 0,
     promises: PROMISES,
     entries: ENTRIES,
+    storeIcons: {
+      phone: "/assets/ardot/icons/82_3-20260922_083300125.png",
+      address: "/assets/ardot/icons/82_7-20260922_083300126.png",
+      clock: "/assets/ardot/icons/82_12-20260922_083300127.png",
+      chevron: "/assets/ardot/icons/82_5-20260922_083300126.png",
+    },
+  },
+
+  onShow() {
+    syncTabBar(this);
   },
 
   onHeroChange(e) {
-    this.setData({ heroIndex: e.detail.current });
+    const current = e.detail.current || 0;
+    this.setData({ heroIndex: current, heroes: heroesWithActive(current) });
   },
 
   goEntry(e) {

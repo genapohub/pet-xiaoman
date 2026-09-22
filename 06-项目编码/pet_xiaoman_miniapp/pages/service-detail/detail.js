@@ -1,8 +1,8 @@
-// C003 服务详情 + 科普（服务 · 二级页；画布未单列，按《设计风格规范 v2.0》推导）
+// C003 服务详情（服务 · 二级页；对齐画布 81:1）
 //
 // 定位：价格表上一张卡片的「展开」。家属在这一屏要解决的是「这档到底包含什么、
-// 为什么是这个价、我担心的事有没有保障」，故内容顺序 = 价格 → 服务内容 → 节点流程
-// → 常见问题 → 主 CTA（预约这一档）。
+// 为什么是这个价、我担心的事有没有保障」，故内容顺序 = 主套餐 → 服务流程
+// → 服务包含 → 适用情况 → 安心承诺 → 主 CTA。
 const { get } = require("../../utils/request");
 const { go } = require("../../utils/nav");
 const { brandPage } = require("../../utils/brand");
@@ -13,12 +13,22 @@ Page(brandPage({
     nav: navbar.measure(),
     item: null,
     loading: true,
-    steps: ["电话确认", "上门接宠", "告别仪式", "单独火化", "骨灰交付"],
-    faq: [
-      { q: "为什么要先看公开价格？", a: "下单时会按当前价格锁价，门店确认后不会临时加价。" },
-      { q: "单独火化怎么确认？", a: "服务过程中的关键节点会由门店上传影像，订单时间线可查看。" },
-      { q: "可以先不在线支付吗？", a: "可以。当前一期支持到店付款，门店会电话确认预约。" },
+    tags: ["明码标价", "到店或接送", "进度可查"],
+    flowRows: [
+      "01 预约确认：提交预约后，门店 30 分钟内电话确认。",
+      "02 到店或接宠：按约定时间到店，或由门店上门接宠。",
+      "03 告别服务：整理仪容、陪伴告别，并同步关键进度。",
+      "04 交付回访：完成后交付纪念品与影像，支持回访问候。",
     ],
+    includeRows: ["预约确认", "上门接宠", "告别整理", "火化留痕"],
+    sceneText: "适合需要基础告别、价格清晰、流程陪同的家庭。若需要单独仪式、骨灰盒、纪念品或影像服务，可在预约页加选。",
+    promiseText: "费用透明，提交后门店确认报价；服务节点可查，不临时加价；所有纪念品与影像按订单留档。",
+    fallbackItem: {
+      name: "基础告别套餐",
+      weight_tier: "适合家庭小型告别仪式，含接送、整理、基础告别与火化安排。",
+      priceText: "800 起",
+      id: 0,
+    },
   },
 
   onLoad(options) {
@@ -29,11 +39,11 @@ Page(brandPage({
         this.setData({
           item: item ? Object.assign({}, item, {
             priceText: Number(item.price || 0).toFixed(0),
-          }) : null,
+          }) : this.data.fallbackItem,
           loading: false,
         });
       })
-      .catch(() => this.setData({ loading: false }));
+      .catch(() => this.setData({ item: this.data.fallbackItem, loading: false }));
   },
 
   goBack() { navbar.back(); },

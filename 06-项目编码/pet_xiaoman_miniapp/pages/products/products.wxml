@@ -1,7 +1,7 @@
 <!-- C007 纪念品（对齐画布 2:367，纪念品一级 tab 页）
-     结构：衬线页头（无返回 + 情绪副题 + 清单入口/角标）→ 搜索胶囊
-           → 双列网格（图 / 名称 / 履约说明 / 价格 / 加入纪念）→ 空态。
-     一级页保留原生 tabBar（「纪念品」激活）。卡片点进详情，CTA 直接加购。 -->
+     结构：衬线页头（无返回 + 情绪副题）→ 搜索胶囊
+           → 双列网格（图 / 名称 / 价格）→ 空态。
+     一级页使用自定义胶囊 tabBar（「纪念品」激活），卡片点进详情。 -->
 <view class="page" style="{{brandStyle}}">
 
   <view class="nav" style="padding-top:{{nav.navTop}}px">
@@ -10,18 +10,12 @@
         <view class="nav__title">纪念品</view>
         <view class="nav__sub">把温柔留下，陪您久一点</view>
       </view>
-      <!-- 清单入口：角标只在有货时出现，避免 0 件也占视觉 -->
-      <view class="cart-entry" bindtap="goCart" hover-class="cart-entry--hover">
-        <image class="cart-entry__ic" src="/assets/icons/box-primary.png" mode="aspectFit" />
-        <view class="cart-entry__t">清单</view>
-        <view class="cart-entry__badge" wx:if="{{cartCount > 0}}">{{cartCount}}</view>
-      </view>
     </view>
   </view>
 
   <view class="swrap">
     <view class="search">
-      <image class="search__ic" src="/assets/icons/info.png" mode="aspectFit" />
+      <image class="search__ic" src="{{searchIcon}}" mode="aspectFit" />
       <input
         class="search__input"
         placeholder="搜索纪念品"
@@ -34,44 +28,24 @@
   </view>
 
   <view class="mgrid">
-
-    <block wx:if="{{loading}}">
-      <view class="mcard" wx:for="{{[1, 2, 3, 4]}}" wx:key="*this">
-        <view class="skeleton sk-img"></view>
-        <view class="skeleton sk-t"></view>
-        <view class="skeleton sk-p"></view>
+    <view class="mcard" wx:for="{{products}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail" hover-class="mcard--hover">
+      <view class="mcard__imgwrap">
+        <image class="mcard__img" src="{{item.image}}" mode="aspectFill" />
       </view>
-    </block>
-
-    <block wx:else>
-      <view class="mcard" wx:for="{{products}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail" hover-class="mcard--hover">
-        <view class="mcard__imgwrap">
-          <image wx:if="{{item.image}}" class="mcard__img" src="{{item.image}}" mode="aspectFill"
-            data-index="{{index}}" binderror="imageFailed" />
-          <view wx:else class="mcard__noimg">
-            <image class="mcard__noimgic" src="/assets/icons/box-primary.png" mode="aspectFit" />
-          </view>
-        </view>
-        <view class="mcard__body">
-          <view class="mcard__name">{{item.name}}</view>
-          <view class="mcard__sub" wx:if="{{item.subText}}">{{item.subText}}</view>
-          <view class="mcard__ful">{{item.fulText}}</view>
-          <view class="mcard__foot">
-            <view class="mcard__price num">¥{{item.priceText}}</view>
-            <view class="mcard__btn" data-id="{{item.id}}" catchtap="addToCart" hover-class="mcard__btn--hover">加入纪念</view>
-          </view>
-        </view>
+      <view class="mcard__body">
+        <view class="mcard__name">{{item.name}}</view>
+        <view class="mcard__price num">¥{{item.priceText}}</view>
       </view>
+    </view>
 
-      <view wx:if="{{!products.length}}" class="state mgrid__empty">
-        <view class="state__disc">
-          <image class="state__icon" src="/assets/icons/box-primary.png" mode="aspectFit" />
-        </view>
-        <view class="state__title">{{keyword ? '没有找到相关纪念品' : '暂无纪念品'}}</view>
-        <view class="state__text">{{keyword ? '换个关键词试试' : '门店正在准备上架，可先电话咨询'}}</view>
-        <view class="state__cta" bindtap="callShop" hover-class="state__cta--hover">联系门店</view>
+    <view wx:if="{{!products.length}}" class="state mgrid__empty">
+      <view class="state__disc">
+        <image class="state__icon" src="/assets/ardot/icons/2_128-20260922_083300124.png" mode="aspectFit" />
       </view>
-    </block>
+      <view class="state__title">没有找到相关纪念品</view>
+      <view class="state__text">换个关键词试试，或联系门店咨询</view>
+      <view class="state__cta" bindtap="callShop" hover-class="state__cta--hover">联系门店</view>
+    </view>
   </view>
 
   <view class="mspacer"></view>

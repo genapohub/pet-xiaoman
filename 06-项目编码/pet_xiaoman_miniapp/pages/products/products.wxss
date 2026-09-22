@@ -1,5 +1,7 @@
 /* C007 纪念品（对齐画布 2:367）· 1 画布 px = 2rpx */
 
+.nav__title { font-size: 40rpx; }
+
 /* ===== 搜索胶囊 ===== */
 .swrap {
   padding: 16rpx 40rpx 0;               /* 画布 top 8px */
@@ -30,41 +32,6 @@
 }
 .search__ph { color: var(--c-gray-mid); }
 
-/* ===== 清单入口（页头右侧）===== */
-.cart-entry {
-  position: relative;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4rpx;
-  padding: 8rpx 12rpx;
-  border-radius: var(--r-tag);
-}
-.cart-entry--hover { background: var(--c-primary-light); }
-.cart-entry__ic { width: 40rpx; height: 40rpx; }
-.cart-entry__t {
-  font-size: 20rpx;
-  line-height: 1.2;
-  color: var(--c-primary-deep);
-}
-/* 角标：数字超过两位时自动变宽（不写死方形） */
-.cart-entry__badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  min-width: 32rpx;
-  height: 32rpx;
-  padding: 0 8rpx;
-  border-radius: var(--r-pill);
-  background: var(--c-error);
-  color: #fff;
-  font-size: 20rpx;
-  line-height: 32rpx;
-  text-align: center;
-  box-sizing: border-box;
-}
-
 /* ===== 双列网格 =====
    用 flex-wrap + 定宽（而非 grid）——小程序 grid 在旧基础库支持不稳，
    定宽两列 = (750−80−24)/2 = 323rpx，等价画布两列各 181px。 */
@@ -87,25 +54,15 @@
 }
 .mcard__imgwrap {
   width: 100%;
-  height: 300rpx;                       /* 图片区固定比例，保证两列等高 */
+  height: 250rpx;                       /* 画布图片区 181×140，按小程序宽度等比落地 */
   background: var(--c-paper);
 }
-.mcard__img { width: 100%; height: 300rpx; display: block; }
-.mcard__noimg {
-  width: 100%;
-  height: 300rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--c-primary-light);
-}
-.mcard__noimgic { width: 72rpx; height: 72rpx; opacity: 0.7; }
-
+.mcard__img { width: 100%; height: 250rpx; display: block; }
 .mcard__body {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
-  padding: 24rpx 24rpx 28rpx;
+  gap: 8rpx;
+  padding: 20rpx 24rpx 24rpx;
   box-sizing: border-box;
 }
 .mcard__name {
@@ -114,56 +71,14 @@
   line-height: 1.4;
   color: var(--c-ink-strong);
 }
-.mcard__sub {
-  font-size: 22rpx;                     /* 11px */
-  line-height: 1.4;
-  color: var(--c-gray-mid);
-}
-/* 履约说明：让客户不进详情也知道能不能寄、要不要等 */
-.mcard__ful {
-  font-size: 20rpx;
-  line-height: 1.4;
-  color: var(--c-primary-deep);
-}
-.mcard__foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12rpx;
-  margin-top: 4rpx;
-}
 .mcard__price {
-  flex: 1;
-  min-width: 0;
-  font-size: 32rpx;                     /* 16px */
+  font-size: 34rpx;                     /* 17px */
   font-weight: 600;
   color: var(--c-primary);
 }
-/* 卡片内 CTA 必须 hug 宽（规范 §5.1） */
-.mcard__btn {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 60rpx;                        /* 30px */
-  padding: 0 26rpx;
-  border-radius: var(--r-pill);
-  background: var(--c-card);
-  border: 1rpx solid var(--c-primary);
-  color: var(--c-primary);
-  font-size: 24rpx;
-  font-weight: 500;
-  line-height: 1;
-}
-.mcard__btn--hover { background: var(--c-primary-light); }
-
-/* 骨架 */
-.sk-img { width: 100%; height: 300rpx; border-radius: 0; }
-.sk-t { height: 28rpx; width: 70%; margin: 24rpx 24rpx 0; }
-.sk-p { height: 32rpx; width: 44%; margin: 12rpx 24rpx 28rpx; }
 
 /* 空态占满整行 */
 .mgrid__empty { width: 100%; padding: 120rpx 40rpx; }
 
-/* 给原生 tabBar 让位 */
+/* 给自定义胶囊 tabBar 让位 */
 .mspacer { height: 180rpx; }

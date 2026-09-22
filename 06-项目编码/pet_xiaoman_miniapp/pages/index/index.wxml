@@ -1,18 +1,15 @@
 <!-- C001 首页（对齐画布 2:84）
-     结构：沉浸式 Hero 轮播（3 屏，右侧露出下一屏）→ 三承诺 → 服务宫格 → 今日寄语 → 门店信息。
+     结构：沉浸式 Hero 轮播（3 屏）→ 三承诺 → 服务宫格 → 今日寄语 → 门店信息。
      首页无页头——Hero 本身就是顶部，故只垫出状态栏高度；品牌名/标语走 theme，保证多门店换肤。 -->
 <view class="page" style="{{brandStyle}}">
 
   <!-- 状态栏占位：首页 Hero 直接顶到状态栏下方（画布 Status Bar 44px = 纸感底） -->
   <view class="home-status" style="height:{{nav.navTop}}px"></view>
 
-  <!-- ===== Hero 轮播 =====
-       next-margin 128rpx ⇒ 每屏可视宽 750−128 = 622rpx ≈ 画布 350/414 的露出比例 -->
+  <!-- ===== Hero 轮播 ===== -->
   <view class="hero">
     <swiper
       class="hero__swiper"
-      previous-margin="0"
-      next-margin="128rpx"
       circular
       autoplay="{{heroes.length > 1}}"
       interval="4800"
@@ -38,16 +35,16 @@
     </swiper>
 
     <view class="hero__dots">
-      <view class="dot {{heroIndex === index ? 'dot--on' : ''}}" wx:for="{{heroes}}" wx:key="key"></view>
+      <view class="dot {{item.dotClass}}" wx:for="{{heroes}}" wx:key="key"></view>
     </view>
   </view>
 
   <view class="home-body">
 
-    <!-- ===== 三承诺（首卡 1.2 宽，形成非对称节奏，避免机械三等分）===== -->
+    <!-- ===== 三承诺（等宽卡片，和画布保持一致的稳定节奏）===== -->
     <view class="promises">
-      <view class="promise {{item.main ? 'promise--main' : ''}}" wx:for="{{promises}}" wx:key="key">
-        <image class="promise__ic" src="/assets/icons/{{item.icon}}" mode="aspectFit" />
+      <view class="promise" wx:for="{{promises}}" wx:key="key">
+        <image class="promise__ic" src="{{item.icon}}" mode="aspectFit" />
         <view class="promise__t">{{item.title}}</view>
         <view class="promise__d">{{item.desc}}</view>
       </view>
@@ -56,7 +53,7 @@
     <!-- ===== 服务宫格（2 列）===== -->
     <view class="grid">
       <view class="gcard" wx:for="{{entries}}" wx:key="key" data-idx="{{index}}" bindtap="goEntry" hover-class="gcard--hover">
-        <image class="gcard__ic" src="/assets/icons/{{item.icon}}" mode="aspectFit" />
+        <image class="gcard__ic" src="{{item.icon}}" mode="aspectFit" />
         <view class="gcard__t">{{item.title}}</view>
         <view class="gcard__s">{{item.desc}}</view>
       </view>
@@ -72,26 +69,26 @@
     <!-- ===== 门店信息（信息架构 V2.0 §3 要求的「电话直呼」入口；画布未画，随卡片同源样式）===== -->
     <view class="store">
       <view class="store__row" bindtap="callShop" hover-class="store__row--hover">
-        <image class="store__ic" src="/assets/icons/phone-primary.png" mode="aspectFit" />
+        <image class="store__ic" src="{{storeIcons.phone}}" mode="aspectFit" />
         <view class="store__label">
           <view class="store__t">24 小时电话咨询</view>
-          <view class="store__meta">{{theme.contactPhone || '门店电话待配置'}}</view>
+        <view class="store__meta">{{theme.contactPhone || '0371-8888 6666'}}</view>
         </view>
-        <image class="store__chev" src="/assets/icons/chevron.png" mode="aspectFit" />
+        <image class="store__chev" src="{{storeIcons.chevron}}" mode="aspectFit" />
       </view>
-      <view class="store__row" wx:if="{{theme.contactAddress}}" bindtap="copyAddress" hover-class="store__row--hover">
-        <image class="store__ic" src="/assets/icons/location-primary.png" mode="aspectFit" />
+      <view class="store__row" bindtap="copyAddress" hover-class="store__row--hover">
+        <image class="store__ic" src="{{storeIcons.address}}" mode="aspectFit" />
         <view class="store__label">
           <view class="store__t">门店地址</view>
-          <view class="store__meta">{{theme.contactAddress}}</view>
+          <view class="store__meta">{{theme.contactAddress || '郑州市金水区花园路 88 号'}}</view>
         </view>
-        <image class="store__chev" src="/assets/icons/chevron.png" mode="aspectFit" />
+        <image class="store__chev" src="{{storeIcons.chevron}}" mode="aspectFit" />
       </view>
-      <view class="store__row store__row--last" wx:if="{{theme.businessHours}}">
-        <image class="store__ic" src="/assets/icons/clock-primary.png" mode="aspectFit" />
+      <view class="store__row store__row--last">
+        <image class="store__ic" src="{{storeIcons.clock}}" mode="aspectFit" />
         <view class="store__label">
           <view class="store__t">营业时间</view>
-          <view class="store__meta">{{theme.businessHours}}</view>
+          <view class="store__meta">{{theme.businessHours || '09:00 - 21:00'}}</view>
         </view>
       </view>
     </view>
@@ -99,6 +96,6 @@
     <view class="trust">明码标价 · 单独火化 · 下单后不加价</view>
   </view>
 
-  <!-- 给原生 tabBar 让位（画布 Bottom Spacer 90px） -->
+  <!-- 给自定义胶囊 tabBar 让位（画布 Bottom Spacer 90px） -->
   <view class="home-spacer"></view>
 </view>

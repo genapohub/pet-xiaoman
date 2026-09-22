@@ -1,5 +1,7 @@
 /* C010 个人中心（对齐画布 2:545）· 1 画布 px = 2rpx */
 
+.nav__title { font-size: 40rpx; }
+
 .pbody {
   display: flex;
   flex-direction: column;
@@ -16,57 +18,52 @@
   gap: 24rpx;
   padding: 36rpx;                       /* 18px */
   border-radius: 36rpx;
-  background: linear-gradient(180deg, var(--c-primary), var(--c-primary-press));
+  background: linear-gradient(180deg, var(--c-primary), #6FA69E);
   box-sizing: border-box;
 }
-.banner__logo {
+.banner__avatar {
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 96rpx;
-  height: 96rpx;
+  width: 112rpx;
+  height: 112rpx;
   border-radius: var(--r-pill);
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.92);
   overflow: hidden;
 }
-.banner__img { width: 96rpx; height: 96rpx; }
 .banner__mark {
   font-family: var(--font-serif);
-  font-size: 40rpx;
+  font-size: 38rpx;
   font-weight: 600;
   line-height: 1;
-  color: #fff;
+  color: var(--c-primary);
 }
 .banner__text { flex: 1; min-width: 0; }
 .banner__name {
-  font-family: var(--font-serif);
-  font-size: 40rpx;                     /* 20px */
-  font-weight: 600;
-  line-height: 1.25;
+  font-size: 32rpx;                     /* 16px */
+  font-weight: 500;
+  line-height: 1.35;
   color: #fff;
 }
-.banner__slogan {
-  margin-top: 6rpx;
+.banner__phone {
+  margin-top: 2rpx;
   font-size: 24rpx;                     /* 12px */
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.82);
 }
-.banner__no {
-  flex: none;
-  align-self: flex-start;
-  font-family: var(--font-num);
+.banner__tag {
+  display: inline-block;
+  margin-top: 8rpx;
+  padding: 6rpx 16rpx;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
   font-size: 22rpx;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.2;
 }
 
 /* ===== 菜单分组 ===== */
-.mgroups {
-  display: flex;
-  flex-direction: column;
-  gap: 32rpx;
-}
 .mgroup {
   background: var(--c-card);
   border: 1rpx solid var(--c-stroke);
@@ -85,7 +82,7 @@
 }
 .mrow:last-child { border-bottom: none; }
 .mrow--hover { background: var(--c-primary-pale); }
-.mrow__ic { flex: none; width: 40rpx; height: 40rpx; }
+.mrow__ic { flex: none; width: 44rpx; height: 44rpx; }
 .mrow__label {
   flex: 1;
   min-width: 0;
@@ -100,21 +97,5 @@
 }
 .mrow__chev { flex: none; width: 28rpx; height: 28rpx; }
 
-/* 退出登录：整行居中、红字，与普通菜单行区分 */
-.mrow--danger {
-  justify-content: center;
-  padding: 32rpx;
-  font-size: 28rpx;
-  color: var(--c-error);
-}
-
-.pfoot {
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  line-height: 1.5;
-  color: var(--c-gray-light);
-  text-align: center;
-}
-
-/* 给原生 tabBar 让位 */
+/* 给自定义胶囊 tabBar 让位 */
 .pspacer { height: 180rpx; }

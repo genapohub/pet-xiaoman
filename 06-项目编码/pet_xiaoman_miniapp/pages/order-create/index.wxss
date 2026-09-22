@@ -15,6 +15,7 @@
   flex-direction: column;
   gap: 16rpx;                           /* 8px */
   padding: 28rpx 36rpx;                 /* 上下 14px / 左右 18px */
+  box-shadow: var(--sd-card);
 }
 .fcard__label {
   font-size: 26rpx;                     /* 13px */
@@ -57,31 +58,16 @@
 .arow {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 20rpx;
-  min-height: 76rpx;
+  min-height: 44rpx;
   box-sizing: border-box;
 }
-.arow--hover { background: var(--c-primary-pale); }
-/* 自绘勾选框：避免用原生 checkbox 带来平台不一致的观感 */
-.arow__check {
-  flex: none;
-  width: 36rpx;
-  height: 36rpx;
-  border-radius: 50%;
-  border: 2rpx solid var(--c-stroke);
-  background: var(--c-card);
-  box-sizing: border-box;
-}
-.arow__check--on {
-  border-color: var(--c-primary);
-  background: var(--c-primary);
-  /* 选中态用内嵌白点表示，免引入图标资源 */
-  box-shadow: inset 0 0 0 8rpx var(--c-primary);
-}
+.arow--hover { opacity: 0.72; }
 .arow__name {
   flex: 1;
   min-width: 0;
-  font-size: 30rpx;                     /* 15px */
+  font-size: 30rpx;
   line-height: 1.4;
   color: var(--c-ink);
 }
@@ -102,6 +88,9 @@
   background: var(--c-paper);
   font-size: 30rpx;                     /* 15px */
   color: var(--c-ink);
+}
+.finput--row {
+  background: var(--c-paper);
 }
 .fph { color: var(--c-gray); }
 .finput--row {
@@ -141,11 +130,12 @@
   gap: 20rpx;                           /* 10px */
 }
 .spill {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   height: 80rpx;                        /* 40px */
-  padding: 0 36rpx;                     /* 18px */
+  padding: 0 20rpx;
   border-radius: var(--r-pill);
   background: var(--c-card);
   border: 1rpx solid var(--c-stroke);

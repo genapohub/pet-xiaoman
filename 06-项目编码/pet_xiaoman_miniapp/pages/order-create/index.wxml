@@ -31,11 +31,10 @@
 
     <!-- ===== 附加服务（多选）===== -->
     <view class="card fcard" wx:if="{{addons.length}}">
-      <view class="fcard__label">附加服务</view>
+      <view class="fcard__label">附加服务（已选 {{addonSelectedCount}} 项）</view>
       <view class="arow {{item.checked ? 'arow--on' : ''}}" wx:for="{{addons}}" wx:key="id"
         data-id="{{item.id}}" bindtap="onAddonToggle" hover-class="arow--hover">
-        <view class="arow__check {{item.checked ? 'arow__check--on' : ''}}"></view>
-        <view class="arow__name">{{item.name}}</view>
+        <view class="arow__name">{{item.checked ? '已选 · ' : ''}}{{item.name}}</view>
         <view class="arow__price num">¥{{item.priceText}}</view>
       </view>
     </view>
@@ -46,8 +45,8 @@
       <input class="finput" placeholder="它熟悉的称呼" placeholder-class="fph"
         value="{{form.pet_name}}" data-field="pet_name" bindinput="onInput" maxlength="30" />
       <view class="sprow">
-        <view class="spill {{form.species === item ? 'spill--on' : ''}}" wx:for="{{speciesOptions}}" wx:key="*this"
-          data-species="{{item}}" bindtap="onSpeciesSelect">{{item}}</view>
+        <view class="spill {{form.species === item.value ? 'spill--on' : ''}}" wx:for="{{speciesOptions}}" wx:key="value"
+          data-species="{{item.value}}" bindtap="onSpeciesSelect">{{item.label}}</view>
       </view>
       <input class="finput" type="digit" placeholder="体重（kg）" placeholder-class="fph"
         value="{{form.weight}}" data-field="weight" bindinput="onInput" />
@@ -69,8 +68,7 @@
         <view class="finput__act" wx:if="{{mapPickerEnabled}}" bindtap="chooseAddress">选择</view>
       </view>
       <view class="finput finput--row" bindtap="goProfile">
-        <view class="finput__inner finput__inner--ro">{{notifPhone || '未绑定通知手机号'}}</view>
-        <view class="finput__act">修改</view>
+        <view class="finput__inner finput__inner--ro">{{notifPhoneText}}</view>
       </view>
       <view class="fcard__note">进度通知将发送到该手机号；如需更换，请到「资料编辑」修改。</view>
     </view>

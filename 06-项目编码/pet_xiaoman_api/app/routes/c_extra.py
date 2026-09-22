@@ -73,6 +73,9 @@ def c_store_profile(slug: str | None = None, db: Session = Depends(get_db)):
     return {"store_id": profile.store_id, "slug": profile.slug, "name": profile.name,
             "slogan": profile.slogan, "logo_url": profile.logo_url,
             "primary_color": profile.primary_color, "theme": profile.theme,
+            "content": profile.content_json or {},
+            "lat": float(profile.lat) if profile.lat is not None else None,
+            "lng": float(profile.lng) if profile.lng is not None else None,
             "contact_phone": profile.contact_phone, "contact_address": profile.contact_address,
             "business_hours": profile.business_hours,
             "miniapp_name": profile.miniapp_name, "miniapp_appid": profile.miniapp_appid,
@@ -85,6 +88,7 @@ def c_price_list(store_id: int | None = Depends(store_context), db: Session = De
             .order_by(ServiceItem.type, ServiceItem.id).all())
     return [{"id": i.id, "type": i.type.value, "name": i.name, "price": float(i.price),
              "weight_tier": i.weight_tier, "duration_text": i.duration_text,
+             "description": i.description, "steps": i.steps_json or [], "faq": i.faq_json or [],
              "version": i.version} for i in rows]
 
 

@@ -23,7 +23,7 @@
     "pages/pets/pets"
   ],
   "tabBar": {
-    "custom": false,
+    "custom": true,
     "color": "#86909C",
     "selectedColor": "#5B8C85",
     "backgroundColor": "#FFFFFF",

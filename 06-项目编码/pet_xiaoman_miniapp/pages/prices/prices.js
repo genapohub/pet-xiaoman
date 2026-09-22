@@ -22,6 +22,8 @@ function decorate(list, active) {
     desc: it.weight_tier || "",
     // 套餐第 2 档打「多数家庭的选择」（画布 2:199 的推荐徽章）；其它分类不打，避免误当促销
     recommend: active === "套餐" && i === 1,
+    actionText: active === "加购" ? "加入" : "选这个",
+    isAddon: active === "加购",
   }));
 }
 

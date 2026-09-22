@@ -1,6 +1,6 @@
-<!-- B-客户详情（画布未单列）
-     来源：代码已有 /customers/:customerId 详情页，画布当前只有客户管理列表 2:1002。
-     版式按 B 端详情页规则推导：页头返回 → 客户基础资料 → 服务历史 → 回访表单；本轮会补进 Ardot 画布。 -->
+<!-- B-客户详情 CustomerDetail（对齐画布 81:25）
+     来源：代码已有 /customers/:customerId 详情页，承接客户管理列表 2:1002。
+     版式：页头返回 → 客户基础资料 → 服务历史 → 回访记录/回访表单。 -->
 <template>
   <el-skeleton v-if="loading" :rows="6" animated />
   <div v-else-if="c">

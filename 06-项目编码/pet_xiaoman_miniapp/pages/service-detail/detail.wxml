@@ -1,17 +1,14 @@
-<!-- C003 服务详情 + 科普（服务 · 二级页）
-     结构：返回 + 页头（服务名 + 体重档）+ 情绪副题 → 价格/服务内容卡 → 节点流程
-           → 常见问题 → 底部固定条（联系门店 + 预约这一档）。
-     画布未单列此屏，按《设计风格规范 v2.0》的 C 端卡片/CTA 分层规则推导。 -->
-<view class="page" style="{{brandStyle}}">
+<!-- C003 服务详情（对齐 Ardot 81:1）
+     结构：返回 + 服务详情 → 主套餐卡 → 服务流程 → 服务包含 → 适用情况 → 安心承诺 → 底部预约按钮。 -->
+<view class="page sd-page" style="{{brandStyle}}">
 
-  <view class="nav nav--sub" style="padding-top:{{nav.navTop}}px">
+  <view class="nav nav--sub sd-nav" style="padding-top:{{nav.navTop}}px">
     <view class="nav__head" style="min-height:{{nav.headerH}}px">
       <view class="nav__back" bindtap="goBack" hover-class="nav__back--hover">
         <view class="nav__back-ic"></view>
       </view>
       <view class="nav__titles">
-        <view class="nav__title">{{item ? item.name : '服务详情'}}</view>
-        <view class="nav__sub" wx:if="{{item && item.weight_tier}}">适用 {{item.weight_tier}}</view>
+        <view class="nav__title">服务详情</view>
       </view>
     </view>
   </view>
@@ -20,54 +17,44 @@
     <view class="sdbody">
       <view class="skeleton sk-a"></view>
       <view class="skeleton sk-b"></view>
+      <view class="skeleton sk-c"></view>
     </view>
   </block>
 
-  <block wx:elif="{{item}}">
+  <block wx:else>
     <view class="sdbody">
-
-      <!-- 价格锚点：先把价格亮出来（透明定价是差异化核心） -->
-      <view class="card pcard">
-        <view class="pcard__row">
-          <view class="pcard__l">公开价</view>
-          <view class="pcard__p num">¥{{item.priceText}}</view>
-        </view>
-        <view class="pcard__note">价格版本 {{item.version}} · 提交预约时锁定，门店确认后不加价</view>
-      </view>
-
-      <!-- 服务内容：这一档到底包含什么 -->
-      <view class="card ccard">
-        <view class="sect-title">这一档包含</view>
-        <view class="crow" wx:for="{{steps}}" wx:key="*this">
-          <view class="crow__dot"></view>
-          <view class="crow__t">{{item}}</view>
+      <view class="card sd-hero">
+        <view class="sd-hero__title">{{item.name || '基础告别套餐'}}</view>
+        <view class="sd-hero__desc">{{item.weight_tier || fallbackItem.weight_tier}}</view>
+        <view class="sd-hero__price num">¥{{item.priceText}}<text wx:if="{{item.priceText !== '800 起'}}"> 起</text></view>
+        <view class="sd-tags">
+          <view class="sd-tag" wx:for="{{tags}}" wx:key="*this">{{item}}</view>
         </view>
       </view>
 
-      <!-- 常见问题：把家属最担心的三件事提前答掉 -->
-      <view class="card fcard">
-        <view class="sect-title">常见问题</view>
-        <view class="faq" wx:for="{{faq}}" wx:key="q">
-          <view class="faq__q">{{item.q}}</view>
-          <view class="faq__a">{{item.a}}</view>
+      <view class="card sd-card">
+        <view class="sd-card__title">服务流程</view>
+        <view class="sd-flow" wx:for="{{flowRows}}" wx:key="*this">{{item}}</view>
+      </view>
+
+      <view class="card sd-card">
+        <view class="sd-card__title">服务包含</view>
+        <view class="sd-include">
+          <view class="sd-include__item" wx:for="{{includeRows}}" wx:key="*this">{{item}}</view>
         </view>
       </view>
-    </view>
 
-    <view class="sdspacer"></view>
+      <view class="card sd-card">
+        <view class="sd-card__title">适用情况</view>
+        <view class="sd-copy">{{sceneText}}</view>
+      </view>
 
-    <view class="bottom-bar bottom-bar--base">
-      <view class="bar-ghost" bindtap="callShop" hover-class="bar-ghost--hover">联系门店</view>
-      <view class="bar-primary" bindtap="goCreate" hover-class="bar-primary--hover">预约这一档</view>
+      <view class="sd-promise">
+        <view class="sd-promise__title">安心承诺</view>
+        <view class="sd-promise__text">{{promiseText}}</view>
+      </view>
+
+      <view class="sd-submit" bindtap="goCreate" hover-class="sd-submit--hover">预约这个服务</view>
     </view>
   </block>
-
-  <view wx:else class="state">
-    <view class="state__disc">
-      <image class="state__icon" src="/assets/icons/price-primary.png" mode="aspectFit" />
-    </view>
-    <view class="state__title">未找到该服务</view>
-    <view class="state__text">可能已下架，看看其他服务或直接联系门店</view>
-    <view class="state__cta" bindtap="goPrices" hover-class="state__cta--hover">查看价格表</view>
-  </view>
 </view>

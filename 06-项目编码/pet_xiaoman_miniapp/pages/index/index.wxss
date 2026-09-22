@@ -127,7 +127,6 @@
   border-radius: 36rpx;                 /* 18px */
   box-sizing: border-box;
 }
-.promise--main { flex: 1.2; }           /* 画布 140 : 117 : 117 */
 .promise__ic { width: 44rpx; height: 44rpx; }   /* 22px */
 .promise__t {
   font-size: 28rpx;                     /* 14px */
@@ -244,5 +243,5 @@
   text-align: center;
 }
 
-/* 给原生 tabBar 让位（画布 Bottom Spacer 90px） */
+/* 给自定义胶囊 tabBar 让位（画布 Bottom Spacer 90px） */
 .home-spacer { height: 180rpx; }

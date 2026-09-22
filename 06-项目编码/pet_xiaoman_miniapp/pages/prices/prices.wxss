@@ -4,11 +4,13 @@
 .ptabs {
   display: flex;
   align-items: center;
-  gap: 48rpx;                           /* 24px */
-  padding: 40rpx;                       /* 20px */
+  justify-content: space-between;
+  gap: 0;
+  padding: 40rpx 40rpx 38rpx;           /* 20px / 19px */
   box-sizing: border-box;
 }
 .ptab {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -35,19 +37,20 @@
 .plist {
   display: flex;
   flex-direction: column;
-  gap: 32rpx;                           /* 16px */
+  gap: 18rpx;                           /* 9px */
   padding: 0 40rpx;                     /* 左右 20px（页头与 Tab 已给上下留白）*/
   box-sizing: border-box;
 }
 .pcard {
   display: flex;
   flex-direction: column;
-  gap: 24rpx;                           /* 12px */
+  gap: 24rpx;
   padding: 36rpx;                       /* 18px */
   background: var(--c-card);
   border: 1rpx solid var(--c-stroke);
   border-radius: 36rpx;                 /* 18px */
   box-sizing: border-box;
+  box-shadow: var(--sd-card);
 }
 .pcard--hover { background: var(--c-primary-pale); }
 
@@ -111,6 +114,14 @@
   line-height: 1;
 }
 .pcard__btn--hover { background: var(--c-primary-press); }
+.pcard__btn--ghost {
+  background: var(--c-card);
+  border: 2rpx solid var(--c-primary);
+  color: var(--c-primary);
+}
+.pcard__btn--ghost.pcard__btn--hover {
+  background: var(--c-primary-light);
+}
 
 /* ===== 顾问卡 ===== */
 .advice {
@@ -122,6 +133,7 @@
   border: 1rpx solid var(--c-stroke);
   border-radius: 36rpx;
   box-sizing: border-box;
+  box-shadow: var(--sd-card);
 }
 .advice__t {
   font-size: 28rpx;                     /* 14px */
