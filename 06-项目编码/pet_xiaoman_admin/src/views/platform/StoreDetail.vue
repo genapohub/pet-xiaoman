@@ -1,6 +1,6 @@
-<!-- B-平台门店详情 StoreDetail（对齐画布 2:1176 / 58:43 / 58:268；品牌配置归并 2:1060，账号管理归并 5:79）
-     版式：页头返回 + 门店摘要 + 三 Tab（品牌与 UI / 小程序入口 / 门店账号）。
-     平台超管维护白标品牌、独立小程序入口和账号；门店端不可自行修改品牌。 -->
+<!-- B-平台门店详情 StoreDetail（对齐画布 门店详情三 Tab：品牌与UI / 小程序入口 / 门店账号）。
+     版式：页头（店名 + slug｜账号数 + 营业状态 + 编辑资料/停用/启用）＋ 概览四卡 ＋ 三 Tab。
+     平台超管维护白标品牌、独立小程序入口和账号；门店端不可自行修改品牌（租户写恒 403）。 -->
 <template>
   <div class="store-detail">
     <PxPageHeader
@@ -9,11 +9,15 @@
       back
     >
       <template #actions>
-        <el-tag v-if="store" :type="store.status === 'active' ? 'success' : 'info'" effect="light">
-          {{ store.status === "active" ? "营业中" : "已停用" }}
-        </el-tag>
+        <span class="status-badge" :class="store?.status === 'active' ? 'is-on' : 'is-off'">
+          {{ store?.status === "active" ? "营业中" : "已停用" }}
+        </span>
+        <el-button v-if="store?.status === 'active'" @click="goBrand">
+          <el-icon><Edit /></el-icon> 编辑资料
+        </el-button>
         <el-button
           v-if="store?.status === 'active'"
+          type="danger" plain
           @click="doStatus('disabled')"
         >
           停用门店
@@ -25,7 +29,8 @@
     <PxErrorState v-if="failed" text="门店信息加载失败" :loading="loading" @retry="load" />
 
     <template v-else>
-      <div v-if="store" class="store-summary" aria-label="门店配置概览">
+      <!-- 概览四卡：品牌白标 / 门店联系 / 独立小程序 / 后台账号 -->
+      <div v-if="store" class="summary-row" aria-label="门店配置概览">
         <section
           v-for="item in storeSummary"
           :key="item.label"
@@ -34,173 +39,161 @@
         >
           <div class="summary-card__top">
             <span>{{ item.label }}</span>
-            <el-tag size="small" :type="item.done ? 'success' : 'warning'" effect="light">
-              {{ item.done ? "已就绪" : "待完善" }}
-            </el-tag>
+            <span class="summary-card__tag">{{ item.done ? "已就绪" : "待完善" }}</span>
           </div>
           <strong>{{ item.value }}</strong>
           <p>{{ item.hint }}</p>
         </section>
       </div>
 
-      <el-tabs v-model="tab" class="tabs">
-        <el-tab-pane label="品牌与 UI" name="brand">
-          <div class="panel">
-            <div class="panel__head">
-              <h3 class="panel__title">对外展示</h3>
-              <p class="panel__hint">
-                这里配的店名 / 标语 / Logo / 主色会同时作用到 C 端小程序与本后台的配色。
-                门店自己的账号看不到、也改不了这一页。
-              </p>
-            </div>
-            <PxBrandForm :store-id="storeId" @saved="load" />
-          </div>
-        </el-tab-pane>
+      <!-- 三 Tab 导航（画布药丸样式） -->
+      <div class="tab-nav">
+        <button class="tab-nav__item" :class="{ active: tab === 'brand' }" @click="tab = 'brand'">品牌与UI</button>
+        <button class="tab-nav__item" :class="{ active: tab === 'miniapp' }" @click="tab = 'miniapp'">小程序入口</button>
+        <button class="tab-nav__item" :class="{ active: tab === 'staff' }" @click="tab = 'staff'">门店账号</button>
+      </div>
 
-        <el-tab-pane label="小程序入口" name="miniapp">
-          <div class="panel">
-            <div class="panel__head panel__head--row">
-              <div>
-                <h3 class="panel__title">C 端小程序入口</h3>
-                <p class="panel__hint">
-                  同一套小程序源码支持两种入口：顾客微信搜索该店独立小程序时默认进入本门店；
-                  顾客扫码时则按二维码里的门店标识切换品牌与数据。
-                </p>
+      <!-- Tab 1：品牌与UI -->
+      <section v-show="tab === 'brand'" class="tab-panel">
+        <div class="note-tab">门店详情 · 品牌与UI Tab · 品牌资产由平台统一配置，门店端只读（租户写恒 403）</div>
+        <div class="detail-grid">
+          <section class="card form-card">
+            <h3 class="card__title">品牌白标</h3>
+
+            <div class="logo-row">
+              <div class="logo-box">
+                <img v-if="brand.logo_url && !broken" :src="mediaUrl(brand.logo_url)" alt="品牌 Logo" @error="broken = true" />
+                <template v-else><span>爪印</span><span>Logo</span></template>
               </div>
-              <el-tag :type="miniappEntryEnabled ? 'success' : 'info'" effect="light">
-                {{ miniappEntryEnabled ? "独立入口已启用" : "独立入口已关闭" }}
-              </el-tag>
+              <div class="logo-hint">
+                <div class="logo-hint__t">上传品牌 Logo</div>
+                <div class="logo-hint__s">建议 PNG 透明底，480×480 以上</div>
+                <div class="logo-hint__actions">
+                  <el-upload
+                    class="logo-upload"
+                    action="#"
+                    :auto-upload="false"
+                    :show-file-list="false"
+                    accept="image/png,image/jpeg,image/webp"
+                    :on-change="onLogoChange"
+                  >
+                    <el-button :icon="Upload">{{ brand.logo_url ? "更换 Logo" : "选择图片" }}</el-button>
+                  </el-upload>
+                  <el-button v-if="brand.logo_url" text type="danger" :icon="Delete" @click="clearLogo">移除</el-button>
+                </div>
+              </div>
             </div>
 
-            <div v-if="!slug" class="miniapp-empty">
-              <PxEmpty
-                variant="box"
-                text="该门店还没有 C 端入口标识"
-                hint="先到「品牌与 UI」确认门店白标资料，再生成小程序码"
-              />
+            <div class="form-row">
+              <div class="field">
+                <label>门店名称</label>
+                <el-input v-model="brand.name" maxlength="50" placeholder="门店名称" />
+              </div>
+              <div class="field">
+                <label>品牌标语</label>
+                <el-input v-model="brand.slogan" maxlength="50" placeholder="品牌标语" />
+              </div>
             </div>
 
-            <div v-else class="miniapp-grid">
-              <section class="entry-config">
-                <div class="entry-config__head">
-                  <div>
-                    <h4>独立小程序搜索入口</h4>
-                    <p>微信侧搜索小程序名称进入时，没有二维码参数，系统使用默认门店标识绑定品牌与业务数据。</p>
-                  </div>
-                  <el-button type="primary" :loading="miniappSaving" @click="saveMiniappEntry">
-                    保存入口
-                  </el-button>
+            <div class="form-row">
+              <div class="field">
+                <label>品牌主色</label>
+                <div class="swatch-row">
+                  <el-color-picker v-model="brand.primary_color" />
+                  <span class="swatch-hex">{{ brand.primary_color }}</span>
                 </div>
-
-                <el-form ref="miniappFormRef" :model="miniappForm" :rules="miniappRules" class="entry-form" label-width="112px">
-                  <el-form-item label="小程序名称" prop="miniapp_name">
-                    <el-input v-model="miniappForm.miniapp_name" maxlength="50" placeholder="如：宠小满·示例门店" />
-                  </el-form-item>
-                  <el-form-item label="小程序 AppID" prop="miniapp_appid">
-                    <el-input v-model="miniappForm.miniapp_appid" maxlength="64" placeholder="如 wx667ddd8e0d8dd8fb，暂未申请可留空" />
-                  </el-form-item>
-                  <el-form-item label="默认入口">
-                    <el-switch v-model="miniappForm.miniapp_entry_enabled" active-text="启用" inactive-text="关闭" />
-                  </el-form-item>
-                </el-form>
-
-                <div class="entry-summary">
-                  <div>
-                    <span>默认门店标识</span>
-                    <code>{{ slug }}</code>
-                  </div>
-                  <div>
-                    <span>发布配置</span>
-                    <code>{{ publishCommand }}</code>
-                  </div>
-                  <el-button text type="primary" @click="copyText(publishCommand, '发布配置命令已复制')">
-                    <el-icon><CopyDocument /></el-icon> 复制
-                  </el-button>
+              </div>
+              <div class="field">
+                <label>辅助色</label>
+                <div class="swatch-row">
+                  <el-color-picker v-model="brand.secondary" />
+                  <span class="swatch-hex">{{ brand.secondary }}</span>
+                  <span class="field__hint">仅本地预览，暂未接入后端</span>
                 </div>
-              </section>
+              </div>
+            </div>
 
-              <section class="miniapp-code">
-                <div class="qr-box">
-                  <img v-if="qrDataUrl" :src="qrDataUrl" alt="门店小程序码参数二维码" />
-                  <span v-else>生成中</span>
-                </div>
-                <div class="miniapp-code__title">{{ profileName }}</div>
-                <div class="miniapp-code__meta">门店标识：{{ slug }}</div>
-                <div class="miniapp-code__actions">
-                  <el-button type="primary" plain @click="downloadQr">
-                    <el-icon><Download /></el-icon> 下载参数码
-                  </el-button>
-                  <el-button plain @click="copyText(qrPayload, '二维码内容已复制')">
-                    <el-icon><CopyDocument /></el-icon> 复制内容
-                  </el-button>
-                </div>
-                <p class="miniapp-code__hint">用于门店物料草稿和本地验收；正式微信小程序码请用右侧参数到微信平台生成。</p>
-              </section>
+            <div class="action-bar">
+              <el-button @click="resetBrand">取消</el-button>
+              <el-button type="primary" :loading="brandSaving" @click="saveBrand">保存</el-button>
+            </div>
+          </section>
 
-              <section class="entry-panel">
-                <div class="entry-item">
-                  <div class="entry-label">微信官方码参数</div>
-                  <code>{{ miniappPage }}</code>
-                  <code>{{ miniappScene }}</code>
-                  <el-button text type="primary" @click="copyText(officialMiniappPayload, '官方码参数已复制')">
-                    <el-icon><CopyDocument /></el-icon> 复制
-                  </el-button>
+          <section class="card preview-card">
+            <h3 class="card__title">C 端换肤预览</h3>
+            <div class="preview-mock">
+              <div class="preview-mock__bar" :style="{ background: brand.primary_color }" />
+              <div class="preview-mock__body">
+                <div class="preview-mock__logo" :style="{ background: brand.primary_color }">
+                  <img v-if="brand.logo_url && !broken" :src="mediaUrl(brand.logo_url)" alt="logo" @error="broken = true" />
+                  <template v-else>{{ initial }}</template>
                 </div>
+                <div class="preview-mock__name">{{ brand.name || "门店名称" }}</div>
+                <div class="preview-mock__slogan">{{ brand.slogan || "品牌标语预览" }}</div>
+                <button class="preview-mock__btn" :style="{ background: brand.primary_color }">主行动按钮</button>
+                <button
+                  class="preview-mock__btn preview-mock__btn--ghost"
+                  :style="{ color: brand.secondary, borderColor: brand.secondary }"
+                >次行动按钮</button>
+              </div>
+            </div>
+            <p class="preview-note">保存后 C 端小程序按此配置实时换肤（logo / 主色 / 店名 / 标语）。</p>
+          </section>
+        </div>
+      </section>
 
-                <div class="entry-item">
-                  <div class="entry-label">开发者工具启动路径</div>
-                  <code>{{ launchPath }}</code>
-                  <el-button text type="primary" @click="copyText(launchPath, '启动路径已复制')">
-                    <el-icon><Link /></el-icon> 复制
-                  </el-button>
-                </div>
-
-                <div class="entry-item">
-                  <div class="entry-label">C 端白标验收接口</div>
-                  <code>{{ storeProfileApi }}</code>
-                  <el-button text type="primary" @click="copyText(storeProfileApi, '接口地址已复制')">
-                    <el-icon><CopyDocument /></el-icon> 复制
-                  </el-button>
-                </div>
-
-                <div class="entry-item">
-                  <div class="entry-label">业务请求门店头</div>
-                  <code>X-Store-Slug: {{ slug }}</code>
-                  <el-button text type="primary" @click="copyText(`X-Store-Slug: ${slug}`, '请求头已复制')">
-                    <el-icon><CopyDocument /></el-icon> 复制
-                  </el-button>
-                </div>
-              </section>
-
-              <section class="entry-note">
-                <el-icon><Tickets /></el-icon>
-                <div>
-                  <strong>两种入口共用同一套租户隔离。</strong>
-                  <span>
-                    独立 AppID 发布包会写入默认门店标识；二维码入口继续带 scene=slug。
-                    C 端业务请求都会携带 X-Store-Slug，价格、商品、订单和宠物档案不会串店。
+      <!-- Tab 2：小程序入口 -->
+      <section v-show="tab === 'miniapp'" class="tab-panel">
+        <div class="note-tab">门店详情 · 小程序入口 Tab · 查看独立小程序状态、入口路径与二维码</div>
+        <div class="detail-grid">
+          <div class="detail-grid__left">
+            <section class="card info-card">
+              <h3 class="card__title">小程序信息</h3>
+              <div class="kv"><span class="kv__k">AppID</span><span class="kv__v">{{ miniappAppid || "未配置" }}</span></div>
+              <div class="kv">
+                <span class="kv__k">运行状态</span>
+                <span class="kv__v">
+                  <span class="status-badge" :class="miniappEntryEnabled ? 'is-on' : 'is-off'">
+                    {{ miniappEntryEnabled ? "已上线" : "未上线" }}
                   </span>
-                </div>
-              </section>
-            </div>
-          </div>
-        </el-tab-pane>
-
-        <el-tab-pane label="门店账号" name="staff">
-          <div class="panel">
-            <div class="panel__head panel__head--row">
-              <div>
-                <h3 class="panel__title">登录账号</h3>
-                <p class="panel__hint">
-                  该店店长可自己再添加店员；这里是你代为开户 / 改密 / 停用的入口。
-                  店长只能有一个是你开通的首位店长，后续加的都算店员。
-                </p>
+                </span>
               </div>
-              <el-button type="primary" @click="openCreate">
-                <el-icon><Plus /></el-icon> 开账号
+              <div class="kv"><span class="kv__k">所属门店</span><span class="kv__v">{{ storeName }}</span></div>
+            </section>
+
+            <section class="card path-card">
+              <h3 class="card__title">页面路径</h3>
+              <div v-for="p in miniappPaths" :key="p.path" class="kv">
+                <span class="kv__k">{{ p.label }}</span>
+                <code class="kv__v">{{ p.path }}</code>
+              </div>
+            </section>
+          </div>
+
+          <section class="card qr-card">
+            <h3 class="card__title">小程序码</h3>
+            <div class="qr-box">
+              <img v-if="qrDataUrl" :src="qrDataUrl" alt="门店小程序码参数二维码" />
+              <span v-else>生成中</span>
+            </div>
+            <p class="qr-note">扫码进入门店独立小程序；需在微信小程序后台发布新版本后刷新。</p>
+            <div class="qr-actions">
+              <el-button type="primary" @click="downloadQr">
+                <el-icon><Download /></el-icon> 下载小程序码
+              </el-button>
+              <el-button @click="copyText(launchPath, '路径已复制')">
+                <el-icon><CopyDocument /></el-icon> 复制路径
               </el-button>
             </div>
+          </section>
+        </div>
+      </section>
 
+      <!-- Tab 3：门店账号 -->
+      <section v-show="tab === 'staff'" class="tab-panel">
+        <div class="note-tab">门店详情页 · 门店账号 Tab：角色 / 姓名 / 账号 / 手机号 / 状态 / 操作[改密·停用·启用]。</div>
+        <div class="detail-grid">
+          <section class="card account-card">
             <el-table :data="staffRows" v-loading="staffLoading">
               <el-table-column label="角色" width="92">
                 <template #default="{ row }">
@@ -209,7 +202,7 @@
                 </template>
               </el-table-column>
               <el-table-column prop="name" label="姓名" width="120" />
-              <el-table-column prop="username" label="账号" width="150">
+              <el-table-column label="账号" width="160">
                 <template #default="{ row }"><code class="slug">{{ row.username }}</code></template>
               </el-table-column>
               <el-table-column label="手机号" width="140">
@@ -241,50 +234,41 @@
 
               <template #empty>
                 <PxEmpty
-                  variant="user" text="该门店还没有账号"
-                  hint="正常情况开户时会同时建好首位店长；若缺失，点右上角「开账号」补上"
+                  variant="staff" text="该门店还没有账号"
+                  hint="正常情况开户时会同时建好首位店长；若缺失，用右侧表单补上"
                 />
               </template>
             </el-table>
-          </div>
-        </el-tab-pane>
-      </el-tabs>
-    </template>
+          </section>
 
-    <px-form-drawer
-      v-model="createVisible"
-      title="开通门店账号"
-      subtitle="账号直接归属本门店；首次登录后请让对方自行改密"
-      :footer-hint="`初始密码：${form.password || '—'}`"
-      :icon="UserFilled"
-      :saving="saving"
-      @cancel="createVisible = false"
-      @submit="save"
-    >
-      <el-form ref="createFormRef" :model="form" :rules="createRules" label-width="84px">
-        <el-form-item label="角色" prop="role">
-          <el-radio-group v-model="form.role">
-            <el-radio-button value="manager">店长</el-radio-button>
-            <el-radio-button value="employee">店员</el-radio-button>
-          </el-radio-group>
-          <span class="field-hint">
-            店长可管理本店服务项目、纪念品、团队成员与角色权限；店员只能做订单与客户。
-          </span>
-        </el-form-item>
-        <el-form-item label="姓名" prop="name">
-          <el-input v-model="form.name" maxlength="50" placeholder="如：小李" />
-        </el-form-item>
-        <el-form-item label="登录账号" prop="username">
-          <el-input v-model="form.username" maxlength="32" placeholder="全平台唯一" />
-        </el-form-item>
-        <el-form-item label="初始密码" prop="password">
-          <el-input v-model="form.password" maxlength="32" placeholder="至少 6 位" />
-        </el-form-item>
-        <el-form-item label="手机号" prop="phone">
-          <el-input v-model="form.phone" maxlength="20" placeholder="选填" />
-        </el-form-item>
-      </el-form>
-    </px-form-drawer>
+          <section class="card create-card">
+            <h3 class="card__title card__title--serif">新增门店账号</h3>
+            <el-form ref="createFormRef" :model="form" :rules="createRules" label-width="76px">
+              <el-form-item label="登录账号" prop="username">
+                <el-input v-model="form.username" maxlength="32" placeholder="请输入账号" />
+              </el-form-item>
+              <el-form-item label="初始密码" prop="password">
+                <el-input v-model="form.password" maxlength="32" placeholder="至少 6 位" />
+              </el-form-item>
+              <el-form-item label="姓名" prop="name">
+                <el-input v-model="form.name" maxlength="50" placeholder="请输入姓名" />
+              </el-form-item>
+              <el-form-item label="角色" prop="role">
+                <el-select v-model="form.role" placeholder="请选择角色">
+                  <el-option label="店长" value="manager" />
+                  <el-option label="店员" value="employee" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="手机号" prop="phone">
+                <el-input v-model="form.phone" maxlength="20" placeholder="选填" />
+              </el-form-item>
+            </el-form>
+            <el-button type="primary" class="create-card__submit" :loading="saving" @click="save">创建账号</el-button>
+            <p class="create-card__note">店长可在门店后台自行添加店员；此处为平台代开户 / 改密 / 停用入口</p>
+          </section>
+        </div>
+      </section>
+    </template>
   </div>
 </template>
 
@@ -293,16 +277,18 @@ import { computed, reactive, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import QRCode from "qrcode";
-import { Check, CopyDocument, Download, Hide, Key, Link, Plus, Tickets, UserFilled } from "@element-plus/icons-vue";
+import {
+  Check, CopyDocument, Delete, Download, Edit, Hide, Key, Upload,
+} from "@element-plus/icons-vue";
 import {
   createStoreStaff, disableStoreStaff, getStore, listStoreStaff, setStoreStatus,
-  updateStoreBrand, updateStoreStaff,
+  updateStoreBrand, updateStoreStaff, uploadStoreLogo,
 } from "../../api/platform";
+import { isValidHex, mix, DEFAULT_PRIMARY } from "../../utils/theme";
+import { mediaUrl } from "../../utils/url";
 import PxActionButton from "../../components/PxActionButton.vue";
-import PxBrandForm from "../../components/PxBrandForm.vue";
 import PxEmpty from "../../components/PxEmpty.vue";
 import PxErrorState from "../../components/PxErrorState.vue";
-import PxFormDrawer from "../../components/PxFormDrawer.vue";
 import PxPageHeader from "../../components/PxPageHeader.vue";
 
 const route = useRoute();
@@ -315,22 +301,40 @@ const staffLoading = ref(false);
 const failed = ref(false);
 const tab = ref("brand");
 const qrDataUrl = ref("");
-const miniappSaving = ref(false);
 
-const miniappPage = "pages/index/index";
 const profile = computed(() => store.value?.profile || null);
 const slug = computed(() => profile.value?.slug || "");
-const profileName = computed(() => profile.value?.name || store.value?.name || "门店");
-const miniappName = computed(() => profile.value?.miniapp_name || profileName.value);
+const storeName = computed(() => store.value?.name || "门店");
+const profileName = computed(() => profile.value?.name || storeName.value);
 const miniappAppid = computed(() => profile.value?.miniapp_appid || "");
 const miniappEntryEnabled = computed(() => profile.value?.miniapp_entry_enabled !== false);
-const miniappScene = computed(() => slug.value ? `scene=slug=${slug.value}` : "scene=—");
-const launchPath = computed(() => slug.value ? `${miniappPage}?slug=${slug.value}` : miniappPage);
-const storeProfileApi = computed(() => slug.value ? `/api/c/store/profile?slug=${slug.value}` : "/api/c/store/profile");
+const miniappName = computed(() => profile.value?.miniapp_name || profileName.value);
+
+// ---------- 品牌白标（Tab 1）----------
+const brand = reactive({
+  name: "", slogan: "", logo_url: "", primary_color: DEFAULT_PRIMARY, secondary: DEFAULT_PRIMARY,
+});
+const brandSaving = ref(false);
+const broken = ref(false);
+const initial = computed(() => (brand.name || "店").trim().slice(0, 1));
+
+function syncBrand() {
+  brand.name = profile.value?.name || "";
+  brand.slogan = profile.value?.slogan || "";
+  brand.logo_url = profile.value?.logo_url || "";
+  brand.primary_color = isValidHex(profile.value?.primary_color)
+    ? profile.value.primary_color
+    : DEFAULT_PRIMARY;
+  // 辅助色后端暂无字段，预览用主色提亮派生，仅本地展示
+  brand.secondary = mix(brand.primary_color, "#ffffff", 0.35);
+}
+watch(profile, syncBrand, { immediate: true });
+
 const brandReady = computed(() => Boolean(profile.value?.name && profile.value?.primary_color));
 const contactReady = computed(() => Boolean(profile.value?.contact_phone && profile.value?.contact_address));
 const miniappReady = computed(() => Boolean(profile.value?.miniapp_appid && miniappEntryEnabled.value));
 const accountReady = computed(() => (store.value?.manager_count || 0) > 0);
+
 const storeSummary = computed(() => [
   {
     label: "品牌白标",
@@ -357,86 +361,101 @@ const storeSummary = computed(() => [
     done: accountReady.value,
   },
 ]);
-const officialMiniappPayload = computed(() => `page=${miniappPage}\nscene=slug=${slug.value}`);
-const publishCommand = computed(() => [
-  `STORE_SLUG=${slug.value}`,
-  `MINIAPP_APPID=${miniappAppid.value || "wx请替换为该店AppID"}`,
-  `MINIAPP_NAME="${miniappName.value}"`,
-  `SUBSCRIBE_TEMPLATE_IDS="填入订单进度模板ID,填入服务完成模板ID"`,
-  `PROJECT_NAME=pet_xiaoman_${slug.value}`,
-  "node scripts/build-store-config.js",
-].join(" "));
+
+const subtitle = computed(() => {
+  if (!store.value) return "";
+  const s = store.value.profile?.slug;
+  const counts = `${store.value.manager_count} 名店长 · ${store.value.staff_count} 个账号`;
+  return s ? `C 端入口标识 ${s} ｜ ${counts}` : counts;
+});
+
+async function onLogoChange(uploadFile) {
+  const file = uploadFile?.raw;
+  if (!file) return;
+  const allowed = ["image/png", "image/jpeg", "image/webp"];
+  if (!allowed.includes(file.type)) {
+    ElMessage.warning("Logo 仅支持 PNG、JPG 或 WEBP 图片");
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    ElMessage.warning("Logo 文件不能超过 2MB");
+    return;
+  }
+  broken.value = false;
+  try {
+    const result = await uploadStoreLogo(storeId, file);
+    brand.logo_url = result.logo_url;
+    ElMessage.success("Logo 上传成功，点击「保存」后正式生效");
+  } catch {
+    ElMessage.error("Logo 上传失败，请重试");
+  }
+}
+function clearLogo() {
+  brand.logo_url = "";
+  broken.value = false;
+  ElMessage.info("Logo 已移除，点击「保存」后生效");
+}
+function resetBrand() {
+  syncBrand();
+  ElMessage.info("已还原为最后一次保存的内容");
+}
+async function saveBrand() {
+  if (!brand.name.trim()) {
+    ElMessage.warning("请填写门店名称");
+    return;
+  }
+  brandSaving.value = true;
+  try {
+    const next = await updateStoreBrand(storeId, {
+      name: brand.name.trim(),
+      slogan: brand.slogan.trim(),
+      logo_url: brand.logo_url.trim(),
+      primary_color: brand.primary_color,
+      // 辅助色暂未接入后端，仅作本地预览，不写入
+    });
+    store.value = { ...store.value, profile: next };
+    ElMessage.success("品牌已保存，C 端与后台即刻生效");
+  } finally {
+    brandSaving.value = false;
+  }
+}
+
+// ---------- 小程序入口（Tab 2）----------
+const miniappPaths = [
+  { label: "首页", path: "/pages/index/index" },
+  { label: "服务", path: "/pages/service/service" },
+  { label: "纪念品", path: "/pages/products/products" },
+  { label: "我的", path: "/pages/profile/profile" },
+];
+const launchPath = computed(() => (slug.value ? `pages/index/index?slug=${slug.value}` : "pages/index/index"));
 const qrPayload = computed(() => JSON.stringify({
   type: "pet_xiaoman_store_entry",
-  page: miniappPage,
+  page: "pages/index/index",
   scene: `slug=${slug.value}`,
   slug: slug.value,
   name: profileName.value,
 }));
-const miniappForm = reactive({
-  miniapp_name: "",
-  miniapp_appid: "",
-  miniapp_entry_enabled: true,
-});
-const miniappFormRef = ref(null);
-const appidPattern = /^$|^wx[A-Za-z0-9]{8,62}$/;
-const phonePattern = /^$|^1\d{10}$|^0\d{2,3}-?\d{7,8}$/;
-const usernamePattern = /^[A-Za-z0-9_]{3,32}$/;
-const miniappRules = {
-  miniapp_name: [
-    { max: 50, message: "小程序名称最多 50 字", trigger: "blur" },
-  ],
-  miniapp_appid: [
-    { pattern: appidPattern, message: "AppID 需以 wx 开头，仅包含字母数字；暂未申请可留空", trigger: "blur" },
-  ],
-};
-
-const subtitle = computed(() => {
-  if (!store.value) return "";
-  const slug = store.value.profile?.slug;
-  const counts = `${store.value.manager_count} 名店长 · ${store.value.staff_count} 个账号`;
-  return slug ? `C 端入口标识 ${slug} ｜ ${counts}` : counts;
-});
-
-async function load() {
-  loading.value = true;
-  failed.value = false;
-  try {
-    const [s, staff] = await Promise.all([getStore(storeId), listStoreStaff(storeId)]);
-    store.value = s;
-    staffRows.value = staff;
-  } catch {
-    failed.value = true;
-  } finally {
-    loading.value = false;
+watch(qrPayload, async (value) => {
+  if (!slug.value) {
+    qrDataUrl.value = "";
+    return;
   }
-}
+  qrDataUrl.value = await QRCode.toDataURL(value, {
+    width: 160,
+    margin: 1,
+    errorCorrectionLevel: "M",
+    color: { dark: "rgb(29,33,41)", light: "rgb(255,255,255)" },
+  });
+}, { immediate: true });
 
-async function reloadStaff() {
-  staffLoading.value = true;
-  try {
-    staffRows.value = await listStoreStaff(storeId);
-    const s = await getStore(storeId);
-    store.value = s;
-  } finally {
-    staffLoading.value = false;
-  }
-}
-
-function syncMiniappForm() {
-  miniappForm.miniapp_name = miniappName.value;
-  miniappForm.miniapp_appid = miniappAppid.value;
-  miniappForm.miniapp_entry_enabled = miniappEntryEnabled.value;
-}
-
-const createVisible = ref(false);
+// ---------- 门店账号（Tab 3）----------
 const saving = ref(false);
-const blank = () => ({ role: "manager", name: "", username: "", password: "", phone: "" });
+const blank = () => ({ role: "employee", name: "", username: "", password: "", phone: "" });
 const form = reactive(blank());
 const createFormRef = ref(null);
+const usernamePattern = /^[A-Za-z0-9_]{3,32}$/;
+const phonePattern = /^$|^1\d{10}$|^0\d{2,3}-?\d{7,8}$/;
 const createRules = {
-  role: [{ required: true, message: "请选择账号角色", trigger: "change" }],
-  name: [{ required: true, message: "请填写姓名", trigger: "blur" }],
   username: [
     { required: true, message: "请填写登录账号", trigger: "blur" },
     { pattern: usernamePattern, message: "账号需为 3-32 位字母、数字或下划线", trigger: "blur" },
@@ -445,13 +464,10 @@ const createRules = {
     { required: true, message: "请填写初始密码", trigger: "blur" },
     { min: 6, message: "初始密码至少 6 位", trigger: "blur" },
   ],
+  name: [{ required: true, message: "请填写姓名", trigger: "blur" }],
+  role: [{ required: true, message: "请选择账号角色", trigger: "change" }],
   phone: [{ pattern: phonePattern, message: "手机号或座机格式不正确；不填也可以", trigger: "blur" }],
 };
-
-function openCreate() {
-  Object.assign(form, blank());
-  createVisible.value = true;
-}
 
 async function save() {
   await createFormRef.value?.validate();
@@ -464,28 +480,11 @@ async function save() {
       password: form.password,
       phone: form.phone.trim() || null,
     });
-    createVisible.value = false;
     ElMessage.success("账号已开通，可立即登录");
+    Object.assign(form, blank());
     reloadStaff();
   } finally {
     saving.value = false;
-  }
-}
-
-async function saveMiniappEntry() {
-  await miniappFormRef.value?.validate();
-  miniappSaving.value = true;
-  try {
-    const next = await updateStoreBrand(storeId, {
-      miniapp_name: miniappForm.miniapp_name.trim() || "",
-      miniapp_appid: miniappForm.miniapp_appid.trim() || "",
-      miniapp_entry_enabled: miniappForm.miniapp_entry_enabled,
-    });
-    store.value = { ...store.value, profile: next };
-    syncMiniappForm();
-    ElMessage.success("小程序入口已保存");
-  } finally {
-    miniappSaving.value = false;
   }
 }
 
@@ -529,6 +528,11 @@ async function doEnableStaff(row) {
   await updateStoreStaff(storeId, row.id, { status: "active" });
   ElMessage.success("账号已启用");
   reloadStaff();
+}
+
+// ---------- 通用 ----------
+function goBrand() {
+  tab.value = "brand";
 }
 
 async function copyText(text, message = "已复制") {
@@ -578,28 +582,56 @@ async function doStatus(status) {
   ElMessage.success(off ? "门店已停用" : "门店已启用");
 }
 
-watch(qrPayload, async (value) => {
-  if (!slug.value) {
-    qrDataUrl.value = "";
-    return;
+async function load() {
+  loading.value = true;
+  failed.value = false;
+  try {
+    const [s, staff] = await Promise.all([getStore(storeId), listStoreStaff(storeId)]);
+    store.value = s;
+    staffRows.value = staff;
+  } catch {
+    failed.value = true;
+  } finally {
+    loading.value = false;
   }
-  qrDataUrl.value = await QRCode.toDataURL(value, {
-    width: 224,
-    margin: 1,
-    errorCorrectionLevel: "M",
-    color: { dark: "rgb(29,33,41)", light: "rgb(255,255,255)" },
-  });
-}, { immediate: true });
+}
 
-watch(profile, syncMiniappForm, { immediate: true });
+async function reloadStaff() {
+  staffLoading.value = true;
+  try {
+    staffRows.value = await listStoreStaff(storeId);
+    const s = await getStore(storeId);
+    store.value = s;
+  } finally {
+    staffLoading.value = false;
+  }
+}
 
 load();
 </script>
 
 <style scoped>
-.tabs { margin-top: var(--px-sp-1); }
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.status-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+}
+.status-badge.is-on { background: var(--px-primary-light); color: var(--px-primary-pressed); }
+.status-badge.is-off { background: rgba(134, 144, 156, 0.14); color: var(--px-text-3); }
 
-.store-summary {
+/* 概览四卡 */
+.summary-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--px-sp-3);
@@ -609,17 +641,12 @@ load();
   min-width: 0;
   padding: var(--px-sp-4);
   border: 1px solid var(--px-border);
-  border-radius: var(--px-radius-lg);
+  border-radius: var(--px-radius-xl);
   background: var(--px-bg-card);
-  box-shadow: var(--px-shadow-card);
+  box-shadow: var(--px-shadow-card-soft);
 }
-.summary-card--done {
-  border-color: rgba(91, 140, 133, 0.20);
-}
-.summary-card--todo {
-  border-color: rgba(217, 139, 43, 0.26);
-  background: var(--px-bg-warning);
-}
+.summary-card--done { border-color: rgba(91, 140, 133, 0.20); }
+.summary-card--todo { border-color: rgba(217, 139, 43, 0.26); background: var(--px-bg-warning); }
 .summary-card__top {
   display: flex;
   align-items: center;
@@ -629,6 +656,14 @@ load();
   font-size: var(--px-fs-xs);
   font-weight: 600;
 }
+.summary-card__tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.summary-card--done .summary-card__tag { background: var(--px-primary-light); color: var(--px-primary-pressed); }
+.summary-card--todo .summary-card__tag { background: rgba(217, 139, 43, 0.14); color: var(--px-warning); }
 .summary-card strong {
   display: block;
   margin-top: var(--px-sp-2);
@@ -645,235 +680,249 @@ load();
   line-height: 1.5;
 }
 
-.panel {
-  margin-top: var(--px-sp-3);
-  padding: var(--px-sp-5);
-  background: var(--px-bg-card);
-  border: 1px solid var(--px-border);
-  border-radius: var(--px-radius-lg);
-  box-shadow: var(--px-shadow-card);
-}
-.panel__head { margin-bottom: var(--px-sp-4); }
-.panel__head--row {
+/* Tab 导航（画布药丸） */
+.tab-nav {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--px-sp-4);
+  gap: 8px;
+  height: 48px;
+  align-items: center;
+  margin-bottom: var(--px-sp-3);
 }
-.panel__title {
-  margin: 0;
-  color: var(--px-text-1);
-  font-size: var(--px-fs-lg);
-  font-weight: 600;
-}
-.panel__hint {
-  margin: var(--px-sp-1) 0 0;
-  max-width: 68ch;
+.tab-nav__item {
+  height: 40px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
   color: var(--px-text-2);
-  font-size: var(--px-fs-sm);
-  line-height: 1.6;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--px-motion-fast) linear;
 }
-.slug {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--px-fs-sm);
-  color: var(--px-text-2);
+.tab-nav__item:hover { color: var(--px-primary-pressed); }
+.tab-nav__item.active {
+  background: var(--px-primary-light);
+  color: var(--px-primary-pressed);
+  font-weight: 500;
 }
-.field-hint {
-  display: block;
-  width: 100%;
-  margin-top: var(--px-sp-1);
-  font-size: var(--px-fs-xs);
-  color: var(--px-text-3);
+
+/* 画布 note-tab 提示条 */
+.note-tab {
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--px-primary-light);
+  color: var(--px-primary-pressed);
+  font-size: 12px;
   line-height: 1.5;
+  margin-bottom: var(--px-sp-3);
 }
-.miniapp-empty {
-  padding: var(--px-sp-8) 0;
-}
-.miniapp-grid {
+
+/* 两栏布局 */
+.detail-grid {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: var(--px-sp-5);
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: var(--px-sp-4);
   align-items: start;
 }
-.entry-config {
-  grid-column: 1 / -1;
+.detail-grid__left {
   display: grid;
   gap: var(--px-sp-4);
-  padding: var(--px-sp-4);
-  border: 1px solid var(--px-border);
-  border-radius: var(--px-radius-md);
-  background: var(--px-bg-card);
-}
-.entry-config__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--px-sp-4);
-}
-.entry-config__head h4 {
-  margin: 0;
-  color: var(--px-text-1);
-  font-size: var(--px-fs-md);
-}
-.entry-config__head p {
-  margin: var(--px-sp-1) 0 0;
-  color: var(--px-text-2);
-  font-size: var(--px-fs-sm);
-  line-height: 1.6;
-}
-.entry-form {
-  max-width: 760px;
-}
-.entry-summary {
-  display: grid;
-  grid-template-columns: 180px minmax(0, 1fr) auto;
-  gap: var(--px-sp-3);
-  align-items: center;
-}
-.entry-summary > div {
   min-width: 0;
 }
-.entry-summary span {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--px-text-3);
-  font-size: var(--px-fs-xs);
-}
-.entry-summary code {
-  display: block;
-  min-width: 0;
-  padding: 3px var(--px-sp-2);
-  border: 1px solid var(--px-border);
-  border-radius: var(--px-radius-sm);
-  background: var(--px-primary-softer);
-  color: var(--px-text-2);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--px-fs-sm);
-  overflow-wrap: anywhere;
-}
-.miniapp-code {
+.card {
   padding: var(--px-sp-5);
   border: 1px solid var(--px-border);
-  border-radius: var(--px-radius-lg);
-  background: var(--px-bg-warm);
-  text-align: center;
+  border-radius: var(--px-radius-xl);
+  background: var(--px-bg-card);
+  box-shadow: var(--px-shadow-card-soft);
 }
+.card__title {
+  margin: 0 0 var(--px-sp-4);
+  color: var(--px-text-1);
+  font-size: 15px;
+  font-weight: 600;
+}
+.card__title--serif { font-family: var(--px-font-serif); }
+
+/* Tab1 品牌白标表单 */
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: var(--px-sp-4);
+}
+.logo-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 88px;
+  height: 88px;
+  border: 1px solid var(--px-border);
+  border-radius: 14px;
+  background: var(--px-bg-warm);
+  color: var(--px-text-3);
+  font-size: 12px;
+  line-height: 1.2;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.logo-box img { width: 100%; height: 100%; object-fit: contain; }
+.logo-hint__t { color: var(--px-text-1); font-size: 13px; }
+.logo-hint__s { color: var(--px-text-3); font-size: 12px; }
+.logo-hint__actions { display: flex; align-items: center; gap: var(--px-sp-2); margin-top: 6px; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: var(--px-sp-4);
+}
+.field { min-width: 0; }
+.field > label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--px-text-1);
+  font-size: 13px;
+}
+.field__hint { display: block; margin-top: 4px; font-size: 11px; color: var(--px-text-3); }
+.swatch-row { display: flex; align-items: center; gap: 10px; }
+.swatch-hex { font-size: 12px; color: var(--px-text-2); font-variant-numeric: tabular-nums; }
+
+.action-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  height: 56px;
+  align-items: center;
+}
+
+/* Tab1 换肤预览 */
+.preview-mock {
+  border: 1px solid var(--px-border);
+  border-radius: 12px;
+  background: var(--px-bg-warm);
+  overflow: hidden;
+}
+.preview-mock__bar { height: 28px; }
+.preview-mock__body {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  justify-items: start;
+}
+.preview-mock__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+.preview-mock__logo img { width: 28px; height: 28px; object-fit: contain; }
+.preview-mock__name { color: var(--px-text-1); font-size: 15px; font-weight: 600; }
+.preview-mock__slogan { color: var(--px-text-2); font-size: 12px; }
+.preview-mock__btn {
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  cursor: default;
+}
+.preview-mock__btn--ghost {
+  background: #fff;
+  border: 1px solid;
+}
+.preview-note {
+  margin: var(--px-sp-3) 0 0;
+  color: var(--px-text-3);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Tab2 小程序信息 / 路径 */
+.kv {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(236, 233, 227, 0.7);
+}
+.kv:last-child { border-bottom: none; }
+.kv__k { color: var(--px-text-3); font-size: 13px; flex-shrink: 0; }
+.kv__v {
+  color: var(--px-text-1);
+  font-size: 13px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.kv__v code, .slug {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  color: var(--px-text-2);
+}
+
+/* Tab2 小程序码 */
+.qr-card { display: flex; flex-direction: column; }
 .qr-box {
   display: grid;
   place-items: center;
-  width: 224px;
-  height: 224px;
-  margin: 0 auto var(--px-sp-4);
+  width: 160px;
+  height: 160px;
+  margin: 0 auto;
   border: 1px solid var(--px-border);
-  border-radius: var(--px-radius-md);
+  border-radius: 12px;
   background: var(--px-bg-card);
   color: var(--px-text-3);
   overflow: hidden;
 }
-.qr-box img {
-  display: block;
-  width: 224px;
-  height: 224px;
-}
-.miniapp-code__title {
-  color: var(--px-text-1);
-  font-size: var(--px-fs-md);
-  font-weight: 600;
-}
-.miniapp-code__meta {
-  margin-top: var(--px-sp-1);
-  color: var(--px-text-2);
-  font-size: var(--px-fs-sm);
-}
-.miniapp-code__actions {
-  display: flex;
-  justify-content: center;
-  gap: var(--px-sp-2);
-  margin-top: var(--px-sp-4);
-}
-.miniapp-code__actions :deep(.el-button) {
-  margin-left: 0;
-}
-.miniapp-code__hint {
-  margin: var(--px-sp-2) auto 0;
-  max-width: 230px;
+.qr-box img { width: 160px; height: 160px; }
+.qr-note {
+  margin: var(--px-sp-3) auto 0;
+  max-width: 240px;
+  text-align: center;
   color: var(--px-text-3);
-  font-size: var(--px-fs-xs);
+  font-size: 12px;
   line-height: 1.5;
 }
-.entry-panel {
-  display: grid;
-  gap: var(--px-sp-3);
-}
-.entry-item {
-  display: grid;
-  grid-template-columns: 150px minmax(0, 1fr) minmax(0, 1fr) auto;
-  gap: var(--px-sp-3);
-  align-items: center;
-  padding: var(--px-sp-3) var(--px-sp-4);
-  border: 1px solid var(--px-border);
-  border-radius: var(--px-radius-md);
-  background: var(--px-bg-card);
-}
-.entry-item code {
-  min-width: 0;
-  padding: 3px var(--px-sp-2);
-  border: 1px solid var(--px-border);
-  border-radius: var(--px-radius-sm);
-  background: var(--px-primary-softer);
-  color: var(--px-text-2);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--px-fs-sm);
-  overflow-wrap: anywhere;
-}
-.entry-item code:only-of-type {
-  grid-column: span 2;
-}
-.entry-label {
-  color: var(--px-text-1);
-  font-weight: 600;
-}
-.entry-note {
-  grid-column: 1 / -1;
+.qr-actions {
   display: flex;
-  gap: var(--px-sp-3);
-  align-items: flex-start;
-  padding: var(--px-sp-4);
-  border: 1px solid rgba(227, 115, 24, 0.22);
-  border-radius: var(--px-radius-md);
-  background: var(--px-bg-warning);
-  color: var(--px-text-2);
-  line-height: 1.7;
+  justify-content: center;
+  gap: 12px;
+  margin-top: var(--px-sp-4);
 }
-.entry-note .el-icon {
-  margin-top: 3px;
-  color: var(--px-warning);
+.qr-actions :deep(.el-button) { margin-left: 0; }
+
+/* Tab3 账号表格 + 新增卡 */
+.account-card { padding: 0; overflow: hidden; }
+.account-card :deep(.el-table) { border-radius: var(--px-radius-xl); }
+.create-card__submit {
+  width: 100%;
+  margin-top: var(--px-sp-2);
+  border-radius: 10px;
 }
-.entry-note strong {
-  display: block;
-  color: var(--px-text-1);
+.create-card__note {
+  margin: var(--px-sp-3) 0 0;
+  color: var(--px-text-3);
+  font-size: 11px;
+  line-height: 1.5;
 }
-@media (max-width: 960px) {
-  .store-summary {
-    grid-template-columns: 1fr 1fr;
-  }
-  .miniapp-grid {
-    grid-template-columns: 1fr;
-  }
-  .entry-config__head,
-  .entry-summary {
-    grid-template-columns: 1fr;
-  }
-  .entry-item {
-    grid-template-columns: 1fr;
-  }
-  .entry-item code:only-of-type {
-    grid-column: auto;
-  }
+.create-card :deep(.el-form) { margin-top: var(--px-sp-1); }
+
+@media (max-width: 1100px) {
+  .detail-grid { grid-template-columns: 1fr; }
 }
-@media (max-width: 680px) {
-  .store-summary {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 760px) {
+  .summary-row { grid-template-columns: 1fr 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .summary-row { grid-template-columns: 1fr; }
 }
 </style>

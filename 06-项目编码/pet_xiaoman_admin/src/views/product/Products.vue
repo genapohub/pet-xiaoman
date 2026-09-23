@@ -64,7 +64,7 @@
       </el-table-column>
 
       <template #empty>
-        <PxEmpty variant="image" text="还没有上架的纪念品" hint="录入后将出现在小程序的纪念品列表" />
+        <PxEmpty variant="service" text="还没有上架的纪念品" hint="录入后将出现在小程序的纪念品列表" />
       </template>
     </px-table-page>
 

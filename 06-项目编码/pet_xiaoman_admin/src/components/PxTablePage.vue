@@ -8,6 +8,11 @@
     <PxErrorState v-if="failed" :text="failedText" :loading="loading" @retry="$emit('retry')" />
 
     <template v-else>
+      <!-- 概览统计卡（如骨灰寄存的在寄存/临期/已取回），置于表头与表格之间 -->
+      <section v-if="$slots.summary" class="px-tp__summary" aria-label="概览">
+        <slot name="summary" />
+      </section>
+
       <section v-if="$slots.filters" class="px-tp__filters" aria-label="筛选条件">
         <div class="px-tp__filters-head">
           <span class="px-tp__filters-dot" aria-hidden="true" />
@@ -96,6 +101,9 @@ defineEmits(["retry", "page-change", "size-change", "row-click"]);
   flex-wrap: wrap;
   gap: var(--px-sp-2);
   align-items: center;
+}
+.px-tp__summary {
+  margin-bottom: var(--px-sp-4);
 }
 .px-tp__pager {
   margin-top: var(--px-sp-4);

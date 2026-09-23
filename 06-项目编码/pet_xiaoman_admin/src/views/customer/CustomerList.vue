@@ -41,7 +41,7 @@
     </el-table-column>
 
     <template #empty>
-      <PxEmpty variant="user" text="还没有客户档案" hint="客户在小程序下单或注册后会自动出现在这里" />
+      <PxEmpty variant="customer" text="还没有客户档案" hint="客户在小程序下单或注册后会自动出现在这里" />
     </template>
   </px-table-page>
 </template>

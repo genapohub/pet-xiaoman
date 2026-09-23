@@ -4,8 +4,21 @@
       <div class="brand">
         <span class="brand__mark">
           <img v-if="user.storeLogo" class="brand__logo" :src="user.storeLogo" alt="门店 logo" />
-          <!-- 未配 logo 时用店名首字占位：不回落到任何一家门店的标 -->
-          <template v-else>{{ user.storeInitial }}</template>
+          <!-- 默认（未配置白标 logo）展示宠小满品牌标：将满的圆 + 三趾爪印
+               （源 04-品牌设计/…/chongxiaoman_logo_mark.svg，深松 #3D5C57，此处反白）。
+               画布侧栏小标 10:29 用的就是它，与登录页 2:713 同一标。 -->
+          <svg v-else class="brand__paw" viewBox="0 0 200 200" aria-hidden="true">
+            <ellipse cx="100.3" cy="99.8" rx="72.6" ry="71.1" stroke="currentColor" stroke-width="8.8"
+              stroke-linecap="round" stroke-dasharray="279.6 172.8" transform="rotate(-97.4 100.3 99.8)" />
+            <ellipse cx="100.3" cy="99.8" rx="72.6" ry="71.1" stroke="currentColor" stroke-width="9.9"
+              stroke-linecap="round" stroke-dasharray="47 405.4" transform="rotate(52.6 100.3 99.8)" />
+            <g fill="currentColor">
+              <ellipse cx="104.1" cy="88.6" rx="10.3" ry="12.2" transform="rotate(-8.2 104.1 88.6)" />
+              <ellipse cx="85.9" cy="99.4" rx="7.4" ry="8.9" transform="rotate(-14.2 85.9 99.4)" />
+              <ellipse cx="119.6" cy="98.1" rx="7.1" ry="8.6" transform="rotate(8.7 119.6 98.1)" />
+              <path d="M87.6 112.4 Q103.8 103.8 119.2 111.2 Q117.4 128.9 103.4 130.1 Q89.2 128.6 87.6 112.4 Z" />
+            </g>
+          </svg>
         </span>
         <span v-show="!collapsed" class="brand__copy">
           <span class="brand__name">{{ user.storeName }}</span>
@@ -165,6 +178,13 @@ onUnmounted(() => window.removeEventListener("resize", syncViewport));
   width: 18px;
   height: 18px;
   object-fit: contain;
+}
+/* 宠小满品牌标：反白绘于松绿方块内（与登录页同一处理）。
+   弧线在 18px 下偏细属品牌本相，实心三趾爪保证可辨识。 */
+.brand__paw {
+  width: 18px;
+  height: 18px;
+  color: var(--px-text-inverse);
 }
 .brand__copy {
   display: flex;

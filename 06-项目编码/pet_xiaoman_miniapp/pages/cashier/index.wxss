@@ -15,6 +15,7 @@
   flex-direction: column;
   gap: 16rpx;                           /* 8px */
   padding: 28rpx 36rpx;                 /* 上下 14px / 左右 18px */
+  box-shadow: var(--sd-card);
 }
 .ccard__label {
   font-size: 26rpx;                     /* 13px */
@@ -55,12 +56,11 @@
 .mopt {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  min-height: 104rpx;                   /* 52px */
+  min-height: 104rpx;
   padding: 20rpx 32rpx;
   border-radius: 24rpx;                 /* 12px */
   background: var(--c-paper);
-  border: 2rpx solid transparent;
+  border: 2rpx solid #E9E1D4;
   box-sizing: border-box;
 }
 .mopt--hover { background: var(--c-primary-pale); }
@@ -68,7 +68,10 @@
   background: var(--c-card);
   border-color: var(--c-primary);
 }
-.mopt--off { opacity: 0.55; }
+.mopt--off {
+  background: #FAF7F0;
+  border-color: #E9E1D4;
+}
 .mopt__main { flex: 1; min-width: 0; }
 .mopt__name {
   font-size: 30rpx;                     /* 15px */
@@ -82,18 +85,11 @@
   line-height: 1.45;
   color: var(--c-gray-mid);
 }
-/* 自绘单选：外圈 + 内点，免图标资源 */
-.mopt__radio {
-  flex: none;
-  width: 36rpx;
-  height: 36rpx;
-  border-radius: 50%;
-  border: 2rpx solid var(--c-gray-light);
-  box-sizing: border-box;
-}
-.mopt__radio--on {
-  border-color: var(--c-primary);
-  box-shadow: inset 0 0 0 8rpx var(--c-primary);
+.mopt__tip {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  line-height: 1.45;
+  color: #9B8A72;
 }
 
 /* 给固定费用条让位 */

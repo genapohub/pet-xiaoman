@@ -50,7 +50,7 @@
 
         <el-card shadow="never" class="block">
           <template #header><span class="card-title">服务影像时间线</span></template>
-          <PxEmpty v-if="!media.length" variant="image"
+          <PxEmpty v-if="!media.length" variant="order"
             text="还没有上传影像" hint="按服务节点拍照上传，客户可在小程序实时查看" />
           <el-timeline v-else>
             <el-timeline-item v-for="group in groupedMedia" :key="group.node" :type="group.type">
@@ -367,12 +367,14 @@ onMounted(load);
   flex-direction: column;
 }
 .side-col {
-  width: 332px;
+  width: 360px;
   display: flex;
   flex-direction: column;
   position: sticky;
   top: var(--px-sp-2);
 }
+/* 卡片统一对齐画布 2:791：radius 16 + 柔影 + 描边 #ECE9E3（el-card shadow="never" 去掉了默认影，这里补画布同款） */
+/* 卡片样式统一走 tokens.css 的全局 .el-card（radius 16 + 柔影 + 描边 #ECE9E3），这里只管间距 */
 .block { margin-bottom: var(--px-sp-4); }
 .card-title { font-weight: 600; color: var(--px-text-1); }
 .sticky { position: relative; }

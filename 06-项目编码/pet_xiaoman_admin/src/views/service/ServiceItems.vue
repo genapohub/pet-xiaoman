@@ -54,7 +54,7 @@
       </el-table-column>
 
       <template #empty>
-        <PxEmpty variant="box" :text="`还没有${activeTab}项目`" hint="点右上角新建，录入名称与价格即可对外展示" />
+        <PxEmpty variant="service" :text="`还没有${activeTab}项目`" hint="点右上角新建，录入名称与价格即可对外展示" />
       </template>
     </px-table-page>
 
@@ -90,7 +90,7 @@
     </px-form-drawer>
 
     <el-drawer v-model="versionVisible" title="价格版本历史" size="360px">
-      <PxEmpty v-if="!versions.length" variant="doc" text="暂无历史版本" />
+      <PxEmpty v-if="!versions.length" variant="service" text="暂无历史版本" />
       <el-timeline v-else>
         <el-timeline-item v-for="v in versions" :key="v.version + v.created_at" :timestamp="fmtDateTime(v.created_at)">
           {{ v.version }} · ¥{{ fmtMoney(v.price) }}

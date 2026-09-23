@@ -46,9 +46,9 @@
       >
         <view class="mopt__main">
           <view class="mopt__name">{{item.name}}</view>
-          <view class="mopt__desc">{{item.disabled ? item.disabledText : item.desc}}</view>
+          <view class="mopt__desc">{{item.desc}}</view>
+          <view class="mopt__tip" wx:if="{{item.disabled}}">{{item.disabledText}}</view>
         </view>
-        <view class="mopt__radio {{selected === item.key ? 'mopt__radio--on' : ''}}"></view>
       </view>
     </view>
 

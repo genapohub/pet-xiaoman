@@ -1,96 +1,144 @@
-/* C003 服务详情 + 科普（服务 · 二级页；对齐画布 81:1）· 1 画布 px = 2rpx */
+/* C003 服务详情（对齐 Ardot 81:1）· 1 画布 px = 2rpx */
 
-.page { padding-bottom: 0; }
+.sd-page {
+  padding-bottom: 72rpx;
+  background: var(--c-paper);
+}
+
+.sd-nav .nav__head {
+  min-height: 112rpx;
+}
 
 .sdbody {
   display: flex;
   flex-direction: column;
-  gap: 24rpx;                           /* 12px */
+  gap: 32rpx;
   padding: 0 40rpx;
   box-sizing: border-box;
 }
 
-/* ===== 价格卡 ===== */
-.pcard {
+.sd-hero,
+.sd-card {
+  border-radius: 40rpx;
+  border-color: #E9E0D3;
+  box-shadow: var(--sd-card);
+}
+
+.sd-hero {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
-  padding: 32rpx 36rpx;
+  gap: 22rpx;
+  padding: 36rpx;
 }
-.pcard__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16rpx;
-}
-.pcard__l {
-  flex: none;
-  font-size: 28rpx;
-  color: var(--c-gray-mid);
-}
-.pcard__p {
-  flex: none;
-  font-size: 56rpx;                     /* 28px：详情页价格是主角 */
+.sd-hero__title {
+  font-family: var(--font-serif);
+  font-size: 48rpx;
   font-weight: 600;
+  line-height: 1.2;
+  color: var(--c-ink-strong);
+}
+.sd-hero__desc {
+  font-size: 28rpx;
+  line-height: 1.55;
+  color: var(--c-gray);
+}
+.sd-hero__price {
+  font-size: 60rpx;
   line-height: 1.1;
   color: var(--c-primary);
 }
-.pcard__note {
-  font-size: 22rpx;
-  line-height: 1.5;
-  color: var(--c-gray-light);
-}
-
-/* ===== 服务内容 ===== */
-.ccard,
-.fcard {
+.sd-tags {
   display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-  padding: 32rpx 36rpx;
+  gap: 12rpx;
+  flex-wrap: wrap;
 }
-.crow {
+.sd-tag {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-}
-.crow__dot {
-  flex: none;
-  width: 14rpx;
-  height: 14rpx;
-  border-radius: 50%;
-  background: var(--c-primary);
-  opacity: 0.7;
-}
-.crow__t {
-  flex: 1;
-  min-width: 0;
-  font-size: 28rpx;
-  line-height: 1.5;
-  color: var(--c-ink);
+  justify-content: center;
+  height: 48rpx;
+  padding: 0 20rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-primary-light);
+  color: var(--c-primary);
+  font-size: 24rpx;
+  font-weight: 600;
 }
 
-/* ===== 常见问题 ===== */
-.faq {
+.sd-card {
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 24rpx;
+  padding: 36rpx;
 }
-.faq__q {
-  font-size: 28rpx;
-  font-weight: 500;
-  line-height: 1.45;
+.sd-card__title {
+  font-size: 34rpx;
+  font-weight: 600;
+  line-height: 1.35;
   color: var(--c-ink-strong);
 }
-.faq__a {
-  font-size: 24rpx;
-  line-height: 1.65;
-  color: var(--c-gray-mid);
+.sd-flow,
+.sd-copy {
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: #4E5969;
 }
 
-/* 骨架 */
-.sk-a { height: 160rpx; border-radius: 36rpx; }
-.sk-b { height: 240rpx; border-radius: 36rpx; }
+.sd-include {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+.sd-include__item {
+  display: flex;
+  align-items: center;
+  height: 70rpx;
+  padding: 0 28rpx;
+  border-radius: 28rpx;
+  background: var(--c-paper);
+  color: var(--c-ink);
+  font-size: 28rpx;
+  font-weight: 600;
+  box-sizing: border-box;
+}
 
-/* 给固定底栏让位 */
-.sdspacer { height: 220rpx; }
+.sd-promise {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  padding: 36rpx;
+  border-radius: 40rpx;
+  border: 1rpx solid #F0C48F;
+  background: var(--c-clay-light);
+  box-sizing: border-box;
+}
+.sd-promise__title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: var(--c-clay-ink);
+}
+.sd-promise__text {
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: #7A5A35;
+}
+
+.sd-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 104rpx;
+  border-radius: var(--r-pill);
+  background: var(--c-primary);
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  box-shadow: var(--sd-action);
+}
+.sd-submit--hover {
+  background: var(--c-primary-press);
+}
+
+.sk-a { height: 396rpx; border-radius: 40rpx; }
+.sk-b { height: 300rpx; border-radius: 40rpx; }
+.sk-c { height: 220rpx; border-radius: 40rpx; }

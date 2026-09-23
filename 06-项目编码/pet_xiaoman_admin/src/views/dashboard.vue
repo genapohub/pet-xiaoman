@@ -1,189 +1,226 @@
-<!-- B-工作台 Dashboard（对齐画布 2:647）
-     版式：B 端标准骨架，左侧 220px 侧栏 + 64px 顶栏 + 内容区 24px padding。
-     主体：页头 → SLA 告警 → 统计卡横排 → 流转订单列表；强调待确认订单与 30 分钟 SLA。 -->
+<!-- B-工作台 Dashboard（对齐画布 104:355 店长今日工作台）
+     版式：KPI 四卡 + 近 7 日服务趋势柱 + 服务项目排行。无页头（画布直接进 KPI 区）。
+     数据：今日订单 / 本周服务 / 待处理 / 客户总数 + 趋势 + 排行 全部由本地聚合真实接口得出
+           （/api/b/orders, /api/b/customers），不虚构。 -->
 <template>
-  <div>
-    <PxPageHeader title="今日工作台" :subtitle="`${today} · 共 ${rows.length} 单在流转`">
-      <template #actions>
-        <el-button :loading="loading" @click="load">
-          <el-icon><Refresh /></el-icon> 刷新
-        </el-button>
-      </template>
-    </PxPageHeader>
-
-    <!-- SLA 告警：30 分钟未确认要立刻处理，是最容易漏的一步 -->
-    <el-alert v-if="slaOrders.length" type="error" :closable="false" show-icon class="sla">
-      <template #title>
-        {{ slaOrders.length }} 单等待确认已超 15 分钟（SLA 30 分钟）
-        <el-button text type="danger" size="small" @click="goFirst(slaOrders)">去处理</el-button>
-      </template>
-    </el-alert>
-
-    <div class="stat-row">
-      <PxStatCard v-for="s in stats" :key="s.label" :label="s.label" :value="s.value" :unit="s.unit" :hint="s.hint" />
-    </div>
-
+  <div class="dash">
     <PxErrorState v-if="failed" text="工作台数据加载失败" :loading="loading" @retry="load" />
+    <el-skeleton v-else-if="loading" :rows="6" animated />
 
-    <el-row :gutter="16">
-      <el-col v-for="col in columns" :key="col.name" :span="6">
-        <el-card shadow="never" class="lane">
-          <template #header>
-            <span class="lane__name">{{ col.name }}</span>
-            <span class="lane__count">{{ col.items.length }}</span>
-          </template>
-          <PxEmpty v-if="!col.items.length" variant="doc" text="今日暂无" />
-          <div v-for="o in col.items" :key="o.order_no" class="order"
-               :class="{ 'is-night': o.is_night }" @click="go(o)">
-            <div class="order__no">{{ o.order_no }}</div>
-            <div class="order__meta">¥{{ fmtMoney(o.total_amount) }} · {{ fmtShort(o.expect_time) }}</div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <template v-else>
+      <!-- KPI 四卡 -->
+      <div class="kpis">
+        <div v-for="k in kpis" :key="k.label" class="kpi">
+          <div class="kpi__label">{{ k.label }}</div>
+          <div class="kpi__value" :class="k.accent ? `is-${k.accent}` : ''">{{ k.value }}</div>
+        </div>
+      </div>
 
-    <div class="refresh-hint">最后刷新 {{ lastRefresh }}，数据每 5 分钟自动更新</div>
+      <!-- 近 7 日服务趋势（真实日单量，按峰值缩放到 110px，末日高亮陶土橙） -->
+      <section class="card trend">
+        <h3 class="card__title">近 7 日服务趋势</h3>
+        <div class="bars">
+          <div
+            v-for="(d, i) in trend"
+            :key="d.day"
+            class="bar"
+            :class="{ 'is-accent': i === trend.length - 1 }"
+            :style="{ height: d.h + 'px' }"
+          />
+        </div>
+      </section>
+
+      <!-- 服务项目排行（按 pkg_name 聚合营收，取前 3） -->
+      <section class="card rank">
+        <h3 class="card__title">服务项目排行</h3>
+        <PxEmpty v-if="!ranks.length" variant="dashboard" text="暂无服务数据" />
+        <div v-for="(r, i) in ranks" :key="r.name" class="rank__row">
+          <span class="rank__name">{{ i + 1 }}. {{ r.name }}</span>
+          <span class="rank__val">¥{{ fmtMoney(r.value) }}</span>
+        </div>
+      </section>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import { Refresh } from "@element-plus/icons-vue";
+import { computed, onMounted, ref } from "vue";
 import { listOrders } from "../api/order";
-import PxPageHeader from "../components/PxPageHeader.vue";
+import { listCustomers } from "../api/batch2";
 import PxEmpty from "../components/PxEmpty.vue";
 import PxErrorState from "../components/PxErrorState.vue";
-import PxStatCard from "../components/PxStatCard.vue";
-import { fmtMoney, fmtShort } from "../utils/format";
+import { fmtMoney } from "../utils/format";
 
-const router = useRouter();
-const rows = ref([]);
+const orders = ref([]);
+const customerTotal = ref(0);
 const loading = ref(false);
 const failed = ref(false);
-const lastRefresh = ref("");
 
-const today = new Date().toLocaleDateString("zh-CN", { month: "long", day: "numeric", weekday: "long" });
+// 日期工具（刻意走本地时区，避免 toISOString 的 UTC 偏移把日期算到前一天）
+const pad = (n) => String(n).padStart(2, "0");
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const today = new Date();
+const todayYmd = ymd(today);
 
-const SLA_MINUTES = 15;
-const STALE = { 待确认: true };
-const slaOrders = computed(() =>
-  rows.value.filter((o) => STALE[o.status] && Date.now() - new Date(o.created_at) > SLA_MINUTES * 60000));
+// 本周一（周一为一周起点，本地时区）
+function mondayOf(date) {
+  const d = new Date(date);
+  const day = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - day);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+const weekStart = mondayOf(today);
 
-const columns = computed(() => {
-  const by = (s) => rows.value.filter((o) => o.status === s);
+const isToday = (iso) => (iso || "").slice(0, 10) === todayYmd;
+const inWeek = (iso) => {
+  const t = new Date(iso);
+  return t >= weekStart && t <= today;
+};
+// 待处理 = 仍需人介入的单（待确认 / 已预约），不含已结算与已取消
+const isPending = (s) => s === "待确认" || s === "已预约";
+
+const kpis = computed(() => {
+  const all = orders.value;
+  const todayOrders = all.filter((o) => isToday(o.created_at)).length;
+  const weekSvc = all.filter((o) => inWeek(o.created_at)).length;
+  const pending = all.filter((o) => isPending(o.status)).length;
   return [
-    { name: "待确认", items: by("待确认") },
-    { name: "已预约·今日接宠", items: by("已预约") },
-    { name: "服务中", items: by("服务中") },
-    { name: "待交付", items: by("待交付") },
+    { label: "今日订单", value: todayOrders, accent: "primary" },
+    { label: "本周服务", value: weekSvc, accent: "" },
+    { label: "客户总数", value: customerTotal.value, accent: "" },
+    { label: "待处理事项", value: pending, accent: "warning" },
   ];
 });
 
-const stats = computed(() => {
-  const pending = rows.value.filter((o) => o.status === "待确认").length;
-  const todayDone = rows.value.filter((o) => o.status === "已完成").length;
-  const amount = rows.value.reduce((a, o) => a + Number(o.total_amount || 0), 0);
-  return [
-    { label: "待确认", value: pending, unit: "单", hint: pending ? "优先处理" : "无积压" },
-    { label: "今日完成", value: todayDone, unit: "单", hint: "含本次拉取全部订单" },
-    { label: "今日流水", value: `¥${fmtMoney(amount)}`, unit: "", hint: "下单金额合计" },
-    { label: "夜间单", value: rows.value.filter((o) => o.is_night).length, unit: "单", hint: "夜间服务加收" },
-  ];
+// 近 7 日服务趋势：真实日单量，按峰值缩放到 110px
+const trend = computed(() => {
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    days.push({ day: ymd(d), count: 0 });
+  }
+  const map = Object.fromEntries(days.map((d) => [d.day, d]));
+  for (const o of orders.value) {
+    const k = (o.created_at || "").slice(0, 10);
+    if (map[k]) map[k].count++;
+  }
+  const max = Math.max(1, ...days.map((d) => d.count));
+  return days.map((d) => ({ day: d.day, h: Math.round((d.count / max) * 110) }));
+});
+
+// 服务项目排行：按 pkg_name 聚合营收，取前 3
+const ranks = computed(() => {
+  const sum = {};
+  for (const o of orders.value) {
+    const name = o.pkg_name || "未命名服务";
+    sum[name] = (sum[name] || 0) + Number(o.total_amount || 0);
+  }
+  return Object.entries(sum)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([name, value]) => ({ name, value }));
 });
 
 async function load() {
   loading.value = true;
   failed.value = false;
   try {
-    const data = await listOrders({ size: 100 });
-    rows.value = data.items;
-    lastRefresh.value = new Date().toLocaleTimeString("zh-CN", { hour12: false }).slice(0, 8);
+    const [o, c] = await Promise.all([listOrders({ size: 200 }), listCustomers()]);
+    orders.value = o.items || o || [];
+    const custList = Array.isArray(c) ? c : (c.items || []);
+    customerTotal.value = c.total != null ? c.total : custList.length;
   } catch {
     failed.value = true;
-  } finally { loading.value = false; }
+  } finally {
+    loading.value = false;
+  }
 }
 
-function go(row) { router.push(`/orders/${row.order_no}`); }
-function goFirst(list) { if (list.length) go(list[0]); }
-
-// 门店电脑常年开着，5 分钟自动拉一次，避免员工忘刷新错过新单
-let timer;
-onMounted(() => {
-  load();
-  timer = setInterval(load, 5 * 60 * 1000);
-});
-onUnmounted(() => clearInterval(timer));
+onMounted(load);
 </script>
 
 <style scoped>
-.sla { margin-bottom: var(--px-sp-4); }
-.stat-row {
+.dash { display: flex; flex-direction: column; gap: var(--px-sp-4); }
+
+/* KPI 四卡 */
+.kpis {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--px-sp-4);
-  margin-bottom: var(--px-sp-4);
 }
-.lane :deep(.el-card__header) {
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--px-bg-card);
+  border: 1px solid var(--px-border);
+  border-radius: 14px;
+  box-shadow: var(--px-shadow-card-soft);
+}
+.kpi__label { font-size: var(--px-fs-sm); color: var(--px-text-2); }
+.kpi__value {
+  font-family: var(--px-font-num);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--px-text-1);
+  font-variant-numeric: tabular-nums;
+}
+.kpi__value.is-primary { color: var(--px-primary); }
+.kpi__value.is-warning { color: var(--px-chart-2); }
+
+/* 通用卡片 */
+.card {
+  background: var(--px-bg-card);
+  border: 1px solid var(--px-border);
+  border-radius: 14px;
+  box-shadow: var(--px-shadow-card-soft);
+}
+.card__title {
+  margin: 0;
+  font-family: var(--px-font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--px-text-1);
+}
+
+/* 趋势柱 */
+.trend { padding: 18px; }
+.trend .bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 110px;
+  margin-top: 12px;
+}
+.bar {
+  width: 28px;
+  background: var(--px-primary);
+  border-radius: 6px;
+}
+.bar.is-accent { background: var(--px-chart-2); }
+
+/* 服务项目排行 */
+.rank { padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+.rank__row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--px-sp-3) var(--px-sp-4);
-  background: var(--px-bg-card);
+  gap: 16px;
 }
-.lane {
-  border-top: 3px solid var(--px-primary);
-}
-.lane:nth-child(2) { border-top-color: var(--px-chart-2); }
-.lane:nth-child(3) { border-top-color: var(--px-chart-3); }
-.lane:nth-child(4) { border-top-color: var(--px-chart-1); }
-.lane__name { font-weight: 600; color: var(--px-text-1); }
-.lane__count {
-  min-width: 20px;
-  padding: 0 6px;
-  border-radius: 10px;
-  background: var(--px-primary-weak);
+.rank__name { font-size: 14px; color: var(--px-text-1); }
+.rank__val {
+  font-family: var(--px-font-num);
+  font-size: 14px;
+  font-weight: 500;
   color: var(--px-primary);
-  font-size: var(--px-fs-xs);
-  font-weight: 600;
-  text-align: center;
-}
-.order {
-  padding: var(--px-sp-2) var(--px-sp-3);
-  margin-bottom: var(--px-sp-2);
-  border: 1px solid var(--px-border);
-  border-left: 3px solid transparent;
-  border-radius: var(--px-radius-md);
-  cursor: pointer;
-  transition: all var(--px-motion-fast) linear;
-}
-.order:hover {
-  border-color: var(--px-primary);
-  background: var(--px-bg-hover);
-}
-.order:active { background: var(--px-primary-weak); }
-.order:focus-visible {
-  outline: 2px solid var(--px-primary);
-  outline-offset: 1px;
-}
-.order.is-night { border-left-color: var(--px-error); }
-.order__no {
-  font-weight: 600;
-  font-size: var(--px-fs-sm);
-  color: var(--px-text-1);
-}
-.order__meta {
-  margin-top: var(--px-sp-1);
-  font-size: var(--px-fs-xs);
-  color: var(--px-text-2);
   font-variant-numeric: tabular-nums;
 }
-.refresh-hint {
-  margin-top: var(--px-sp-3);
-  font-size: var(--px-fs-xs);
-  color: var(--px-text-3);
-}
+
 @media (max-width: 1366px) {
-  .stat-row { grid-template-columns: repeat(2, 1fr); }
+  .kpis { grid-template-columns: repeat(2, 1fr); }
 }
 </style>

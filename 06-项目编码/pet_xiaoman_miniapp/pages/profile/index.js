@@ -42,7 +42,7 @@ Page(brandPage({
       { label: "纪念品订单", icon: "/assets/ardot/icons/2_582-20260922_083300135.png", chevron: "/assets/ardot/icons/2_587-20260922_083300135.png", url: "/pages/product-orders/index" },
       { label: "骨灰寄存", icon: "/assets/ardot/icons/2_590-20260922_083300136.png", chevron: "/assets/ardot/icons/2_594-20260922_083300136.png", url: "/pages/boarding-query/query" },
       { label: "联系我们", icon: "/assets/ardot/icons/2_597-20260922_083300136.png", chevron: "/assets/ardot/icons/2_600-20260922_083300137.png", action: "call" },
-      { label: "设置", icon: "/assets/ardot/icons/2_603-20260922_083300138.png", chevron: "/assets/ardot/icons/2_607-20260922_083300138.png", url: "/pages/profile-detail/detail" },
+      { label: "设置", icon: "/assets/ardot/icons/2_603-20260922_083300138.png", chevron: "/assets/ardot/icons/2_607-20260922_083300138.png", url: "/pages/settings/index" },
     ],
   },
 

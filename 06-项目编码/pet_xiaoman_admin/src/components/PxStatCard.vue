@@ -1,5 +1,5 @@
 <template>
-  <div class="px-stat">
+  <div class="px-stat" :class="{ 'is-flat': flat }">
     <div class="px-stat__top">
       <div class="px-stat__label">{{ label }}</div>
       <span class="px-stat__dot" aria-hidden="true" />
@@ -12,12 +12,14 @@
 </template>
 
 <script setup>
-// 刻意不做「彩色左边框 + 大图标」那套：后台是工具，数字本身要最显眼
+// 默认带「彩色顶边 + 圆点」强调（后台工具风，数字最显眼）；
+// flat=true 时去掉顶边与圆点、改用画布柔影，用于工作台/看板等画布纯描边白卡场景。
 defineProps({
   label: { type: String, required: true },
   value: { type: [String, Number], default: 0 },
   unit: { type: String, default: "" },
   hint: { type: String, default: "" },
+  flat: { type: Boolean, default: false },
 });
 </script>
 
@@ -32,6 +34,12 @@ defineProps({
   border-radius: var(--px-radius-lg);
   box-shadow: var(--px-shadow-card);
 }
+/* flat：对齐画布 v2.0 纯描边白卡（无彩色顶边、无圆点、柔影） */
+.px-stat.is-flat {
+  border-top-width: 1px;
+  box-shadow: var(--px-shadow-card-soft);
+}
+.px-stat.is-flat .px-stat__dot { display: none; }
 .px-stat__top {
   display: flex;
   align-items: center;
@@ -54,6 +62,7 @@ defineProps({
   font-weight: 600;
   line-height: 1.2;
   color: var(--px-text-1);
+  font-family: var(--px-font-num);
   font-variant-numeric: tabular-nums;
 }
 .px-stat__unit {

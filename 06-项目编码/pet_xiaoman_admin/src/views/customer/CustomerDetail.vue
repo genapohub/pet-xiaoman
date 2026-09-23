@@ -22,7 +22,7 @@
     </el-card>
 
     <el-card shadow="never" header="服务历史" class="block">
-      <PxEmpty v-if="!c.orders?.length" variant="doc" text="还没有服务记录" />
+      <PxEmpty v-if="!c.orders?.length" variant="order" text="还没有服务记录" />
       <el-table v-else :data="c.orders" size="small">
         <el-table-column prop="order_no" label="订单号" />
         <el-table-column label="状态" width="120">
@@ -38,7 +38,7 @@
     </el-card>
 
     <el-card shadow="never" header="回访" class="block">
-      <PxEmpty v-if="!c.visits?.length" variant="doc" text="暂无回访记录" hint="服务完成后登记满意度，便于后续维护" />
+      <PxEmpty v-if="!c.visits?.length" variant="customer" text="暂无回访记录" hint="服务完成后登记满意度，便于后续维护" />
       <el-timeline v-else>
         <el-timeline-item v-for="v in c.visits" :key="v.created_at" :timestamp="fmtDateTime(v.created_at)">
           满意度 {{ v.satisfaction }} 星 · {{ v.would_recommend ? "愿意推荐" : "暂不愿推荐" }}

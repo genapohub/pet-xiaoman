@@ -104,8 +104,10 @@ body {
   --px-radius-lg: 12px;
   --px-radius-xl: 16px;
 
-  /* ===== 阴影（两级）===== */
+  /* ===== 阴影（两级 + 画布卡片柔影）===== */
   --px-shadow-card: 0 1px 4px rgba(32, 52, 48, 0.04);
+  /* 画布 v2.0 卡片统一柔影（工作台统计卡/最近订单/快捷操作卡都用它，比 --px-shadow-card 略重） */
+  --px-shadow-card-soft: 0 6px 16px -4px rgba(0, 0, 0, 0.04);
   --px-shadow-card-hover: 0 10px 28px rgba(32, 52, 48, 0.08);
   --px-shadow-popup: 0 18px 54px rgba(32, 52, 48, 0.16);
   --px-shadow-focus: 0 0 0 3px rgba(91, 140, 133, 0.16);
@@ -182,16 +184,20 @@ body {
   --el-table-row-hover-bg-color: var(--px-primary-softer);
   font-size: var(--px-fs-base);
   border: 1px solid var(--px-border);
-  border-radius: var(--px-radius-lg);
+  border-radius: var(--px-radius-xl);
   overflow: hidden;
-  box-shadow: var(--px-shadow-card);
+  box-shadow: var(--px-shadow-card-soft);
 }
 .el-table th.el-table__cell {
   font-weight: 600;
   color: var(--px-text-1);
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
 }
 .el-table td.el-table__cell {
   height: var(--px-h-row);
+  padding-top: 15px;
+  padding-bottom: 15px;
 }
 .el-table .is-right .cell {
   font-variant-numeric: tabular-nums;
@@ -202,6 +208,16 @@ body {
 .el-table__empty-block {
   min-height: 260px;
 }
+
+/* 分屏表格密度（2026-09-20 像素审计对齐）
+   订单列表 2:730：紧凑型 thead 10 / 行 13（行内含订单号+宠物名副行，比标准表更密）
+   团队成员 2:1341：行 12 + 表格卡圆角 14
+   骨灰寄存 24:5：表格卡圆角 14（画布该两屏为小卡规格，非通用 16） */
+.tp-orders .el-table th.el-table__cell { padding-top: 10px !important; padding-bottom: 10px !important; }
+.tp-orders .el-table td.el-table__cell { padding-top: 13px !important; padding-bottom: 13px !important; }
+.tp-staff .el-table { border-radius: 14px; }
+.tp-staff .el-table td.el-table__cell { padding-top: 12px !important; padding-bottom: 12px !important; }
+.tp-boarding .el-table { border-radius: 14px; }
 
 /* 按钮：主次高度 40/32，禁用态用 PRD 指定蓝灰而非半透明 */
 .el-button {
@@ -303,11 +319,12 @@ body {
   background: var(--px-primary);
 }
 
+/* 画布 v2.0 所有卡片统一：radius 16 + 柔影 + 描边 #ECE9E3（涵盖详情页全部 el-card） */
 .el-card {
   background: var(--px-bg-elevated);
-  border-color: rgba(201, 205, 212, 0.70);
-  border-radius: var(--px-radius-lg);
-  box-shadow: var(--px-shadow-card);
+  border-color: #ECE9E3;
+  border-radius: var(--px-radius-xl);
+  box-shadow: var(--px-shadow-card-soft);
 }
 .el-card__header {
   border-bottom-color: var(--px-border);
